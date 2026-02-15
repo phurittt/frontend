@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-
+import { useUserStore } from 'src/stores/user-store'; // เพิ่มบรรทัดนี้
 const router = useRouter();
 
 // ตัวแปรรับค่าจากฟอร์ม
 const username = ref('');
 const password = ref('');
+const store = useUserStore(); // เรียกใช้ Store
 
 const handleLogin = () => {
   console.log('Login with:', username.value, password.value);
-
+  store.login(username.value);
   // จำลองว่า Login ผ่านแล้วกลับไปหน้าแรก
   router.push('/home');
 };
