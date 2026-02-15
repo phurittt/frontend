@@ -17,7 +17,7 @@ function toggleLeftDrawer() {
           TMIS
         </q-toolbar-title>
         <q-space />
-        <q-btn unelevated color="grey-9" label="Login" class="q-px-md" />
+        <q-btn unelevated color="grey-9" label="Login" class="q-px-md" to="/login" />
       </q-toolbar>
     </q-header>
 

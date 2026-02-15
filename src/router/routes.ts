@@ -17,6 +17,11 @@ const routes: RouteRecordRaw[] = [
     children: [{ path: 'course', component: () => import('pages/CoursePage.vue') }],
   },
   {
+    path: '/',
+    component: () => import('layouts/MainLayout.vue'), // <-- เรียกใช้ Layout ใหม่ที่เพิ่งสร้าง
+    children: [{ path: 'login', component: () => import('pages/LoginPage.vue') }],
+  },
+  {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
   },
