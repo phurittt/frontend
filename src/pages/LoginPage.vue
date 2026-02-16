@@ -13,7 +13,7 @@ const handleLogin = () => {
   console.log('Login with:', username.value, password.value);
   store.login(username.value);
   // จำลองว่า Login ผ่านแล้วกลับไปหน้าแรก
-  router.push('/home');
+  router.push('/');
 };
 </script>
 

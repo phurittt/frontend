@@ -4,31 +4,22 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: 'home', component: () => import('pages/IndexPage.vue') }],
+    children: [
+      { path: '', component: () => import('pages/IndexPage.vue') },
+      { path: 'courses', component: () => import('pages/CoursePage.vue') },
+    ],
   },
   {
-    path: '/',
+    path: '/login',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: 'course', component: () => import('pages/CoursePage.vue') }],
+    children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
   },
-  {
-    path: '/',
-    component: () => import('layouts/MainLayout.vue'), // <-- เรียกใช้ Layout ใหม่ที่เพิ่งสร้าง
-    children: [{ path: 'login', component: () => import('pages/LoginPage.vue') }],
-  },
-  // --- กลุ่มที่ 3: Admin (ใช้ AdminLayout ใหม่) ---
   {
     path: '/admin',
-    component: () => import('layouts/AdminLayout.vue'), // <-- Layout ใหม่
+    component: () => import('layouts/AdminLayout.vue'),
     children: [
-      // เข้า /admin เฉยๆ ให้เด้งไปหน้า projects หรือ Dashboard
       { path: '', redirect: '/admin/projects' },
-
-      // หน้าจัดการโครงการ
       { path: 'projects', component: () => import('pages/admin/ProjectManagePage.vue') },
-
-      // หน้าอื่นๆ ก็เพิ่มต่อตรงนี้...
-      // { path: 'users', component: ... },
     ],
   },
   {

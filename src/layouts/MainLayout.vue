@@ -59,12 +59,12 @@ function handleLogout() {
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1">
       <q-list class="q-mt-md">
 
-        <q-item clickable v-ripple to="/home" active-class="bg-grey-3 text-black text-weight-bold">
+        <q-item clickable v-ripple to="/" active-class="bg-grey-3 text-black text-weight-bold">
           <q-item-section avatar><q-icon name="home" /></q-item-section>
           <q-item-section>หน้าแรก</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple to="/course" active-class="bg-grey-3 text-black text-weight-bold">
+        <q-item clickable v-ripple to="/courses" active-class="bg-grey-3 text-black text-weight-bold">
           <q-item-section avatar><q-icon name="school" /></q-item-section>
           <q-item-section>หลักสูตร</q-item-section>
         </q-item>
