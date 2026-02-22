@@ -20,7 +20,7 @@ function handleLogout() {
 
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated class="bg-white text-black" style="border-bottom: 2px solid #1976D2">
+    <q-header elevated class="bg-white text-black" style="border-bottom: 2px solid #1976d2">
       <q-toolbar>
         <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" />
 
@@ -36,7 +36,7 @@ function handleLogout() {
 
           <q-btn round flat>
             <q-avatar size="32px">
-              <img :src="store.user.avatar">
+              <img :src="store.user.avatar" />
             </q-avatar>
             <q-menu>
               <q-list style="min-width: 150px">
@@ -58,13 +58,17 @@ function handleLogout() {
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1">
       <q-list class="q-mt-md">
-
         <q-item clickable v-ripple to="/" active-class="bg-grey-3 text-black text-weight-bold">
           <q-item-section avatar><q-icon name="home" /></q-item-section>
           <q-item-section>หน้าแรก</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple to="/courses" active-class="bg-grey-3 text-black text-weight-bold">
+        <q-item
+          clickable
+          v-ripple
+          to="/courses"
+          active-class="bg-grey-3 text-black text-weight-bold"
+        >
           <q-item-section avatar><q-icon name="school" /></q-item-section>
           <q-item-section>หลักสูตร</q-item-section>
         </q-item>
@@ -80,7 +84,6 @@ function handleLogout() {
           <q-item-section avatar><q-icon name="mail" /></q-item-section>
           <q-item-section>ติดต่อเรา</q-item-section>
         </q-item>
-
       </q-list>
     </q-drawer>
 

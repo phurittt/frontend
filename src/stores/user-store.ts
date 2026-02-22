@@ -2,24 +2,36 @@ import { defineStore } from 'pinia';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    // สถานะล็อกอิน (เริ่มต้นเป็น false)
-    isLoggedIn: false,
-    // ข้อมูลผู้ใช้จำลอง
     user: {
-      username: '',
+      username: null as string | null,
       avatar: 'https://cdn.quasar.dev/img/cat.jpg',
     },
+    isLoggedIn: false,
   }),
 
   actions: {
-    login(username: string) {
-      // จำลองการล็อกอินสำเร็จ
-      this.isLoggedIn = true;
-      this.user.username = username;
+    async login(username: string) {
+      try {
+        // จำลองการทำงานของ Network
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        this.user.username = username;
+        this.isLoggedIn = true;
+
+        return Promise.resolve(true);
+      } catch (error) {
+        this.isLoggedIn = false;
+        throw error;
+      }
     },
     logout() {
+      this.user.username = null;
       this.isLoggedIn = false;
-      this.user.username = '';
+
+      // (Optional) ล้างค่าใน LocalStorage/SessionStorage หากมีการเก็บไว้
+      // localStorage.removeItem('token');
+
+      console.log('User logged out');
     },
   },
 });

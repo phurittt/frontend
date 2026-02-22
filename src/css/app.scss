@@ -1,1 +1,12 @@
 // app global css in SCSS form
+
+@import './animations.scss';
+
+// Font
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap');
+body {
+  font-family: 'Kanit', sans-serif !important;
+}
+.q-body {
+  font-family: 'Kanit', sans-serif;
+}
