@@ -41,7 +41,6 @@ const menuList = [
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-white text-grey-8">
-
       <div class="q-pa-md flex column flex-center q-mb-md">
         <q-avatar size="64px" color="grey-3" text-color="grey-8" class="q-mb-sm">
           <q-icon name="person" size="40px" />
@@ -52,7 +51,6 @@ const menuList = [
       <q-separator class="q-mb-sm" />
 
       <q-list padding>
-
         <q-item
           v-for="(item, index) in menuList"
           :key="index"
@@ -61,7 +59,7 @@ const menuList = [
           :to="item.to"
           active-class="bg-grey-3 text-black text-weight-bold"
         >
-          <q-item-section avatar style="min-width: 40px;">
+          <q-item-section avatar style="min-width: 40px">
             <q-icon :name="item.icon" />
           </q-item-section>
           <q-item-section>{{ item.label }}</q-item-section>
@@ -70,12 +68,11 @@ const menuList = [
         <q-separator class="q-my-md" />
 
         <q-item clickable v-ripple class="text-red">
-          <q-item-section avatar style="min-width: 40px;">
+          <q-item-section avatar style="min-width: 40px">
             <q-icon name="logout" />
           </q-item-section>
           <q-item-section>ออกจากระบบ</q-item-section>
         </q-item>
-
       </q-list>
     </q-drawer>
 
