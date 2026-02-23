@@ -69,10 +69,10 @@ export default defineConfigWithVueTs(
       'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
       // --- Custom overrides (เพิ่มใหม่เพื่อปิดกฎกวนใจ) ---
       '@typescript-eslint/no-floating-promises': 'off', // ไม่ต้องใส่ void หน้า Promise
-      '@typescript-eslint/no-misused-promises': 'off',  // อนุญาตให้ส่ง async function เข้า event
-      '@typescript-eslint/no-unused-vars': 'off',       // ประกาศตัวแปรแล้วไม่ใช้ไม่ว่ากัน
-      'no-unused-vars': 'off',                            // (สำหรับ JS ปกติ)
-      '@typescript-eslint/no-explicit-any': 'off',        // อนุญาตให้ใช้ any ได้
+      '@typescript-eslint/no-misused-promises': 'off', // อนุญาตให้ส่ง async function เข้า event
+      '@typescript-eslint/no-unused-vars': 'off', // ประกาศตัวแปรแล้วไม่ใช้ไม่ว่ากัน
+      'no-unused-vars': 'off', // (สำหรับ JS ปกติ)
+      '@typescript-eslint/no-explicit-any': 'off', // อนุญาตให้ใช้ any ได้
     },
   },
 

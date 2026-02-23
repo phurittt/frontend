@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from 'src/stores/user-store';
 import { type QInput } from 'quasar';
+import { useAuthStore } from 'src/stores/auth-store';
 
 interface LoginInstruction {
   title: string;
@@ -29,7 +29,7 @@ const instructions: LoginInstruction[] = [
 ];
 
 const router = useRouter();
-const store = useUserStore();
+const authStore = useAuthStore();
 
 // Form Data
 const username = ref('');
@@ -52,7 +52,15 @@ watch(password, (newVal) => {
   }
 });
 
+const clearError = (inputRef: QInput | null) => {
+  if (inputRef?.hasError) {
+    inputRef.resetValidation();
+  }
+};
+
 const handleLogin = async () => {
+  if (loading.value) return;
+
   const isUsernameValid = await usernameRef.value?.validate();
   const isPasswordValid = await passwordRef.value?.validate();
 
@@ -76,8 +84,10 @@ const handleLogin = async () => {
 
   loading.value = true;
   try {
-    await store.login(username.value);
+    await authStore.login(username.value);
     router.push('/');
+  } catch (error) {
+    console.error('Login failed:', error);
   } finally {
     loading.value = false;
   }
@@ -118,15 +128,15 @@ const handleLogin = async () => {
       </div>
 
       <div class="col-12 col-md-5">
-        <q-card class="text-white shadow-24" style="border-radius: 12px; background-color: #424242">
+        <q-card class="login-card shadow-24">
           <q-card-section class="text-center q-pt-xl q-pb-md">
-            <div class="text-h5 text-weight-bolder">เข้าสู่ระบบ</div>
+            <div class="text-h4 text-weight-bolder">เข้าสู่ระบบ</div>
           </q-card-section>
 
           <q-form @submit.prevent="handleLogin">
             <q-card-section class="q-px-xl q-py-md">
               <div class="q-mb-md">
-                <label for="username" class="text-subtitle2 text-grey-4 q-mb-xs block"
+                <label for="username" class="block text-subtitle2 text-grey-4 q-mb-xs"
                   >ชื่อผู้ใช้ (Username)</label
                 >
                 <q-input
@@ -137,17 +147,21 @@ const handleLogin = async () => {
                   autocomplete="username"
                   :class="{ 'shake-now': shakeTrigger && !username }"
                   :rules="usernameRules"
-                  lazy-rules
+                  lazy-rules="ondemand"
                   outlined
                   placeholder=""
                   dense
                   bottom-slots
-                  @update:model-value="usernameRef?.resetValidation()"
-                />
+                  @update:model-value="clearError(usernameRef)"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="person" size="xs" class="q-pr-xs icon-input" />
+                  </template>
+                </q-input>
               </div>
 
               <div class="q-mb-sm">
-                <label for="password" class="text-subtitle2 text-grey-4 q-mb-xs block"
+                <label for="password" class="block text-subtitle2 text-grey-4 q-mb-xs"
                   >รหัสผ่าน (Password)</label
                 >
                 <q-input
@@ -158,14 +172,17 @@ const handleLogin = async () => {
                   autocomplete="current-password"
                   :class="{ 'shake-now': shakeTrigger && !password }"
                   :rules="passwordRules"
-                  lazy-rules
+                  lazy-rules="ondemand"
                   outlined
                   :type="isPassword ? 'password' : 'text'"
                   placeholder=""
                   dense
                   bottom-slots
-                  @update:model-value="passwordRef?.resetValidation()"
+                  @update:model-value="clearError(passwordRef)"
                 >
+                  <template v-slot:prepend>
+                    <q-icon name="lock" size="xs" class="q-pr-xs icon-input" />
+                  </template>
                   <template v-slot:append>
                     <q-icon
                       v-if="password"
@@ -186,14 +203,14 @@ const handleLogin = async () => {
             <q-card-section class="q-px-xl q-pb-xl">
               <q-btn
                 type="submit"
-                label="SIGN IN"
-                class="full-width q-py-sm text-weight-bold q-mb-lg"
+                label="เข้าสู่ระบบ"
+                class="btn full-width q-py-sm text-weight-bold q-mb-lg"
                 unelevated
                 rounded
                 no-caps
                 :loading="loading"
                 @click="handleLogin"
-                style="background-color: #e91e63; height: 50px"
+                style="background-color: #e91e63"
               />
 
               <div class="row items-center q-mb-lg">
@@ -205,15 +222,17 @@ const handleLogin = async () => {
               </div>
 
               <div class="row q-col-gutter-md justify-center">
-                <div class="row justify-center btn-social">
-                  <q-btn type="button" unelevated round no-caps class="btn-google full-width">
-                    <img src="../assets/Google.svg" class="social-icon" />
+                <div class="col-12 col-sm-6">
+                  <q-btn type="button" unelevated rounded no-caps class="btn btn-google full-width">
+                    <img src="../assets/Google.svg" class="social-icon q-mr-xs" />
+                    <span class="text-weight-bold text-">Google</span>
                   </q-btn>
                 </div>
 
-                <div class="row justify-center btn-social">
-                  <q-btn type="button" unelevated round no-caps class="btn-thaid full-width">
-                    <img src="../assets/ThaID.png" class="social-icon" />
+                <div class="col-12 col-sm-6">
+                  <q-btn type="button" unelevated rounded no-caps class="btn btn-thaid full-width">
+                    <img src="../assets/ThaID.png" class="social-icon q-mr-xs" />
+                    <span class="text-weight-bold">ThaID</span>
                   </q-btn>
                 </div>
               </div>
@@ -225,7 +244,13 @@ const handleLogin = async () => {
   </q-page>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+.login-card {
+  border-radius: 16px;
+  color: #ffffff;
+  background-color: $dark-gray;
+}
+
 :deep(.shake-now .q-field__messages) {
   animation: error-shake 0.4s ease;
 }
@@ -235,11 +260,10 @@ const handleLogin = async () => {
 }
 :deep(.q-field--outlined .q-field__control) {
   background-color: #faf8f6 !important;
-  border-radius: 4px;
+  border-radius: 12px;
   border: 1px solid #d1d5db !important;
-  transition:
-    border-color 0.3s ease,
-    border-width 0.1s ease !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  transition: border-color 0.3s ease !important;
 }
 :deep(.q-field--outlined .q-field__control:before),
 :deep(.q-field--outlined .q-field__control:after) {
@@ -248,8 +272,8 @@ const handleLogin = async () => {
 }
 :deep(.q-field--outlined .q-field__control:hover) {
   border-color: #4f46e5 !important;
-  border-width: 1px !important;
   box-shadow: 0 0 0 1.5px #4f46e5 !important;
+  transition: box-shadow 0.3s ease !important;
 }
 :deep(.q-field--focused .q-field__control) {
   border-color: #4f46e5 !important;
@@ -277,28 +301,24 @@ const handleLogin = async () => {
   text-decoration: underline;
 }
 
-.block {
-  display: block;
-}
-
-:deep(.btn-social .q-btn__content) {
-  gap: 2px !important;
-}
-:deep(.btn-social .q-focus-helper) {
+:deep(.btn .q-focus-helper) {
   display: none !important;
 }
-.btn-social {
-  height: 48px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+.btn {
+  height: 40px;
   cursor: pointer;
+  border-radius: 12px;
 }
 .btn-google:hover,
 .btn-thaid:hover {
   transform: translateY(-2px);
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s ease;
 }
 .btn-google {
   background-color: #f1f1f1 !important;
-  color: #333 !important;
+  color: #424242 !important;
 }
 .btn-google:hover {
   background-color: #f1f1f1 !important;

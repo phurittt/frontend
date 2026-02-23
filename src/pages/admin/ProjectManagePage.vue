@@ -18,14 +18,14 @@ const rows = [
     year: '2569',
     name: 'โครงการพัฒนาทักษะดิจิทัลสำหรับบุคลากร...',
     duration: '27-01-2569 ถึง 27-01-2569',
-    status: 'เปิด'
+    status: 'เปิด',
   },
   {
     id: 2,
     year: '2569',
     name: 'หลักสูตรอบรมเชิงปฏิบัติการ Vue.js Framework',
     duration: '15-02-2569 ถึง 16-02-2569',
-    status: 'เปิด'
+    status: 'เปิด',
   },
   // ... เพิ่มข้อมูลจำลองได้
 ];
@@ -49,15 +49,36 @@ const search = ref('');
           </div>
           <div class="col-12 col-md-auto row q-gutter-sm">
             <q-btn outline color="grey-7" icon="tune" />
-            <q-btn unelevated color="grey-9" text-color="white" label="เพิ่มประเภทหลักสูตรใหม่" icon="add" no-caps />
+            <q-btn
+              unelevated
+              color="grey-9"
+              text-color="white"
+              label="เพิ่มประเภทหลักสูตรใหม่"
+              icon="add"
+              no-caps
+            />
           </div>
         </div>
 
         <q-table flat :rows="rows" :columns="columns" row-key="id" separator="horizontal">
           <template v-slot:body-cell-actions="props">
             <q-td :props="props" class="q-gutter-x-xs">
-              <q-btn unelevated round size="sm" color="light-green-13" text-color="white" icon="search" />
-              <q-btn unelevated round size="sm" color="light-blue-4" text-color="white" icon="edit" />
+              <q-btn
+                unelevated
+                round
+                size="sm"
+                color="light-green-13"
+                text-color="white"
+                icon="search"
+              />
+              <q-btn
+                unelevated
+                round
+                size="sm"
+                color="light-blue-4"
+                text-color="white"
+                icon="edit"
+              />
               <q-btn unelevated round size="sm" color="pink-4" text-color="white" icon="delete" />
             </q-td>
           </template>
@@ -66,11 +87,16 @@ const search = ref('');
             <q-td :props="props">
               <div class="row items-center justify-center">
                 <span>{{ props.value }}</span>
-                <q-toggle v-model="props.row.isActive" color="green" dense size="sm" class="q-ml-sm" />
+                <q-toggle
+                  v-model="props.row.isActive"
+                  color="green"
+                  dense
+                  size="sm"
+                  class="q-ml-sm"
+                />
               </div>
             </q-td>
           </template>
-
         </q-table>
       </q-card-section>
     </q-card>

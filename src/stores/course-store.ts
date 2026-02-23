@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import { acceptHMRUpdate, defineStore } from 'pinia';
 
 export interface Course {
   id: number;
@@ -104,3 +104,7 @@ export const useCourseStore = defineStore('course', {
     },
   },
 });
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useCourseStore, import.meta.hot));
+}
