@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { type QInput } from 'quasar';
 import { useAuthStore } from 'src/stores/auth-store';
+import { useTokenClient } from 'vue3-google-signin';
 
 interface LoginInstruction {
   title: string;
@@ -41,7 +42,8 @@ const passwordRules = [(val: string) => (val && val.length > 0) || 'กรุณ
 
 // UI State
 const isPassword = ref(true); // Toggle ซ่อน/แสดงรหัสผ่าน
-const loading = ref(false); // แสดงสถานะ Loading ขณะกดปุ่ม
+const signinLoading = ref(false);
+const googleLoading = ref(false);
 
 const shakeTrigger = ref(false);
 
@@ -59,7 +61,7 @@ const clearError = (inputRef: QInput | null) => {
 };
 
 const handleLogin = async () => {
-  if (loading.value) return;
+  if (signinLoading.value) return;
 
   const isUsernameValid = await usernameRef.value?.validate();
   const isPasswordValid = await passwordRef.value?.validate();
@@ -82,15 +84,51 @@ const handleLogin = async () => {
     return;
   }
 
-  loading.value = true;
+  signinLoading.value = true;
   try {
     await authStore.login(username.value);
     router.push('/');
   } catch (error) {
     console.error('Login failed:', error);
   } finally {
-    loading.value = false;
+    signinLoading.value = false;
   }
+};
+
+const { isReady, login } = useTokenClient({
+  onSuccess: async (response) => {
+    try {
+      await authStore.loginWithGoogle(response.access_token);
+
+      router.push('/');
+    } catch (error) {
+      console.error('Google Login Error:', error);
+      googleLoading.value = false;
+    }
+  },
+  onError: (error) => {
+    console.error('Google Login Failed:', error);
+    googleLoading.value = false;
+  },
+});
+
+const handleGoogleLogin = () => {
+  if (isReady.value) {
+    googleLoading.value = true;
+    login();
+  }
+
+  const onFocus = () => {
+    setTimeout(() => {
+      if (googleLoading.value) {
+        googleLoading.value = false;
+      }
+    }, 1000);
+
+    window.removeEventListener('focus', onFocus);
+  };
+
+  window.addEventListener('focus', onFocus);
 };
 </script>
 
@@ -208,7 +246,8 @@ const handleLogin = async () => {
                 unelevated
                 rounded
                 no-caps
-                :loading="loading"
+                :loading="signinLoading"
+                :disable="signinLoading"
                 @click="handleLogin"
                 style="background-color: #e91e63"
               />
@@ -223,7 +262,15 @@ const handleLogin = async () => {
 
               <div class="row q-col-gutter-md justify-center">
                 <div class="col-12 col-sm-6">
-                  <q-btn type="button" unelevated rounded no-caps class="btn btn-google full-width">
+                  <q-btn
+                    type="button"
+                    @click="handleGoogleLogin"
+                    :disable="!isReady || googleLoading"
+                    unelevated
+                    rounded
+                    no-caps
+                    class="btn btn-google full-width"
+                  >
                     <img src="../assets/Google.svg" class="social-icon q-mr-xs" />
                     <span class="text-weight-bold text-">Google</span>
                   </q-btn>
@@ -238,6 +285,18 @@ const handleLogin = async () => {
               </div>
             </q-card-section>
           </q-form>
+
+          <q-inner-loading
+            :showing="googleLoading"
+            class="login-card"
+            style="
+              background-color: rgba(0, 0, 0, 0.7);
+              backdrop-filter: blur(1px);
+              -webkit-backdrop-filter: blur(1px);
+            "
+          >
+            <q-spinner-puff size="80px" color="pink-6" />
+          </q-inner-loading>
         </q-card>
       </div>
     </div>

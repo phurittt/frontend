@@ -1,19 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth-store';
 import { useUserStore } from 'src/stores/user-store';
 
 const leftDrawerOpen = ref(false);
-const authStore = useAuthStore(); // ใช้งาน Store
+const authStore = useAuthStore();
 const userStore = useUserStore();
 const router = useRouter();
+
+const firstName = computed(() => {
+  return userStore.profile?.username?.split(' ')[0] || 'ผู้ใช้งาน';
+});
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
 
-// ฟังก์ชันออกจากระบบ
+// ออกจากระบบ
 function handleLogout() {
   authStore.logout();
   router.push('/login');
@@ -38,12 +42,14 @@ function handleLogout() {
 
           <q-btn round flat>
             <q-avatar size="32px">
-              <img :src="userStore.profile?.avatar" />
+              <img
+                :src="userStore.profile?.avatar || 'https://cdn.quasar.dev/img/boy-avatar.png'"
+              />
             </q-avatar>
             <q-menu>
               <q-list style="min-width: 150px">
                 <q-item clickable v-close-popup>
-                  <q-item-section>โปรไฟล์ ({{ userStore.profile?.username }})</q-item-section>
+                  <q-item-section>โปรไฟล์ ({{ firstName }})</q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item clickable v-close-popup @click="handleLogout">
