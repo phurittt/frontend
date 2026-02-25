@@ -11,7 +11,8 @@ body {
   font-family: 'Kanit', sans-serif;
 }
 
-// custom scrollbar
+// --------------------------------------------
+
 html,
 body {
   overflow: hidden !important;
@@ -27,6 +28,8 @@ body {
   position: relative !important;
   flex-shrink: 0;
 }
+
+// custom scrollbar
 .q-page-container {
   flex-grow: 1;
   overflow-y: auto !important;
@@ -44,6 +47,6 @@ body {
     border: 2px solid $background;
   }
   &::-webkit-scrollbar-thumb:hover {
-    background: $dark-grey;
+    background: $secondary;
   }
 }

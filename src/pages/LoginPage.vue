@@ -244,8 +244,12 @@ onUnmounted(() => {
               </div>
 
               <div class="row justify-between q-mt-md">
-                <a href="#" class="auth-link q-ml-sm">สมัครสมาชิก (Register)</a>
-                <a href="#" class="auth-link q-mr-sm">ลืมรหัสผ่าน?</a>
+                <router-link to="/register" class="auth-link q-ml-sm"
+                  >สมัครสมาชิก (Register)</router-link
+                >
+                <router-link to="/forgot-password" class="auth-link q-mr-sm"
+                  >ลืมรหัสผ่าน?</router-link
+                >
               </div>
             </q-card-section>
 
@@ -318,7 +322,7 @@ onUnmounted(() => {
 .login-card {
   border-radius: 16px;
   color: #ffffff;
-  background-color: $dark-grey;
+  background-color: $secondary;
 }
 
 :deep(.shake-now .q-field__messages) {
@@ -341,15 +345,15 @@ onUnmounted(() => {
   display: none !important;
 }
 :deep(.q-field--outlined .q-field__control:hover) {
-  border-color: #4f46e5 !important;
-  box-shadow: 0 0 0 1.5px #4f46e5 !important;
+  border-color: $accent !important;
+  box-shadow: 0 0 0 1.5px $accent !important;
   transition: box-shadow 0.3s ease !important;
 }
 :deep(.q-field--focused .q-field__control) {
-  border-color: #4f46e5 !important;
+  border-color: $accent !important;
   border-width: 1px !important;
   box-shadow:
-    0 0 0 1.5px #4f46e5,
+    0 0 0 1.5px $accent,
     0 0 0 3px rgba(79, 70, 229, 0.1) !important;
 }
 :deep(.q-field__bottom) {
