@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onUnmounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { type QInput } from 'quasar';
 import { useAuthStore } from 'src/stores/auth-store';
@@ -112,6 +112,8 @@ const { isReady, login } = useTokenClient({
   },
 });
 
+let focusListener: (() => void) | null = null;
+
 const handleGoogleLogin = () => {
   if (isReady.value) {
     googleLoading.value = true;
@@ -125,16 +127,25 @@ const handleGoogleLogin = () => {
       }
     }, 1000);
 
+    // ลบ Event ออกเมื่อทำงานเสร็จ
     window.removeEventListener('focus', onFocus);
+    focusListener = null;
   };
 
+  focusListener = onFocus;
   window.addEventListener('focus', onFocus);
 };
+
+onUnmounted(() => {
+  if (focusListener) {
+    window.removeEventListener('focus', focusListener);
+  }
+});
 </script>
 
 <template>
   <q-page class="flex flex-center">
-    <div class="container-width row q-col-gutter-xl items-center">
+    <div class="container-width row q-col-gutter-xl items-center q-mb-lg">
       <div class="col-12 col-md-7 text-dark">
         <h2 class="text-h4 text-weight-bolder text-negative q-mb-xl">
           การเข้าสู่ระบบเพื่อลงทะเบียนอบรม
@@ -307,7 +318,7 @@ const handleGoogleLogin = () => {
 .login-card {
   border-radius: 16px;
   color: #ffffff;
-  background-color: $dark-gray;
+  background-color: $dark-grey;
 }
 
 :deep(.shake-now .q-field__messages) {
