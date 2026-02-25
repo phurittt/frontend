@@ -384,23 +384,23 @@ const titleOptions = ['นาย', 'นาง', 'นางสาว'];
 const provinceOptions = ['กรุงเทพมหานคร', 'ชลบุรี', 'ระยอง', 'จันทบุรี', 'ตราด', 'สมุทรปราการ'];
 
 const form = reactive({
-  username: '',
-  password: '',
-  verifyPassword: '',
+  username: 'ABCD',
+  password: '12345678',
+  verifyPassword: '12345678',
   profilePic: null as File | null,
-  title: '',
-  firstNameTh: '',
-  lastNameTh: '',
+  title: 'นาย',
+  firstNameTh: 'AB',
+  lastNameTh: 'CD',
   rankTh: '',
   firstNameEn: '',
   lastNameEn: '',
   rankEn: '',
-  email: '',
-  phone: '',
+  email: 'A@B.C',
+  phone: '0123456789',
   organization: '',
   position: '',
   billingAddress: '',
-  province: '',
+  province: 'ชลบุรี',
   postalCode: '',
 });
 
