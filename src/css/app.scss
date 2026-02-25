@@ -10,3 +10,40 @@ body {
 .q-body {
   font-family: 'Kanit', sans-serif;
 }
+
+// custom scrollbar
+html,
+body {
+  overflow: hidden !important;
+  height: 100%;
+}
+.q-layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.q-header {
+  position: relative !important;
+  flex-shrink: 0;
+}
+.q-page-container {
+  flex-grow: 1;
+  overflow-y: auto !important;
+  padding-top: 0 !important;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+    border: 2px solid $background;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: $dark-grey;
+  }
+}

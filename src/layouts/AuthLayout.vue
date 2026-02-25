@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <q-header :class="['header', { 'header-scrolled': isScrolled }]">
+    <q-header class="header">
       <q-toolbar class="container-width q-py-sm q-px-md">
         <q-btn flat no-caps class="q-px-none logo-btn" :ripple="false" to="/">
           <div class="row items-center logo-wrapper">
@@ -166,13 +166,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 const menuOpen = ref(false);
 const route = useRoute();
-const isScrolled = ref(false);
-let ticking = false;
 
 watch(
   () => route.fullPath,
@@ -183,26 +181,6 @@ watch(
 
 watch(menuOpen, (val) => {
   document.body.style.overflow = val ? 'hidden' : '';
-});
-
-const handleScroll = () => {
-  if (!ticking) {
-    window.requestAnimationFrame(() => {
-      isScrolled.value = window.scrollY > 20;
-      ticking = false;
-    });
-    ticking = true;
-  }
-};
-
-onMounted(() => {
-  handleScroll();
-  window.addEventListener('scroll', handleScroll, { passive: true });
-});
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll);
-  document.body.style.overflow = '';
 });
 </script>
 
@@ -226,17 +204,6 @@ onUnmounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
   color: #4b5563;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.header-scrolled {
-  background-color: $background;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* ปรับสีขอบให้กลืนไปกับพื้นทึบ */
-
-  .container-width {
-    padding-top: 4px;
-    padding-bottom: 4px;
-  }
 }
 
 .logo-btn {
