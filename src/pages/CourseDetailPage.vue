@@ -6,16 +6,7 @@ import { computed } from 'vue';
 const route = useRoute();
 const store = useCourseStore();
 
-// รายการสิ่งที่จะได้เรียนรู้ (จำลองตาม Figma)
-const learningItems = [
-  'เข้าใจแนวคิดพื้นฐานและหลักการทำงานของ Vue.',
-  'สามารถสร้างหน้าเว็บที่มีการโต้ตอบกับผู้ใช้งานได้',
-  'สามารถพัฒนาเว็บด้วยแนวคิดแบบ Component ได้อย่างถูกต้อง',
-  'เข้าใจการส่งและรับข้อมูลระหว่าง Component',
-  'สามารถจัดการเหตุการณ์และข้อมูลจากผู้ใช้งานได้',
-  'สามารถพัฒนาเว็บแอปพลิเคชันด้วย Vue.js ได้จริง'
-];
-
+// ดึงข้อมูลหลักสูตรจาก Store โดยใช้ ID จาก URL
 const course = computed(() => {
   const id = Number(route.params.id);
   return store.courses.find(c => c.id === id) || store.courses[0];
@@ -50,15 +41,15 @@ const course = computed(() => {
               </div>
               <div class="col-6">
                 <div class="text-subtitle2 text-weight-bolder">ระยะเวลาทั้งหมด</div>
-                <div class="text-body2 text-grey-7">6 ชั่วโมง</div> 
+                <div class="text-body2 text-grey-7">{{ course.duration }}</div> 
               </div>
               <div class="col-6">
                 <div class="text-subtitle2 text-weight-bolder">จำนวนที่เปิดรับ (คน)</div>
-                <div class="text-body2 text-grey-7">50</div>
+                <div class="text-body2 text-grey-7">{{ course.totalSeats }}</div>
               </div>
               <div class="col-12">
                 <div class="text-subtitle2 text-weight-bolder">จำนวนคนที่ลงทะเบียนเรียบร้อยแล้ว</div>
-                <div class="text-body2 text-grey-7">50</div>
+                <div class="text-body2 text-grey-7">{{ course.registeredSeats }}</div>
               </div>
             </div>
           </q-card>
@@ -66,59 +57,34 @@ const course = computed(() => {
           <q-card flat bordered class="rounded-borders q-pa-xl">
             <div class="text-h6 text-weight-bold q-mb-lg">สิ่งที่คุณจะได้เรียนรู้</div>
             <div class="column q-gutter-y-md">
-              <div v-for="(item, index) in learningItems" :key="index" class="row items-start no-wrap">
+              <div v-for="(objective, index) in course.objectives" :key="index" class="row items-start no-wrap">
                 <q-icon name="check" color="grey-6" size="20px" class="q-mr-md q-mt-xs" />
-                <div class="text-body2 text-grey-8">{{ item }}</div>
+                <div class="text-body2 text-grey-8">{{ objective }}</div>
               </div>
             </div>
           </q-card>
         </div>
 
         <div class="col-12 col-md-5 column q-gutter-y-lg">
-          
-        <q-card flat bordered class="rounded-borders overflow-hidden">
-            <q-img 
-                :src="course.image || 'https://via.placeholder.com/800x450'" 
-                fit="contain"
-                class="bg-grey-3"
-                style="min-height: 250px; width: 100%;"
-                 >
-                <template v-slot:loading>
-                    <q-spinner-dots color="white" />
-                </template>
+          <q-card flat bordered class="rounded-borders overflow-hidden">
+            <q-img :src="course.image || 'https://via.placeholder.com/800x450'" fit="contain" class="bg-grey-3" style="min-height: 250px; width: 100%;">
+              <template v-slot:loading>
+                <q-spinner-dots color="white" />
+              </template>
             </q-img>
-        </q-card>
+          </q-card>
 
           <q-card flat bordered class="rounded-borders q-pa-xl">
             <div class="text-subtitle1 text-weight-bolder q-mb-md">เนื้อหาของหลักสูตร</div>
             <div class="course-content text-body2 text-grey-8">
-              <div class="text-weight-bold q-mb-xs">1. พื้นฐานการใช้งานเครื่องมือ</div>
-              <ul class="q-pl-md q-mb-lg">
-                <li>แนะนำฟีเจอร์และแนวคิดพื้นฐาน</li>
-                <li>โครงสร้างและการทำงานเบื้องต้น</li>
-              </ul>
-              <div class="text-weight-bold q-mb-xs">2. การลงมือปฏิบัติจริง</div>
-              <ul class="q-pl-md">
-                <li>การแก้ปัญหาและเทคนิคขั้นสูง</li>
-              </ul>
+              <div v-for="(outline, index) in course.courseOutline" :key="index" class="q-mb-sm">
+                {{ index + 1 }}. {{ outline }}
+              </div>
             </div>
 
             <div class="row q-gutter-md q-mt-xl">
-              <q-btn 
-                unelevated 
-                color="grey-9" 
-                label="ซื้อ" 
-                class="col text-weight-bold" 
-                padding="12px" 
-                style="border-radius: 8px;"
-              />
-              <q-btn 
-                unelevated 
-                color="grey-9" 
-                icon="favorite_border" 
-                padding="12px" 
-                style="border-radius: 8px;"
-              />
+              <q-btn unelevated color="grey-9" label="ซื้อ" class="col text-weight-bold" padding="12px" style="border-radius: 8px;" />
+              <q-btn unelevated color="grey-9" icon="favorite_border" padding="12px" style="border-radius: 8px;" />
             </div>
           </q-card>
         </div>
