@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useCourseStore } from 'src/stores/course-store';
 
 const store = useCourseStore();
+const router = useRouter();
+
+
 
 // ดึงข้อมูลเมื่อหน้าเว็บโหลด
 onMounted(() => {
   store.fetchCourses();
 });
+
+const goToDetail = (id: number) => {
+  router.push(`/courses/${id}`).then(() => {
+    window.scrollTo(0, 0); // บังคับเลื่อนหน้าขึ้นบนทันทีหลังเปลี่ยนหน้าสำเร็จ
+  });
+};
 
 // --- Computed ---
 // เลือกคอร์สที่จะมาโชว์บน Banner (ตัวอย่างนี้เลือกคอร์สแรกสุด)
@@ -73,6 +83,7 @@ const getButtonLabel = (price: number) => {
           padding="10px 32px"
           class="text-weight-bold"
           no-caps
+          @click="goToDetail(heroCourse.id)"
         />
       </section>
 
@@ -145,7 +156,15 @@ const getButtonLabel = (price: number) => {
               <div class="text-caption text-grey-8 q-mb-sm">
                 📅 {{ course.date }} | ⏰ {{ course.time }}
               </div>
-              <q-btn unelevated color="grey-9" label="ดูรายละเอียด" class="full-width" no-caps />
+              <q-btn
+                unelevated
+                color="grey-9"
+                label="ดูรายละเอียด"
+                size="sm"
+                padding="8px 16px"
+                style="border-radius: 4px"
+                @click="goToDetail(course.id)"
+              />
             </q-card-section>
           </q-card>
         </div>

@@ -33,5 +33,9 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
+  Router.afterEach(() => {
+    window.scrollTo(0, 0);
+  });
+
   return Router;
 });
