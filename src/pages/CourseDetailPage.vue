@@ -1,3 +1,27 @@
+<script setup lang="ts">
+import { useRoute } from 'vue-router';
+import { useCourseStore } from 'src/stores/course-store';
+import { computed } from 'vue';
+
+const route = useRoute();
+const store = useCourseStore();
+
+// รายการสิ่งที่จะได้เรียนรู้ (จำลองตาม Figma)
+const learningItems = [
+  'เข้าใจแนวคิดพื้นฐานและหลักการทำงานของ Vue.',
+  'สามารถสร้างหน้าเว็บที่มีการโต้ตอบกับผู้ใช้งานได้',
+  'สามารถพัฒนาเว็บด้วยแนวคิดแบบ Component ได้อย่างถูกต้อง',
+  'เข้าใจการส่งและรับข้อมูลระหว่าง Component',
+  'สามารถจัดการเหตุการณ์และข้อมูลจากผู้ใช้งานได้',
+  'สามารถพัฒนาเว็บแอปพลิเคชันด้วย Vue.js ได้จริง'
+];
+
+const course = computed(() => {
+  const id = Number(route.params.id);
+  return store.courses.find(c => c.id === id) || store.courses[0];
+});
+</script>
+
 <template>
   <q-page class="bg-grey-2 q-pa-md q-pa-md-xl">
     <div class="container-width q-mx-auto">
@@ -89,45 +113,19 @@
                 style="border-radius: 8px;"
               />
               <q-btn 
-                outline 
-                color="grey-4" 
-                text-color="grey-9"
+                unelevated 
+                color="grey-9" 
                 icon="favorite_border" 
                 padding="12px" 
                 style="border-radius: 8px;"
               />
             </div>
           </q-card>
-
         </div>
       </div>
     </div>
   </q-page>
 </template>
-
-<script setup lang="ts">
-import { useRoute } from 'vue-router';
-import { useCourseStore } from 'src/stores/course-store';
-import { computed } from 'vue';
-
-const route = useRoute();
-const store = useCourseStore();
-
-// รายการสิ่งที่จะได้เรียนรู้ (จำลองตาม Figma)
-const learningItems = [
-  'เข้าใจแนวคิดพื้นฐานและหลักการทำงานของ Vue.',
-  'สามารถสร้างหน้าเว็บที่มีการโต้ตอบกับผู้ใช้งานได้',
-  'สามารถพัฒนาเว็บด้วยแนวคิดแบบ Component ได้อย่างถูกต้อง',
-  'เข้าใจการส่งและรับข้อมูลระหว่าง Component',
-  'สามารถจัดการเหตุการณ์และข้อมูลจากผู้ใช้งานได้',
-  'สามารถพัฒนาเว็บแอปพลิเคชันด้วย Vue.js ได้จริง'
-];
-
-const course = computed(() => {
-  const id = Number(route.params.id);
-  return store.courses.find(c => c.id === id) || store.courses[0];
-});
-</script>
 
 <style scoped>
 .container-width { max-width: 1200px; }
@@ -140,7 +138,6 @@ const course = computed(() => {
   margin-bottom: 4px;
 }
 
-/* เพิ่มฟอนต์ที่ดูสะอาดตาขึ้น */
 .text-h5, .text-h6, .text-subtitle1 {
   letter-spacing: 0.01em;
   color: #2c2c2c;

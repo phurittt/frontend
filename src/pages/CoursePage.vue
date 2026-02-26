@@ -15,8 +15,6 @@ onMounted(() => {
 const getPriceLabel = (price: number) => {
   return price === 0 ? 'FREE B' : `${price.toLocaleString()} B`;
 };
-
-
 </script>
 
 <template>
