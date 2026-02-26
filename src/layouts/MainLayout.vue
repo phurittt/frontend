@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth-store';
 import { useUserStore } from 'src/stores/user-store';
 
@@ -8,6 +9,7 @@ const leftDrawerOpen = ref(false);
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const router = useRouter();
+const route = useRoute();
 
 const firstName = computed(() => {
   return userStore.profile?.username?.split(' ')[0] || 'ผู้ใช้งาน';
@@ -66,7 +68,13 @@ function handleLogout() {
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1">
       <q-list class="q-mt-md">
-        <q-item clickable v-ripple to="/" active-class="bg-grey-3 text-black text-weight-bold">
+        <q-item 
+          clickable 
+          v-ripple 
+          to="/" 
+          exact 
+          active-class="bg-grey-3 text-black text-weight-bold"
+        >
           <q-item-section avatar><q-icon name="home" /></q-item-section>
           <q-item-section>หน้าแรก</q-item-section>
         </q-item>
@@ -75,9 +83,12 @@ function handleLogout() {
           clickable
           v-ripple
           to="/courses"
+          :active="route.path.startsWith('/courses')" 
           active-class="bg-grey-3 text-black text-weight-bold"
         >
-          <q-item-section avatar><q-icon name="school" /></q-item-section>
+          <q-item-section avatar>
+            <q-icon name="school" />
+          </q-item-section>
           <q-item-section>หลักสูตร</q-item-section>
         </q-item>
 

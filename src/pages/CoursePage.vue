@@ -15,6 +15,8 @@ onMounted(() => {
 const getPriceLabel = (price: number) => {
   return price === 0 ? 'FREE B' : `${price.toLocaleString()} B`;
 };
+
+
 </script>
 
 <template>
@@ -122,6 +124,7 @@ const getPriceLabel = (price: number) => {
                 size="sm"
                 padding="8px 16px"
                 style="border-radius: 4px"
+                @click="$router.push(`/courses/${course.id}`)"
               />
             </q-card-section>
           </q-card>
