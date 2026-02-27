@@ -292,7 +292,7 @@ watch(menuOpen, (val) => {
 }
 
 .sub-item {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #4b5563;
   border-radius: 8px;
   margin-top: 4px;
