@@ -323,33 +323,6 @@
                   <q-form ref="step3Form" greedy class="row q-col-gutter-x-md q-col-gutter-y-sm">
                     <div class="col-12 col-md-6">
                       <label class="block text-caption text-md-subtitle2 text-grey-5 q-mb-xs"
-                        >ชื่อหน่วยงาน</label
-                      >
-                      <q-input
-                        v-model="form.organization"
-                        outlined
-                        dense
-                        bottom-slots
-                        placeholder="เช่น มหาวิทยาลัยบูรพา"
-                      />
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <label class="block text-caption text-md-subtitle2 text-grey-5 q-mb-xs"
-                        >ตำแหน่งการทำงาน</label
-                      >
-                      <q-input
-                        v-model="form.position"
-                        outlined
-                        dense
-                        bottom-slots
-                        placeholder="เช่น นักวิชาการคอมพิวเตอร์"
-                      />
-                    </div>
-                    <div class="col-12">
-                      <q-separator dark class="q-my-sm q-mb-md" style="opacity: 0.1" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <label class="block text-caption text-md-subtitle2 text-grey-5 q-mb-xs"
                         >อีเมล (Email) <span class="text-negative">*</span></label
                       >
                       <q-input
@@ -382,6 +355,35 @@
                           ><q-icon name="phone" size="xs" class="q-pr-xs icon-input"
                         /></template>
                       </q-input>
+                    </div>
+
+                    <div class="col-12">
+                      <q-separator dark class="q-my-sm q-mb-md" style="opacity: 0.1" />
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <label class="block text-caption text-md-subtitle2 text-grey-5 q-mb-xs"
+                        >ชื่อหน่วยงาน</label
+                      >
+                      <q-input
+                        v-model="form.organization"
+                        outlined
+                        dense
+                        bottom-slots
+                        placeholder="เช่น มหาวิทยาลัยบูรพา"
+                      />
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="block text-caption text-md-subtitle2 text-grey-5 q-mb-xs"
+                        >ตำแหน่งการทำงาน</label
+                      >
+                      <q-input
+                        v-model="form.position"
+                        outlined
+                        dense
+                        bottom-slots
+                        placeholder="เช่น นักวิชาการคอมพิวเตอร์"
+                      />
                     </div>
                   </q-form>
                 </div>

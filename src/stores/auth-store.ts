@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
         const { password, verifyPassword, profilePic, ...safeProfile } = mockResponse.user as any;
         userStore.profile = safeProfile as UserProfile;
 
-        console.log(`[Auth] Registered & Logged in as: ${dto.username}`);
+        console.log(`[Auth] Registered as: ${dto.username}`);
         return true;
       } catch (error) {
         console.error('[Auth] Registration Error:', error);
@@ -94,8 +94,7 @@ export const useAuthStore = defineStore('auth', {
         this.isLoggedIn = true;
         this.token = accessToken;
 
-        const userStore = useUserStore();
-        userStore.profile = {
+        const userData: UserProfile = {
           id: googleUser.sub,
           username: googleUser.name,
           avatar: googleUser.picture,
@@ -107,6 +106,11 @@ export const useAuthStore = defineStore('auth', {
           phone: '',
           province: '',
         };
+
+        const userStore = useUserStore();
+        userStore.profile = userData;
+
+        console.log(`[Auth] Google Login successful: ${googleUser.name}`);
 
         return true;
       } catch (error) {
