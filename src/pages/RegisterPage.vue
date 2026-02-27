@@ -473,6 +473,10 @@
 import { ref, reactive, watch, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar, type QForm, type QInput } from 'quasar';
+import { useAuthStore } from 'src/stores/auth-store';
+import type { RegisterDto } from 'src/models/auth';
+
+const authStore = useAuthStore();
 
 const router = useRouter();
 const $q = useQuasar();
@@ -499,20 +503,20 @@ const stepsList = [
 const titleOptions = ['นาย', 'นาง', 'นางสาว'];
 const provinceOptions = ['กรุงเทพมหานคร', 'ชลบุรี', 'ระยอง', 'จันทบุรี', 'ตราด', 'สมุทรปราการ'];
 
-const form = reactive({
+const form = reactive<RegisterDto>({
   username: 'ABCD',
   password: '12345678',
   verifyPassword: '12345678',
-  profilePic: null as File | null,
+  profilePic: null,
   title: 'นาย',
-  firstNameTh: 'เอ',
-  lastNameTh: 'บี',
+  firstNameTh: 'เอบี',
+  lastNameTh: 'ซีดี',
   rankTh: '',
   firstNameEn: '',
   lastNameEn: '',
   rankEn: '',
-  email: 'A@B.C',
-  phone: '0123456789',
+  email: 'AB@C.D',
+  phone: '0987654321',
   organization: '',
   position: '',
   billingAddress: '',
@@ -592,18 +596,26 @@ const handleRegister = async () => {
     triggerErrorAnimation();
     return;
   }
+
   registerLoading.value = true;
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // เรียกใช้ Action register จาก store
+    await authStore.register(form);
+
     $q.notify({
       color: 'positive',
       icon: 'check_circle',
-      message: 'สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ',
-      position: 'top',
+      message: 'สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ',
+      position: 'bottom',
     });
+
     router.push('/login');
   } catch (error) {
-    console.error(error);
+    $q.notify({
+      color: 'negative',
+      message: 'เกิดข้อผิดพลาดในการสมัครสมาชิก',
+      position: 'bottom',
+    });
   } finally {
     registerLoading.value = false;
   }
