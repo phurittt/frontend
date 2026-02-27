@@ -601,21 +601,24 @@ const handleRegister = async () => {
 
   registerLoading.value = true;
   try {
-    // เรียกใช้ Action register จาก store
-    await authStore.register(form);
+    const isSuccess = await authStore.register(form);
 
-    $q.notify({
-      color: 'positive',
-      icon: 'check_circle',
-      message: 'สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ',
-      position: 'bottom',
-    });
+    if (isSuccess) {
+      // 2. แสดงแจ้งเตือน
+      $q.notify({
+        color: 'positive',
+        icon: 'check_circle',
+        message: 'สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ',
+        position: 'bottom',
+      });
 
-    router.push('/login');
+      // 3. ส่งไปหน้า Login
+      router.push('/login');
+    }
   } catch (error) {
     $q.notify({
       color: 'negative',
-      message: 'เกิดข้อผิดพลาดในการสมัครสมาชิก',
+      message: 'เกิดข้อผิดพลาดในการสมัครสมาชิก กรุณาลองใหม่อีกครั้ง',
       position: 'bottom',
     });
   } finally {

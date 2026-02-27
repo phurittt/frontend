@@ -15,37 +15,11 @@ export const useAuthStore = defineStore('auth', {
       try {
         console.log('[Auth] Registering with DTO...', dto);
 
-        // จำลองการยิง API (ในอนาคตเปลี่ยนเป็น axios.post('/auth/register', dto))
+        // จำลองการยิง API
         await new Promise((resolve) => setTimeout(resolve, 1500));
 
-        // จัดการรูปภาพ (ถ้าเป็นไฟล์ดิบ ให้ทำเป็น Mock URL สำหรับแสดงผลใน App)
-        let avatarUrl = 'https://cdn.quasar.dev/img/boy-avatar.png';
-        if (dto.profilePic instanceof File) {
-          avatarUrl = URL.createObjectURL(dto.profilePic);
-        }
+        console.log(`[Auth] Registered successfully: ${dto.username}`);
 
-        // จำลอง Response ที่ได้รับกลับจาก Backend หลังสมัครสำเร็จ
-        // ปกติ Backend จะส่ง Token และ Profile ข้อมูลที่บันทึกแล้วกลับมา
-        const mockResponse: AuthResponse = {
-          token: 'mock-jwt-token-after-register',
-          user: {
-            ...dto, // กระจายข้อมูลที่ส่งไป
-            id: 'USR-' + Math.floor(Math.random() * 1000), // backend จะ gen id ให้
-            avatar: avatarUrl,
-            role: 'student', // กำหนด role เริ่มต้น
-          },
-        };
-
-        // บันทึกข้อมูลลง State ของ Auth และ User Store
-        this.token = mockResponse.token;
-        this.isLoggedIn = true;
-
-        const userStore = useUserStore();
-        // ลบ password และ verifyPassword ออกก่อนเก็บลง Store เพื่อความปลอดภัย
-        const { password, verifyPassword, profilePic, ...safeProfile } = mockResponse.user as any;
-        userStore.profile = safeProfile as UserProfile;
-
-        console.log(`[Auth] Registered as: ${dto.username}`);
         return true;
       } catch (error) {
         console.error('[Auth] Registration Error:', error);
