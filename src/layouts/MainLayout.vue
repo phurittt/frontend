@@ -21,9 +21,22 @@
         <q-space />
 
         <div class="gt-sm row items-center q-gutter-x-sm">
-          <q-btn flat no-caps label="หน้าแรก" class="nav-btn" to="/" />
+          <q-btn
+            flat
+            no-caps
+            label="หน้าแรก"
+            class="nav-btn"
+            to="/"
+            :class="{ 'is-active': route.path === '/' }"
+          />
 
-          <q-btn flat no-caps label="หลักสูตร" class="nav-btn">
+          <q-btn
+            flat
+            no-caps
+            label="หลักสูตร"
+            class="nav-btn"
+            :class="{ 'is-active': route.path.startsWith('/courses') }"
+          >
             <q-menu transition-show="jump-down" transition-hide="jump-up" :offset="[0, 8]">
               <q-list style="min-width: 220px" class="nav-dropdown">
                 <q-item clickable v-ripple to="/courses/open" class="dropdown-item">
@@ -37,8 +50,22 @@
             </q-menu>
           </q-btn>
 
-          <q-btn flat no-caps label="ตรวจสอบวุฒิบัตร" class="nav-btn" to="/verify" />
-          <q-btn flat no-caps label="ติดต่อเรา" class="nav-btn" to="/contact" />
+          <q-btn
+            flat
+            no-caps
+            label="ตรวจสอบวุฒิบัตร"
+            class="nav-btn"
+            to="/verify"
+            :class="{ 'is-active': route.path.startsWith('/verify') }"
+          />
+          <q-btn
+            flat
+            no-caps
+            label="ติดต่อเรา"
+            class="nav-btn"
+            to="/contact"
+            :class="{ 'is-active': route.path.startsWith('/contact') }"
+          />
 
           <div v-if="authStore.isLoggedIn" class="q-ml-md">
             <q-btn flat no-caps rounded class="profile-btn q-px-sm q-py-xs">
@@ -120,19 +147,33 @@
       <q-slide-transition>
         <div v-show="menuOpen" class="lt-md nav-menu full-width">
           <q-list padding class="q-px-lg q-pb-lg stagger-menu">
-            <q-item clickable v-ripple to="/" class="mobile-nav-item" @click="menuOpen = false">
+            <q-item
+              clickable
+              v-ripple
+              to="/"
+              class="mobile-nav-item"
+              :class="{ 'is-active-mobile': route.path === '/' }"
+              @click="menuOpen = false"
+            >
               <q-item-section avatar><q-icon name="home" size="sm" /></q-item-section>
               <q-item-section>หน้าแรก</q-item-section>
             </q-item>
 
-            <q-expansion-item icon="menu_book" label="หลักสูตร" class="mobile-nav-item">
+            <q-expansion-item
+              icon="menu_book"
+              label="หลักสูตร"
+              class="mobile-nav-item"
+              :class="{ 'is-active-mobile': route.path.startsWith('/courses') }"
+            >
               <q-list class="q-pl-xl">
                 <q-item
                   clickable
                   v-ripple
                   to="/courses/open"
-                  @click="menuOpen = false"
                   class="sub-item"
+                  exact
+                  active-class="is-active-sub"
+                  @click="menuOpen = false"
                 >
                   <q-item-section>หลักสูตรที่เปิดอบรม</q-item-section>
                 </q-item>
@@ -140,8 +181,10 @@
                   clickable
                   v-ripple
                   to="/courses/all"
-                  @click="menuOpen = false"
                   class="sub-item"
+                  exact
+                  active-class="is-active-sub"
+                  @click="menuOpen = false"
                 >
                   <q-item-section>หลักสูตรทั้งหมด</q-item-section>
                 </q-item>
@@ -153,6 +196,7 @@
               v-ripple
               to="/verify"
               class="mobile-nav-item"
+              :class="{ 'is-active-mobile': route.path.startsWith('/verify') }"
               @click="menuOpen = false"
             >
               <q-item-section avatar><q-icon name="search" size="sm" /></q-item-section>
@@ -164,6 +208,7 @@
               v-ripple
               to="/contact"
               class="mobile-nav-item"
+              :class="{ 'is-active-mobile': route.path.startsWith('/contact') }"
               @click="menuOpen = false"
             >
               <q-item-section avatar><q-icon name="phone" size="sm" /></q-item-section>
@@ -192,7 +237,7 @@
 
                 <q-item-section>
                   <q-item-label class="text-weight-bold text-subtitle1 text-dark">
-                    {{ userStore.profile?.username }}
+                    {{ firstName }}
                   </q-item-label>
                   <q-item-label
                     caption
@@ -329,7 +374,7 @@ watch(menuOpen, (val) => {
   font-weight: 500;
   padding: 8px 16px;
   position: relative;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
 
   &::after {
     content: '';
@@ -338,17 +383,28 @@ watch(menuOpen, (val) => {
     left: 50%;
     transform: translateX(-50%);
     width: 0;
-    height: 2px;
+    height: 3px;
     background-color: $primary;
-    transition: width 0.3s ease-out;
-    border-radius: 2px;
+    transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 3px;
+    opacity: 0.8;
   }
 
-  &:hover {
+  &:not(.is-active):hover {
     color: $primary;
     background: transparent;
     &::after {
-      width: 40%;
+      width: 30%;
+    }
+  }
+
+  &.is-active {
+    color: $primary;
+    font-weight: 700;
+
+    &::after {
+      width: 60%;
+      opacity: 1;
     }
   }
 }
@@ -365,10 +421,19 @@ watch(menuOpen, (val) => {
   border-radius: 10px;
   margin: 2px 0;
   transition: all 0.2s ease;
+
   &:hover {
     background-color: rgba($primary, 0.05);
     color: $primary;
     transform: translateX(2px);
+  }
+
+  &.is-active-dropdown {
+    background-color: rgba($primary, 0.1);
+    color: $primary;
+    font-weight: bold;
+    border-left: 3px solid $primary;
+    transform: translateX(0);
   }
 }
 
@@ -395,6 +460,40 @@ watch(menuOpen, (val) => {
   clip-path: inset(0px -100px -100px -100px);
 }
 
+.mobile-nav-item {
+  border-radius: 12px;
+  margin-bottom: 4px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    color: $primary;
+    background-color: rgba($primary, 0.02);
+  }
+
+  &.is-active-mobile {
+    color: $primary;
+    background-color: rgba($primary, 0.08);
+    font-weight: 700;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 10%;
+      height: 80%;
+      width: 4px;
+      background-color: $primary;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .q-icon {
+      color: $primary;
+    }
+  }
+}
 .sub-item {
   font-size: 0.9rem;
   color: #4b5563;
@@ -403,25 +502,18 @@ watch(menuOpen, (val) => {
   margin-left: 12px;
   margin-right: 10px;
   transition: all 0.2s ease;
-  overflow: hidden;
 
   &:hover {
     color: $primary;
     background-color: rgba($primary, 0.05);
     transform: translateX(4px);
   }
-}
 
-.mobile-nav-item {
-  border-radius: 12px;
-  margin-bottom: 4px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-
-  &:hover {
+  &.is-active-sub {
     color: $primary;
-    background-color: rgba(0, 0, 0, 0.02);
-    overflow: hidden;
+    background-color: rgba($primary, 0.08);
+    font-weight: 700;
+    transform: translateX(4px);
   }
 }
 

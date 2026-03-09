@@ -151,13 +151,21 @@ onUnmounted(() => {
           การเข้าสู่ระบบเพื่อลงทะเบียนอบรม
         </h2>
 
-        <div v-for="(item, index) in instructions" :key="index" class="row no-wrap q-mb-sm">
-          <div class="col-auto text-weight-bolder q-mr-md text-negative text-subtitle1">
-            {{ index + 1 }}.
-          </div>
-          <div class="col">
-            <div class="text-weight-medium text-dark text-subtitle1">{{ item.title }}</div>
-            <div class="text-grey-8 text-subtitle1">{{ item.desc }}</div>
+        <div class="q-pl-sm border-left-indicator">
+          <div
+            v-for="(item, index) in instructions"
+            :key="index"
+            class="row no-wrap q-mb-md items-start"
+          >
+            <div class="col-auto q-mr-md q-pt-xs">
+              <div class="number-badge flex flex-center text-weight-bold">
+                {{ index + 1 }}
+              </div>
+            </div>
+            <div class="col">
+              <div class="text-weight-medium text-dark text-subtitle1">{{ item.title }}</div>
+              <div class="text-grey-7 text-body2" style="line-height: 1.5">{{ item.desc }}</div>
+            </div>
           </div>
         </div>
 
@@ -323,6 +331,15 @@ onUnmounted(() => {
   border-radius: 16px;
   color: #ffffff;
   background-color: $secondary;
+}
+
+.number-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #fce4ec;
+  color: #e91e63;
+  font-size: 0.9rem;
 }
 
 :deep(.shake-now .q-field__messages) {
