@@ -350,7 +350,7 @@ onUnmounted(() => {
   opacity: 1 !important;
 }
 :deep(.q-field--outlined .q-field__control) {
-  background-color: #faf8f6 !important;
+  background-color: $background !important;
   border-radius: 12px;
   border: 1px solid #d1d5db !important;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;

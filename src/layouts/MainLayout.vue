@@ -335,7 +335,7 @@ watch(menuOpen, (val) => {
 
 <style scoped lang="scss">
 .q-layout {
-  background-color: #faf8f6;
+  background-color: $background;
   min-height: 100vh;
 }
 
