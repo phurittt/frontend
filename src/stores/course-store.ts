@@ -55,9 +55,9 @@ export const useCourseStore = defineStore('course', {
             image: 'https://cdn.quasar.dev/img/parallax2.jpg', // ใส่ URL รูปจริงที่นี่
 
             date: '24 ก.พ. 2569',
-            time: '08:30 - 16:30 น.',
+            time: '08:30-16:30 น.',
             duration: '6 ชั่วโมง',
-            location: 'ห้องประชุม 201 ชั้น 2 อาคารสำนักหอสมุด มหาวิทยาลัยบูรพา',
+            location: 'ห้องประชุม 201 ชั้น 2 อาคารสำนักหอสมุด',
 
             price: 0,
             totalSeats: 70,
@@ -87,7 +87,7 @@ export const useCourseStore = defineStore('course', {
             description: 'เรียนรู้การสร้างเว็บแอปพลิเคชันสมัยใหม่ด้วย Vue.js และ Quasar Framework',
             image: 'https://cdn.quasar.dev/img/parallax1.jpg',
             date: '23 ธ.ค. 2567',
-            time: '09:00-16:00',
+            time: '09:00-16:00 น.',
             duration: '6 ชั่วโมง',
             location: 'ห้องปฏิบัติการคอมพิวเตอร์ A',
             price: 0,

@@ -45,7 +45,7 @@
         >
           <q-card-section class="col-auto text-center q-pt-lg q-pb-sm relative-position">
             <div
-              class="text-h4 text-md-h4 text-weight-bolder text-white q-mt-sm q-mb-lg q-mt-md-none"
+              class="text-h4 text-md-h4 text-weight-bold text-white q-mt-sm q-mb-lg q-mt-md-none"
             >
               สมัครสมาชิก
             </div>

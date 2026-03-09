@@ -187,7 +187,7 @@ onUnmounted(() => {
       <div class="col-12 col-md-5">
         <q-card class="login-card shadow-24">
           <q-card-section class="text-center q-pt-xl q-pb-md">
-            <div class="text-h4 text-weight-bolder">เข้าสู่ระบบ</div>
+            <div class="text-h4 text-weight-bold">เข้าสู่ระบบ</div>
           </q-card-section>
 
           <q-form @submit.prevent="handleLogin">
