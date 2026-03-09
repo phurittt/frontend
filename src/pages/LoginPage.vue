@@ -323,6 +323,12 @@ onUnmounted(() => {
         </q-card>
       </div>
     </div>
+
+    <q-page-sticky position="bottom-right" :offset="[24, 24]">
+      <q-btn round icon="pets" size="sm" unelevated class="number-badge" to="/admin"
+        ><q-tooltip class="text-white">ไปหน้า Admin</q-tooltip>
+      </q-btn>
+    </q-page-sticky>
   </q-page>
 </template>
 
