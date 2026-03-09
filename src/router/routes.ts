@@ -27,6 +27,11 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', redirect: '/admin/projects' },
       { path: 'projects', component: () => import('pages/admin/ProjectManagePage.vue') },
+
+      {
+        path: 'project-types',
+        component: () => import('pages/admin/CourseProjectTypes.vue')
+      },
     ],
   },
   {
