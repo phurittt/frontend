@@ -238,8 +238,20 @@ const getButtonLabel = (price: number) => {
 .hero-carousel {
   height: 400px;
   border-radius: 20px;
-  overflow: hidden;
-  background-color: #1e293b;
+  background-color: $dark;
+  position: relative;
+  overflow: hidden !important;
+
+  :deep(.q-carousel__slide) {
+    overflow: hidden !important;
+    border-radius: inherit;
+  }
+
+  &:hover {
+    .carousel-bg {
+      transform: scale(1.08);
+    }
+  }
 }
 
 .hero-skeleton {
@@ -252,7 +264,9 @@ const getButtonLabel = (price: number) => {
   height: 100%;
   width: 100%;
   transform: scale(1);
-  transition: transform 6s ease-out;
+  transition: transform 1.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* ทำให้ลูกศรอยู่บนสุด และขยายเมื่อ Hover */
@@ -381,7 +395,7 @@ const getButtonLabel = (price: number) => {
 
 /* ================= Buttons ================= */
 .btn-main {
-  background: linear-gradient(135deg, #e91e63, #be123c) !important;
+  background: linear-gradient(135deg, #e91e63) !important;
   color: white !important;
   transition:
     transform 0.2s ease,

@@ -27,6 +27,7 @@
             label="หน้าแรก"
             class="nav-btn"
             to="/"
+            exact
             :class="{ 'is-active': route.path === '/' }"
           />
 
@@ -152,6 +153,7 @@
               v-ripple
               to="/"
               class="mobile-nav-item"
+              exact
               :class="{ 'is-active-mobile': route.path === '/' }"
               @click="menuOpen = false"
             >
@@ -411,7 +413,7 @@ watch(menuOpen, (val) => {
 
 .nav-dropdown {
   color: #4b5563;
-  border-radius: 6px;
+  border-radius: inherit;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.04);
   overflow: hidden;
