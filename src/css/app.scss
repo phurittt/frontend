@@ -34,8 +34,9 @@ body {
 // custom scrollbar
 .q-page-container {
   flex-grow: 1;
-  overflow-y: auto !important;
+  overflow-y: auto;
   padding-top: 0 !important;
+  height: 0;
 
   &::-webkit-scrollbar {
     width: 8px;

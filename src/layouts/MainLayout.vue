@@ -300,6 +300,7 @@ import { ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth-store';
 import { useUserStore } from 'src/stores/user-store';
+import { scroll } from 'quasar';
 
 const route = useRoute();
 const router = useRouter();
@@ -320,6 +321,19 @@ function handleLogout() {
   menuOpen.value = false; // ปิดเมนูมือถือเผื่อเปิดค้างไว้
   router.push('/login');
 }
+
+const { setVerticalScrollPosition } = scroll;
+
+watch(
+  () => route.path,
+  () => {
+    const scrollTarget = document.querySelector('.q-page-container');
+
+    if (scrollTarget) {
+      setVerticalScrollPosition(scrollTarget, 0, 0);
+    }
+  },
+);
 
 // ปิดเมนูมือถืออัตโนมัติเมื่อเปลี่ยนหน้า
 watch(

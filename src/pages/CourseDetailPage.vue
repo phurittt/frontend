@@ -2,10 +2,12 @@
 import { useRoute, useRouter } from 'vue-router';
 import { useCourseStore } from 'src/stores/course-store';
 import { computed, onMounted } from 'vue';
+import { useQuasar } from 'quasar';
 
 const route = useRoute();
 const router = useRouter();
 const store = useCourseStore();
+const $q = useQuasar();
 
 onMounted(() => {
   if (store.courses.length === 0) {
@@ -24,9 +26,42 @@ const formatPrice = (price?: number) => {
   return price === 0 ? 'FREE' : `฿${price.toLocaleString()}`;
 };
 
-const getButtonLabel = (price?: number) => {
-  if (price === undefined) return 'ลงทะเบียนเลย';
-  return price === 0 ? 'ลงทะเบียนเลย (ฟรี)' : `ลงทะเบียนเลย (฿${price.toLocaleString()})`;
+const isFavorite = computed(() => {
+  if (!course.value) return false;
+  return store.favoriteIds.includes(course.value.id);
+});
+
+const toggleFavorite = () => {
+  if (course.value) {
+    store.toggleFavorite(course.value.id);
+
+    $q.notify({
+      message: isFavorite.value
+        ? 'บันทึกหลักสูตรไว้เรียนภายหลังแล้ว'
+        : 'นำหลักสูตรออกจากรายการที่บันทึก',
+      color: isFavorite.value ? 'pink-6' : 'grey-8',
+      icon: isFavorite.value ? 'favorite' : 'favorite_border',
+      position: 'top',
+      timeout: 2000,
+      classes: 'text-weight-medium',
+    });
+  }
+};
+
+const addToCart = () => {
+  if (course.value) {
+    store.addToCart(course.value);
+
+    // แจ้งเตือนผู้ใช้
+    $q.notify({
+      message: 'เพิ่มหลักสูตรลงในรถเข็นแล้ว',
+      color: 'positive',
+      icon: 'shopping_cart_checkout',
+      position: 'top',
+      timeout: 2000,
+      classes: 'text-weight-medium',
+    });
+  }
 };
 </script>
 
@@ -41,28 +76,39 @@ const getButtonLabel = (price?: number) => {
       <div class="bg-pattern absolute-full opacity-10 pointer-events-none"></div>
 
       <div class="container-width q-mx-auto q-px-md relative-position z-top">
-        <div class="q-mb-xl">
+        <div class="q-mb-md q-mt-sm">
           <q-btn
             flat
             icon="arrow_back_ios_new"
             label="กลับไปหน้าหลักสูตร"
             text-color="white"
             no-caps
-            class="q-px-sm text-weight-medium back-btn rounded-borders"
+            class="q-px-sm q-pr-md text-weight-medium back-btn rounded-borders"
             to="/"
           />
         </div>
 
-        <div class="row q-col-gutter-lg items-center" v-if="course">
-          <div class="col-12 col-md-9 fade-up">
+        <div class="row items-center" v-if="course">
+          <div class="col-12 col-md-9 fade-up q-py-md">
             <q-chip
-              color="pink-6"
+              :color="course.totalSeats === course.registeredSeats ? 'red-6' : 'pink-6'"
               text-color="white"
-              size="sm"
-              class="text-weight-bold q-mb-md shadow-2 q-px-md"
+              size="md"
+              class="text-weight-bold q-mb-md shadow-2 q-px-md disable-select"
             >
-              <q-icon name="fiber_manual_record" size="xs" class="q-mr-xs text-green-3" />
-              กำลังเปิดรับสมัคร
+              <q-icon
+                name="fiber_manual_record"
+                size="xs"
+                class="q-mr-xs"
+                :class="
+                  course.totalSeats === course.registeredSeats ? 'text-white' : 'text-green-3'
+                "
+              />
+              {{
+                course.totalSeats === course.registeredSeats
+                  ? 'ที่นั่งเต็มแล้ว'
+                  : 'กำลังเปิดรับสมัคร'
+              }}
             </q-chip>
 
             <h1 class="text-h3 text-weight-bolder q-mt-none q-mb-md line-height-tight text-shadow">
@@ -77,14 +123,18 @@ const getButtonLabel = (price?: number) => {
             </p>
 
             <div
-              class="bg-white-transparent q-pa-sm q-pr-lg rounded-borders flex inline items-center no-wrap instructor-box"
+              class="bg-white-transparent q-py-sm q-px-md rounded-borders flex inline items-center no-wrap instructor-box disable-select"
             >
               <q-avatar size="48px" class="shadow-1 border-white q-mr-md">
-                <img src="https://cdn.quasar.dev/img/avatar5.jpg" />
+                <img :src="course.instructor.avatar" />
               </q-avatar>
               <div class="text-body2">
-                <div class="text-pink-3 text-caption text-weight-bold">วิทยากรหลัก</div>
-                <div class="text-white text-weight-bold text-subtitle2">ดร. สมชาย ใจดี</div>
+                <div class="text-pink-3 text-caption text-weight-bold">
+                  {{ course.instructor.role }}
+                </div>
+                <div class="text-white text-weight-bold text-subtitle2">
+                  {{ course.instructor.name }}
+                </div>
               </div>
             </div>
           </div>
@@ -92,15 +142,15 @@ const getButtonLabel = (price?: number) => {
       </div>
     </div>
 
-    <div class="container-width q-mx-auto q-px-md q-mt-xl">
-      <div class="row q-col-gutter-xl" v-if="course">
+    <div class="container-width q-mx-auto q-px-md q-mt-lg">
+      <div class="row q-col-gutter-lg q-col-gutter-md-xl" v-if="course">
         <div
-          class="col-12 col-md-7 col-lg-8 column q-gutter-y-lg content-col fade-up"
+          class="col-12 col-md-7 col-lg-8 column q-gutter-y-lg q-gutter-md-y-xl content-col fade-up"
           style="animation-delay: 0.1s"
         >
-          <div class="row q-col-gutter-md q-mb-sm">
+          <div class="row q-col-gutter-sm q-col-gutter-sm-md q-mt-md">
             <div class="col-6 col-sm-3">
-              <q-card flat class="info-card bg-white q-pa-md text-center">
+              <q-card flat class="info-card bg-white q-pa-md q-pt-lg text-center disable-select">
                 <q-avatar
                   color="pink-1"
                   text-color="primary"
@@ -113,7 +163,7 @@ const getButtonLabel = (price?: number) => {
               </q-card>
             </div>
             <div class="col-6 col-sm-3">
-              <q-card flat class="info-card bg-white q-pa-md text-center">
+              <q-card flat class="info-card bg-white q-pa-md q-pt-lg text-center disable-select">
                 <q-avatar
                   color="pink-1"
                   text-color="primary"
@@ -128,7 +178,7 @@ const getButtonLabel = (price?: number) => {
               </q-card>
             </div>
             <div class="col-12 col-sm-6">
-              <q-card flat class="info-card bg-white q-pa-md text-center no-wrap">
+              <q-card flat class="info-card bg-white q-pa-md q-pt-lg text-center disable-select">
                 <q-avatar
                   color="pink-1"
                   text-color="primary"
@@ -207,19 +257,20 @@ const getButtonLabel = (price?: number) => {
                 <q-img
                   :src="course.image || 'https://via.placeholder.com/800x450'"
                   fit="cover"
-                  class="course-img"
+                  class="course-img disable-select"
                   style="height: 240px; width: 100%"
                 >
                   <template v-slot:loading>
                     <q-spinner-dots color="primary" size="2em" />
                   </template>
                 </q-img>
-                <div class="absolute-top-left q-ma-md z-top">
+                <div class="absolute-bottom-right q-ma-md z-top">
                   <q-chip
                     size="lg"
-                    :color="course.price === 0 ? 'positive' : 'dark'"
+                    :color="course.price === 0 ? 'positive' : 'accent'"
                     text-color="white"
-                    class="text-weight-bolder shadow-4 q-ma-none price-chip"
+                    :ripple="false"
+                    class="text-weight-bolder shadow-4 q-ma-none price-chip disable-select"
                   >
                     {{ formatPrice(course.price) }}
                   </q-chip>
@@ -234,15 +285,24 @@ const getButtonLabel = (price?: number) => {
                     >ลงทะเบียนแล้ว:
                     <strong class="text-dark"
                       >{{ course.registeredSeats }}/{{ course.totalSeats }}</strong
-                    ></span
-                  >
+                    >
+                  </span>
                   <q-badge
-                    v-if="course.totalSeats - course.registeredSeats <= 5"
-                    color="negative"
+                    :color="
+                      course.totalSeats - course.registeredSeats > 0
+                        ? course.totalSeats - course.registeredSeats <= 5
+                          ? 'negative'
+                          : 'orange-14'
+                        : 'red-6'
+                    "
                     rounded
                     class="q-px-sm q-py-xs"
                   >
-                    เหลือ {{ course.totalSeats - course.registeredSeats }} ที่นั่ง!
+                    {{
+                      course.totalSeats - course.registeredSeats > 0
+                        ? `เหลือ ${course.totalSeats - course.registeredSeats} ที่นั่ง`
+                        : 'ที่นั่งเต็มแล้ว'
+                    }}
                   </q-badge>
                 </div>
 
@@ -255,23 +315,40 @@ const getButtonLabel = (price?: number) => {
                   class="q-mb-xl shadow-1"
                 />
 
-                <q-btn
-                  unelevated
-                  class="btn-main full-width text-weight-bold q-py-md q-mb-md text-subtitle1"
-                  :label="getButtonLabel(course.price)"
-                  rounded
-                  no-caps
-                />
-                <q-btn
-                  outline
-                  class="btn-outline full-width text-weight-bold q-py-sm"
-                  color="grey-4"
-                  text-color="dark"
-                  icon="favorite_border"
-                  label="บันทึกไว้เรียนภายหลัง"
-                  rounded
-                  no-caps
-                />
+                <div class="column q-gutter-y-sm">
+                  <q-btn
+                    unelevated
+                    class="btn-main full-width text-weight-bold q-py-md text-subtitle1"
+                    label="ลงทะเบียนอบรม"
+                    rounded
+                    no-caps
+                  />
+
+                  <div class="row q-gutter-x-sm">
+                    <q-btn
+                      outline
+                      class="btn-outline col text-weight-bold q-py-sm"
+                      color="primary"
+                      icon="shopping_cart"
+                      label="ใส่รถเข็น"
+                      rounded
+                      no-caps
+                      @click="addToCart"
+                    />
+                    <q-btn
+                      outline
+                      class="btn-outline-grey text-weight-bold q-py-sm q-px-md btn-favorite"
+                      :class="{ 'is-active': isFavorite }"
+                      :color="isFavorite ? 'pink' : 'grey-4'"
+                      :text-color="isFavorite ? 'pink' : 'dark'"
+                      :icon="isFavorite ? 'favorite' : 'favorite_border'"
+                      rounded
+                      no-caps
+                      @click="toggleFavorite"
+                    >
+                    </q-btn>
+                  </div>
+                </div>
 
                 <q-separator class="q-my-lg opacity-50" />
 
@@ -298,11 +375,16 @@ const getButtonLabel = (price?: number) => {
 
                   <q-item class="q-px-none q-py-sm">
                     <q-item-section avatar style="min-width: 44px">
-                      <q-avatar color="pink-1" text-color="primary" icon="desktop_mac" size="sm" />
+                      <q-avatar
+                        color="pink-1"
+                        text-color="primary"
+                        :icon="course.format.includes('ออนไลน์') ? 'laptop_mac' : 'business'"
+                        size="sm"
+                      />
                     </q-item-section>
                     <q-item-section>
                       <q-item-label class="text-weight-bold text-dark">รูปแบบการเรียน</q-item-label>
-                      <q-item-label caption class="text-grey-6">ออฟไลน์ (On-site)</q-item-label>
+                      <q-item-label caption class="text-grey-6">{{ course.format }}</q-item-label>
                     </q-item-section>
                   </q-item>
                 </q-list>
@@ -316,6 +398,18 @@ const getButtonLabel = (price?: number) => {
 </template>
 
 <style scoped lang="scss">
+.disable-select {
+  user-select: none;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  -webkit-touch-callout: none;
+}
+
+span {
+  font-size: 13px;
+}
+
 /* ================= โทนสีและพื้นหลัง ================= */
 .bg-light-theme {
   background-color: #f1f5f9;
@@ -323,7 +417,6 @@ const getButtonLabel = (price?: number) => {
 }
 .container-width {
   max-width: 1200px;
-  min-height: 420px;
   width: 100%;
 }
 .pointer-events-none {
@@ -357,7 +450,7 @@ const getButtonLabel = (price?: number) => {
 
   &:hover {
     .bg-image {
-      transform: scale(1.12); /* ขยายจาก 1.05 เป็น 1.12 */
+      transform: scale(1.12);
     }
   }
 }
@@ -365,7 +458,6 @@ const getButtonLabel = (price?: number) => {
   background-size: cover;
   background-position: center;
   transform: scale(1.05);
-
   transition: transform 1.5s cubic-bezier(0.25, 0.8, 0.25, 1);
   will-change: transform;
   backface-visibility: hidden;
@@ -413,7 +505,7 @@ const getButtonLabel = (price?: number) => {
   }
 }
 
-/* ================= Sidebar แบบเกาะติด (Sticky) ================= */
+/* ================= Sidebar ================= */
 .sticky-sidebar {
   z-index: 10;
 }
@@ -463,6 +555,7 @@ const getButtonLabel = (price?: number) => {
 }
 
 .btn-main {
+  font-size: 18px;
   background: linear-gradient(135deg, #e91e63) !important;
   color: white !important;
   transition:
@@ -478,6 +571,14 @@ const getButtonLabel = (price?: number) => {
 }
 
 .btn-outline {
+  transition: all 0.2s ease;
+  background-color: white;
+  &:hover {
+    background-color: #fff0f5 !important;
+  }
+}
+
+.btn-outline-grey {
   transition: all 0.2s ease;
   &:hover {
     background-color: #f8fafc !important;
@@ -502,6 +603,32 @@ const getButtonLabel = (price?: number) => {
   }
 }
 
+@keyframes heartPop {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(0.85);
+  }
+  50% {
+    transform: scale(1.35);
+  }
+  75% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.btn-favorite {
+  transition: all 0.3s ease;
+}
+
+.btn-favorite.is-active :deep(.q-icon) {
+  animation: heartPop 0.5s ease-in-out forwards;
+}
+
 /* ================= Responsive ================= */
 @media (max-width: 1023px) {
   .sidebar-col {
@@ -522,9 +649,14 @@ const getButtonLabel = (price?: number) => {
   .info-card {
     padding: 16px 12px;
   }
+
   .header-banner {
+    min-height: auto;
     padding-top: 32px;
     padding-bottom: 40px;
+  }
+  .q-mt-xl {
+    margin-top: 24px;
   }
 }
 
