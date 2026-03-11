@@ -25,10 +25,6 @@ const featuredCourses = computed(() => {
 const formatPrice = (price: number) => {
   return price === 0 ? 'FREE' : `฿${price.toLocaleString()}`;
 };
-
-const getButtonLabel = (price: number) => {
-  return price === 0 ? 'ลงทะเบียนเลย (ฟรี)' : `ลงทะเบียนเลย (฿${price.toLocaleString()})`;
-};
 </script>
 
 <template>
@@ -86,17 +82,21 @@ const getButtonLabel = (price: number) => {
 
               <div class="row q-gutter-md q-mb-lg justify-center text-weight-medium hero-meta">
                 <div class="flex items-center">
-                  <q-icon name="calendar_month" size="20px" class="q-mr-sm text-pink-3" />
+                  <q-icon name="event_available" size="20px" class="q-mr-sm text-pink-3" />
                   {{ course.date }}
                 </div>
                 <div class="flex items-center">
-                  <q-icon name="schedule" size="20px" class="q-mr-sm text-pink-3" />
-                  {{ course.time }}
+                  <q-icon
+                    :name="course.format.includes('ออนไลน์') ? 'laptop_mac' : 'business'"
+                    size="20px"
+                    class="q-mr-sm text-pink-3"
+                  />
+                  {{ course.format }}
                 </div>
               </div>
 
               <q-btn
-                :label="getButtonLabel(course.price)"
+                label="ดูรายละเอียดหลักสูตร"
                 class="btn-main text-weight-bold shadow-3 hero-btn q-mb-sm"
                 rounded
                 no-caps
@@ -153,36 +153,45 @@ const getButtonLabel = (price: number) => {
 
               <div
                 class="price-badge absolute-top-right q-ma-sm"
-                :class="course.price === 0 ? 'bg-positive' : 'bg-dark'"
+                :class="course.price === 0 ? 'bg-positive' : 'premium-price-bg'"
               >
                 {{ formatPrice(course.price) }}
               </div>
             </div>
 
             <q-card-section class="col q-pa-md column">
-              <div class="text-subtitle1 text-weight-bold text-dark q-mb-xs card-title">
+              <div
+                class="text-subtitle1 text-weight-bold text-dark q-mb-xs card-title ellipsis-2-lines"
+              >
                 {{ course.title }}
               </div>
 
-              <div class="text-body2 text-grey-6 q-mb-md flex-grow-1">
+              <div class="text-body2 text-grey-6 q-mb-md flex-grow-1 ellipsis-3-lines">
                 {{ course.description }}
               </div>
 
               <div class="course-info-list q-gutter-y-sm q-mb-md">
-                <div class="row items-start text-caption text-grey-8">
-                  <q-icon name="place" size="16px" class="q-mr-xs q-mt-xs text-primary" />
-                  <span class="col">{{ course.location }}</span>
-                </div>
-                <div class="row items-center text-caption text-grey-8">
+                <div class="row items-center text-caption text-grey-8 no-wrap">
                   <q-icon name="event" size="16px" class="q-mr-xs text-primary" />
-                  <span>{{ course.date }} • {{ course.time }}</span>
+                  <span class="ellipsis">{{ course.date }} • {{ course.time }}</span>
+                </div>
+                <div class="row items-center text-caption text-grey-8 no-wrap">
+                  <q-icon
+                    :name="course.format.includes('ออนไลน์') ? 'laptop_mac' : 'business'"
+                    size="16px"
+                    class="q-mr-xs text-primary"
+                  />
+                  <span class="ellipsis">{{ course.format }}</span>
                 </div>
               </div>
 
               <q-btn
                 unelevated
-                class="btn-detail full-width text-weight-bold"
-                label="ดูรายละเอียด"
+                class="full-width text-weight-bold"
+                :class="course.totalSeats === course.registeredSeats ? 'btn-soldout' : 'btn-detail'"
+                :label="
+                  course.totalSeats === course.registeredSeats ? 'ที่นั่งเต็มแล้ว' : 'ดูรายละเอียด'
+                "
                 no-caps
                 @click="goToDetail(course.id)"
               />
@@ -225,11 +234,9 @@ const getButtonLabel = (price: number) => {
   -ms-user-select: none;
   -webkit-touch-callout: none;
 }
-/* ให้คลิกทะลุกล่อง Wrapper ไปเลย (จะได้ปัดสไลด์หรือกดลูกศรได้) */
 .click-through {
   pointer-events: none;
 }
-/* แต่ให้ปุ่มและเนื้อหาด้านในรับการคลิกได้ปกติ */
 .click-catch {
   pointer-events: auto;
 }
@@ -269,14 +276,13 @@ const getButtonLabel = (price: number) => {
   backface-visibility: hidden;
 }
 
-/* ทำให้ลูกศรอยู่บนสุด และขยายเมื่อ Hover */
 :deep(.q-carousel__arrow .q-icon) {
   font-size: 32px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
   transition: transform 0.2s ease;
 }
 :deep(.q-carousel__arrow) {
-  z-index: 10; /* ดันลูกศรขึ้นมา */
+  z-index: 10;
 }
 :deep(.q-carousel__arrow:hover .q-icon) {
   transform: scale(1.2);
@@ -362,8 +368,9 @@ const getButtonLabel = (price: number) => {
   width: 100%;
   transition: transform 0.6s ease;
 }
+
 .card-title {
-  min-height: 40px;
+  min-height: 56px;
   margin-bottom: 10px;
 }
 
@@ -389,8 +396,9 @@ const getButtonLabel = (price: number) => {
 .bg-positive {
   background-color: #10b981 !important;
 }
-.bg-dark {
-  background-color: #1e293b !important;
+.premium-price-bg {
+  background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* ================= Buttons ================= */
@@ -410,15 +418,30 @@ const getButtonLabel = (price: number) => {
 }
 
 .btn-detail {
-  background-color: #f1f5f9;
-  color: #475569;
+  background-color: #f8fafc;
+  color: #334155;
   border-radius: 10px;
-  padding: 10px 0;
+  padding: 8px 0;
   font-size: 0.95rem;
   transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
   &:hover {
-    background: #e2e8f0;
+    background: #f1f5f9;
     color: #e91e63;
+    border-color: #cbd5e1;
+  }
+}
+
+.btn-soldout {
+  background-color: #fee2e2;
+  color: #ef4444;
+  border-radius: 10px;
+  padding: 8px 0;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  border: 1px solid #fecaca;
+  &:hover {
+    background: #fecaca;
   }
 }
 
