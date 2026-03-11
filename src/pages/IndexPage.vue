@@ -153,7 +153,7 @@ const formatPrice = (price: number) => {
 
               <div
                 class="price-badge absolute-top-right q-ma-sm"
-                :class="course.price === 0 ? 'bg-positive' : 'premium-price-bg'"
+                :class="course.price === 0 ? 'price-free' : 'price-paid'"
               >
                 {{ formatPrice(course.price) }}
               </div>
@@ -393,12 +393,11 @@ const formatPrice = (price: number) => {
   font-size: 0.8rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
-.bg-positive {
-  background-color: #10b981 !important;
+.price-free {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
 }
-.premium-price-bg {
-  background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.price-paid {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) !important;
 }
 
 /* ================= Buttons ================= */

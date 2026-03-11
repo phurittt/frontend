@@ -331,7 +331,7 @@ const addToCart = () => {
             class="col-12 col-md-5 col-lg-4 relative-position sidebar-col fade-up"
             style="animation-delay: 0.2s"
           >
-            <div class="sticky-sidebar">
+            <div class="sticky-sidebar q-mt-sm">
               <q-card flat class="course-card overflow-hidden">
                 <div class="image-wrapper relative-position">
                   <q-img
@@ -347,10 +347,12 @@ const addToCart = () => {
                   <div class="absolute-bottom-right q-ma-md z-top">
                     <q-chip
                       size="lg"
-                      :color="course.price === 0 ? 'positive' : 'accent'"
-                      text-color="white"
                       :ripple="false"
-                      class="text-weight-bolder shadow-4 q-ma-none price-chip disable-select"
+                      :class="[
+                        'text-weight-bold q-ma-none price-chip disable-select',
+                        course.price === 0 ? 'price-free' : 'price-paid',
+                      ]"
+                      text-color="white"
                     >
                       {{ formatPrice(course.price) }}
                     </q-chip>
@@ -650,7 +652,22 @@ span {
   transform: scale(1.08);
 }
 .price-chip {
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  height: 40px;
+  padding: 0 16px;
+  font-size: 1.05rem;
+  letter-spacing: 0.3px;
+
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  &:hover {
+    transform: scale(1.05) translateY(-2px);
+  }
+}
+.price-free {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+}
+.price-paid {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) !important;
 }
 
 /* ================= Lists ================= */
