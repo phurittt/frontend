@@ -521,14 +521,6 @@ const addToCart = () => {
 </template>
 
 <style scoped lang="scss">
-.disable-select {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -webkit-touch-callout: none;
-}
-
 span {
   font-size: 13px;
 }
@@ -574,6 +566,7 @@ span {
 
 /* ================= Header Banner ================= */
 .header-banner {
+  z-index: 2;
   background-color: $dark;
   min-height: 380px;
   display: flex;

@@ -227,13 +227,7 @@ const formatPrice = (price: number) => {
 }
 
 /* ================= ป้องกันการลากคลุม & การกด ================= */
-.disable-select {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -webkit-touch-callout: none;
-}
+
 .click-through {
   pointer-events: none;
 }

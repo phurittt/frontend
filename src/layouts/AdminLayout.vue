@@ -158,8 +158,8 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" show-if-above class="" :width="280">
-      <q-scroll-area class="fit q-pt-xs sidebar-left">
-        <q-list padding class="q-px-sm q-pb-xl">
+      <q-scroll-area class="fit sidebar-left">
+        <q-list padding class="q-px-sm q-pb-xl q-pt-md">
           <template v-for="(group, groupIndex) in menuGroups" :key="groupIndex">
             <q-item-label
               header
@@ -223,14 +223,6 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
 </template>
 
 <style scoped lang="scss">
-.disable-select {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -webkit-touch-callout: none;
-}
-
 /* ================= Header & Sidebar Borders ================= */
 .header-bar {
   z-index: 1998;
