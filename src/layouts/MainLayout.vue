@@ -38,12 +38,17 @@
             class="nav-btn"
             :class="{ 'is-active': route.path.startsWith('/courses') }"
           >
-            <q-menu transition-show="jump-down" transition-hide="jump-up" :offset="[0, 8]">
-              <q-list style="min-width: 220px" class="nav-dropdown">
+            <q-menu
+              transition-show="jump-down"
+              transition-hide="jump-up"
+              :offset="[0, 6]"
+              class="nav-dropdown"
+            >
+              <q-list style="min-width: 220px">
                 <q-item clickable v-ripple to="/courses/open" class="dropdown-item">
                   <q-item-section class="text-weight-medium">หลักสูตรที่เปิดอบรม</q-item-section>
                 </q-item>
-                <q-separator inset />
+                <q-separator class="q-my-xs q-mx-md horizon-line" />
                 <q-item clickable v-ripple to="/courses/all" class="dropdown-item">
                   <q-item-section class="text-weight-medium">หลักสูตรทั้งหมด</q-item-section>
                 </q-item>
@@ -69,9 +74,9 @@
           />
 
           <div v-if="authStore.isLoggedIn" class="q-ml-md">
-            <q-btn flat no-caps rounded class="profile-btn q-px-sm q-py-xs">
+            <q-btn unelevated no-caps rounded class="profile-btn q-px-sm q-py-xs">
               <div class="row items-center q-gutter-x-sm">
-                <q-avatar size="32px" class="profile-avatar shadow-1">
+                <q-avatar size="32px" class="profile-avatar">
                   <img
                     :src="userStore.profile?.avatar || 'https://cdn.quasar.dev/img/boy-avatar.png'"
                   />
@@ -81,11 +86,16 @@
                 </div>
               </div>
 
-              <q-menu transition-show="jump-down" transition-hide="jump-up" :offset="[0, 8]">
-                <q-list style="min-width: 180px" class="nav-dropdown">
+              <q-menu
+                transition-show="jump-down"
+                transition-hide="jump-up"
+                :offset="[0, 6]"
+                class="nav-dropdown"
+              >
+                <q-list style="min-width: 220px">
                   <q-item clickable v-close-popup class="dropdown-item" to="/profile">
                     <q-item-section avatar>
-                      <q-icon name="account_circle" size="sm" color="primary" />
+                      <q-icon name="account_circle" size="sm" />
                     </q-item-section>
                     <q-item-section class="text-weight-medium">โปรไฟล์ของฉัน</q-item-section>
                   </q-item>
@@ -425,34 +435,6 @@ watch(menuOpen, (val) => {
   }
 }
 
-.nav-dropdown {
-  color: #4b5563;
-  border-radius: inherit;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-  padding: 8px;
-}
-.dropdown-item {
-  border-radius: 10px;
-  margin: 2px 0;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: rgba($primary, 0.05);
-    color: $primary;
-    transform: translateX(2px);
-  }
-
-  &.is-active-dropdown {
-    background-color: rgba($primary, 0.1);
-    color: $primary;
-    font-weight: bold;
-    border-left: 3px solid $primary;
-    transform: translateX(0);
-  }
-}
-
 .nav-btn-login {
   box-shadow: 0 4px 15px rgba($primary, 0.25) !important;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -466,7 +448,7 @@ watch(menuOpen, (val) => {
 }
 
 .nav-menu {
-  z-index: 1999;
+  z-index: 1998;
   position: absolute;
   top: 100%;
   left: 0;

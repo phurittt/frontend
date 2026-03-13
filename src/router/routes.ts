@@ -26,8 +26,16 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/AdminLayout.vue'),
     children: [
       { path: '', redirect: '/admin/projects' },
-      { path: 'projects', component: () => import('pages/admin/ProjectManagePage.vue') },
-      { path: 'project-types', component: () => import('pages/admin/CourseProjectTypes.vue') },
+      {
+        path: 'projects',
+        component: () => import('pages/admin/ProjectManagePage.vue'),
+        meta: { parent: 'การจัดการหลัก', title: 'โครงการและหลักสูตร' },
+      },
+      {
+        path: 'project-types',
+        component: () => import('pages/admin/CourseProjectTypes.vue'),
+        meta: { parent: 'ตั้งค่าระบบ', title: 'ประเภทโครงการ' },
+      },
     ],
   },
 
