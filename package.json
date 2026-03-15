@@ -45,8 +45,6 @@
     "vue-tsc": "^3.2.5"
   },
   "overrides": {
-    "minimatch": "^10.2.4",
-    "glob": "^13.0.6",
     "serialize-javascript": "^7.0.4"
   },
   "engines": {
