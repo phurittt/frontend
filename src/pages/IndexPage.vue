@@ -140,7 +140,7 @@ const formatPrice = (price: number) => {
           :key="course.id"
           class="col-12 col-sm-6 col-md-4 col-lg-3"
         >
-          <q-card flat class="course-card column full-height">
+          <q-card flat class="course-card column full-height" @click="goToDetail(course.id)">
             <div class="image-wrapper relative-position">
               <q-img v-if="course.image" :src="course.image" class="course-img" fit="cover" />
               <div v-else class="bg-grey-2 flex flex-center course-img">
@@ -148,7 +148,7 @@ const formatPrice = (price: number) => {
               </div>
 
               <div class="glass-badge absolute-top-left q-ma-sm">
-                <q-icon name="timer" size="14px" class="q-mr-xs" /> {{ course.duration }}
+                <q-icon name="timer" size="14px" class="q-mr-xs text-dark" /> {{ course.duration }}
               </div>
 
               <div
@@ -342,6 +342,7 @@ const formatPrice = (price: number) => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   overflow: hidden;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-4px);
