@@ -38,6 +38,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/admin/CourseProjectTypes.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ประเภทโครงการ' },
       },
+      {
+        path: 'permissions',
+        component: () => import('pages/admin/PermissionManagePage.vue'),
+        meta: { parent: 'ตั้งค่าระบบ', title: 'สิทธิ์ผู้ใช้งาน' },
+      },
     ],
   },
 
