@@ -77,21 +77,29 @@ onMounted(() => {
 
 <template>
   <q-page class="q-pa-md">
-    <div class="row items-center justify-between q-mb-md">
-      <div class="text-h6 text-weight-bold">จัดการประเภทหลักสูตร</div>
-      <q-btn unelevated color="primary" label="เพิ่มประเภทหลักสูตร" icon="add" @click="openAddDialog" />
-    </div>
+    <div class="text-h6 q-mb-md text-weight-bold">จัดการประเภทหลักสูตร</div>
 
-    <q-card flat bordered class="bg-white">
-      <q-card-section class="q-pa-none">
-        <div class="q-pa-md border-bottom">
-          <q-input outlined dense v-model="search" placeholder="ค้นหาประเภทหลักสูตร..." style="max-width: 350px;">
-            <template v-slot:append><q-icon name="search" /></template>
+    <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px;">
+      <q-card-section>
+
+        <div class="row items-center q-mb-md q-gutter-x-sm">
+          <q-input outlined dense v-model="search" placeholder="ค้นหาประเภทหลักสูตร..." rounded bg-color="grey-1"
+            style="width: 320px;">
+            <template v-slot:append>
+              <q-icon name="search" color="grey-7" />
+            </template>
           </q-input>
+
+          <q-btn outline color="grey-4" text-color="grey-8" icon="tune" padding="6px 12px">
+            <q-tooltip>ตัวกรอง</q-tooltip>
+          </q-btn>
+
+          <q-btn unelevated color="grey-8" text-color="white" label="เพิ่มประเภทหลักสูตร" no-caps
+            class="q-px-md text-weight-medium" @click="openAddDialog" />
         </div>
 
-        <q-table flat :rows="rows" :columns="columns" row-key="id" :filter="search" :loading="categoryStore.loading"
-          table-header-class="bg-grey-1">
+        <q-table flat bordered :rows="rows" :columns="columns" row-key="id" separator="horizontal" :filter="search"
+          :loading="categoryStore.loading" table-header-class="bg-grey-1 text-weight-bold text-dark">
           <template v-slot:body-cell-actions="props">
             <q-td :props="props" class="q-gutter-x-sm">
               <q-btn flat round size="sm" color="primary" icon="edit" @click="editItem(props.row)">
@@ -103,13 +111,14 @@ onMounted(() => {
             </q-td>
           </template>
         </q-table>
+
       </q-card-section>
     </q-card>
 
     <q-dialog v-model="showDialog" persistent>
       <q-card style="width: 450px; max-width: 90vw;">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">{{ isEdit ? 'แก้ไขประเภทหลักสูตร' : 'เพิ่มประเภทหลักสูตร' }}</div>
+          <div class="text-h6 text-weight-bold">{{ isEdit ? 'แก้ไขประเภทหลักสูตร' : 'เพิ่มประเภทหลักสูตร' }}</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
@@ -123,7 +132,7 @@ onMounted(() => {
             <q-input v-model="form.description" label="คำอธิบาย" outlined dense type="textarea" rows="3" />
 
             <div class="row justify-end q-mt-lg q-gutter-sm">
-              <q-btn flat label="ยกเลิก" v-close-popup color="grey-8" :disable="categoryStore.loading" />
+              <q-btn flat label="ยกเลิก" v-close-popup color="grey-7" :disable="categoryStore.loading" />
               <q-btn unelevated :label="isEdit ? 'บันทึกการแก้ไข' : 'บันทึกข้อมูล'" type="submit" color="primary"
                 :loading="categoryStore.loading" />
             </div>
@@ -131,11 +140,18 @@ onMounted(() => {
         </q-card-section>
       </q-card>
     </q-dialog>
+
   </q-page>
 </template>
 
 <style scoped>
-.border-bottom {
-  border-bottom: 1px solid #ebebeb;
+:deep(.q-table th) {
+  font-size: 13px;
+  color: #555;
+}
+
+:deep(.q-table td) {
+  font-size: 14px;
+  color: #333;
 }
 </style>
