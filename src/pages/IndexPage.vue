@@ -338,16 +338,12 @@ const formatPrice = (price: number) => {
 .course-card {
   border-radius: 16px;
   background: white;
-  border: 1px solid rgba(0, 0, 0, 0.03);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   overflow: hidden;
   cursor: pointer;
-
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(233, 30, 99, 0.08);
-    border-color: rgba(233, 30, 99, 0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
     .course-img {
       transform: scale(1.05);
     }

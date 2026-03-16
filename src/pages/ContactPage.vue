@@ -1,4 +1,21 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useQuasar, copyToClipboard } from 'quasar';
+
+const $q = useQuasar();
+const contactEmail = 'bucctraining@buu.ac.th';
+
+const copyEmail = () => {
+  copyToClipboard(contactEmail).then(() => {
+    $q.notify({
+      message: 'คัดลอกอีเมลแล้ว',
+      color: 'positive',
+      icon: 'content_copy',
+      position: 'top',
+      timeout: 2000,
+    });
+  });
+};
+</script>
 
 <template>
   <q-page class="bg-slate-50 flex justify-center q-py-xl">
@@ -10,13 +27,13 @@
 
           <div class="z-top relative-position">
             <q-chip
-              color="white"
+              :ripple="false"
               text-color="dark"
-              class="text-weight-bolder q-pl-sm q-py-sm q-mb-md chip-shadow"
+              class="text-weight-bolder q-pl-sm q-py-sm q-mb-md chip-shadow bg-white-transparent disable-select"
               size="md"
             >
               <q-icon name="fiber_manual_record" size="xs" class="q-mr-xs text-primary" />
-              <span class="text-dark">GET IN TOUCH</span>
+              <span class="text-white text-weight-bold">GET IN TOUCH</span>
             </q-chip>
             <h1
               class="text-h2 text-weight-bolder q-mt-none q-mb-md tracking-tight line-height-tight text-shadow"
@@ -105,12 +122,64 @@
 
             <div class="row q-col-gutter-sm">
               <div class="col-6">
-                <a
-                  href="mailto:bucctraining@buu.ac.th"
-                  class="online-btn bg-blue-50 text-blue-7 hover-blue full-height"
+                <q-btn
+                  unelevated
+                  no-caps
+                  class="online-btn bg-blue-50 text-blue-7 hover-blue full-width"
                 >
-                  <q-icon name="email" size="18px" class="q-mr-xs" /> อีเมล
-                </a>
+                  <div class="row items-center no-wrap">
+                    <q-icon name="email" size="18px" class="q-mr-sm" />
+                    <span>อีเมล</span>
+                  </div>
+
+                  <q-menu
+                    class="shadow-10 nav-dropdown"
+                    transition-show="jump-down"
+                    transition-hide="jump-up"
+                    fit
+                  >
+                    <q-list min-width="220px">
+                      <q-item
+                        clickable
+                        v-close-popup
+                        tag="a"
+                        target="_blank"
+                        class="dropdown-item"
+                        :href="`https://mail.google.com/mail/?view=cm&fs=1&to=${contactEmail}`"
+                      >
+                        <q-item-section avatar>
+                          <q-icon
+                            name="img:https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg"
+                            size="xs"
+                          />
+                        </q-item-section>
+                        <q-item-section>ส่งผ่าน Gmail (Browser)</q-item-section>
+                      </q-item>
+
+                      <q-item
+                        clickable
+                        v-close-popup
+                        tag="a"
+                        class="dropdown-item"
+                        :href="`mailto:${contactEmail}`"
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="launch" color="grey-7" size="xs" />
+                        </q-item-section>
+                        <q-item-section>เปิดโปรแกรมส่งอีเมล</q-item-section>
+                      </q-item>
+
+                      <q-separator class="q-my-xs q-mx-md horizon-line" />
+
+                      <q-item clickable v-close-popup @click="copyEmail" class="dropdown-item">
+                        <q-item-section avatar>
+                          <q-icon name="content_copy" color="grey-7" size="xs" />
+                        </q-item-section>
+                        <q-item-section>คัดลอกที่อยู่อีเมล</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-btn>
               </div>
               <div class="col-6">
                 <a
@@ -118,7 +187,7 @@
                   target="_blank"
                   class="online-btn bg-blue-50 text-blue-7 hover-blue full-height"
                 >
-                  <q-icon name="facebook" size="18px" class="q-mr-xs" /> Facebook
+                  <q-icon name="facebook" size="18px" class="q-mr-sm" /> Facebook
                 </a>
               </div>
             </div>
@@ -261,6 +330,10 @@
 }
 .chip-shadow {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.bg-white-transparent {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* ================= REDESIGNED ELEMENTS ================= */
