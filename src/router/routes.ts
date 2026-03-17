@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
       { path: '', redirect: '/admin/projects' },
       {
         path: 'projects',
-        component: () => import('pages/admin/ProjectManagePage.vue'),
+        component: () => import('src/pages/admin/ProjectManagementPage.vue'),
         meta: { parent: 'การจัดการหลัก', title: 'โครงการและหลักสูตร' },
       },
       {
@@ -39,8 +39,8 @@ const routes: RouteRecordRaw[] = [
         meta: { parent: 'ตั้งค่าระบบ', title: 'ประเภทโครงการ' },
       },
       {
-        path: 'permissions',
-        component: () => import('pages/admin/PermissionManagePage.vue'),
+        path: 'user-management',
+        component: () => import('pages/admin/UserManagementPage.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'สิทธิ์ผู้ใช้งาน' },
       },
       {

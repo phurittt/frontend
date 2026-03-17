@@ -403,7 +403,9 @@
                         outlined
                         dense
                         bottom-slots
+                        autogrow
                         placeholder="หากไม่ระบุ ระบบจะใช้ข้อมูลส่วนตัวและหน่วยงานก่อนหน้า"
+                        input-style="max-height: 160px;"
                       />
                     </div>
                     <div class="col-12 col-md-6">

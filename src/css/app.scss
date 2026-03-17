@@ -54,6 +54,24 @@ body {
   }
 }
 
+// custom scrollbar สำหรับ Dialog
+.q-dialog .scroll {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+    border: 2px solid #ffffff;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: $secondary;
+  }
+}
+
 // --------------------------------------------
 
 // ----------------- Dropdown -----------------

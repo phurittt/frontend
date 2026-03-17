@@ -48,7 +48,7 @@ const menuGroups = [
       { icon: 'o_school', label: 'ข้อมูลวิทยากร', to: '/admin/lecturers' },
       { icon: 'eva-layers-outline', label: 'ประเภทโครงการ', to: '/admin/project-types' },
       { icon: 'eva-list-outline', label: 'ประเภทหลักสูตร', to: '/admin/course-types' },
-      { icon: 'eva-shield-outline', label: 'สิทธิ์ผู้ใช้งาน', to: '/admin/permissions' },
+      { icon: 'eva-shield-outline', label: 'สิทธิ์ผู้ใช้งาน', to: '/admin/user-management' },
     ],
   },
 ];
