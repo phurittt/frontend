@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import { useCourseStore } from 'src/stores/course-store';
+import { useAuthStore } from 'src/stores/auth-store'; // นำเข้า Auth Store
 import { computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 
 const route = useRoute();
 const router = useRouter();
 const store = useCourseStore();
+const authStore = useAuthStore();
 const $q = useQuasar();
 
 onMounted(() => {
@@ -40,8 +42,35 @@ const handleNotify = () => {
   });
 };
 
+
+// Logic สำหรับจัดการปุ่มลงทะเบียน/Login
+const buttonLabel = computed(() => {
+  if (course.value?.totalSeats === course.value?.registeredSeats) {
+    return 'แจ้งเตือนเมื่อเปิดรอบใหม่';
+  }
+  return authStore.isLoggedIn ? 'ลงทะเบียนอบรม' : 'กรุณาเข้าสู่ระบบ ก่อนลงทะเบียน';
+});
+
+const handleMainButtonClick = () => {
+  if (course.value?.totalSeats === course.value?.registeredSeats) {
+    handleNotify();
+  } else if (!authStore.isLoggedIn) {
+    // ถ้ายังไม่ Login ให้แจ้งเตือนและไปหน้า Login
+    $q.notify({
+      message: 'กรุณาเข้าสู่ระบบก่อนลงทะเบียน',
+      color: 'warning',
+      icon: 'lock',
+      position: 'top',
+    });
+    router.push('/login'); 
+  } else {
+    // ถ้า Login แล้วให้ทำตามปกติ
+    handleRegister();
+  }
+};
+
+
 const handleRegister = () => {
-  // แจ้งเตือน หรือ เด้งไปหน้าชำระเงิน
   $q.notify({
     message: 'กำลังพาท่านเข้าสู่หน้าลงทะเบียน...',
     color: 'positive',
@@ -50,11 +79,6 @@ const handleRegister = () => {
     timeout: 2000,
     classes: 'text-weight-medium',
   });
-
-  // อนาคตถ้ามีหน้า Checkout
-  // if (course.value) {
-  //   router.push(`/checkout/${course.value.id}`);
-  // }
 };
 
 const toggleFavorite = () => {
@@ -78,7 +102,6 @@ const addToCart = () => {
   if (course.value) {
     store.addToCart(course.value);
 
-    // แจ้งเตือนผู้ใช้
     $q.notify({
       message: 'เพิ่มหลักสูตรลงในรถเข็นแล้ว',
       color: 'positive',
@@ -400,30 +423,20 @@ const addToCart = () => {
                   <div class="column q-gutter-y-sm">
                     <q-btn
                       unelevated
-                      :class="
-                        course.totalSeats === course.registeredSeats ? 'btn-notify' : 'btn-main'
-                      "
-                      class="full-width text-weight-bold q-py-md text-subtitle1"
-                      :label="
-                        course.totalSeats === course.registeredSeats
-                          ? 'แจ้งเตือนเมื่อเปิดรอบใหม่'
-                          : 'ลงทะเบียนอบรม'
-                      "
+                      :class="course.totalSeats === course.registeredSeats ? 'btn-notify' : 'btn-main'"
+                        class="full-width text-weight-bold q-py-md text-subtitle1"
+                      :label="buttonLabel"
                       :icon="
                         course.totalSeats === course.registeredSeats
-                          ? 'notifications_active'
-                          : undefined
+                      ? 'notifications_active'
+                      : (!authStore.isLoggedIn ? 'warning' : undefined)
                       "
                       rounded
                       no-caps
-                      @click="
-                        course.totalSeats === course.registeredSeats
-                          ? handleNotify()
-                          : handleRegister()
-                      "
-                    />
+                      @click="handleMainButtonClick"
+                  />
 
-                    <div class="row q-gutter-x-sm">
+                    <div v-if="authStore.isLoggedIn" class="row q-gutter-x-sm">
                       <q-btn
                         outline
                         class="btn-outline col text-weight-bold q-py-sm"
