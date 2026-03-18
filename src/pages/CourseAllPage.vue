@@ -215,7 +215,15 @@ const formatPrice = (price: number) => {
               <div class="text-caption text-grey-6 q-mb-lg">
                 เปิดรับสมัคร {{ course.totalSeats }} ท่าน
               </div>
-              <q-btn unelevated color="dark" label="ดูรายละเอียด" no-caps rounded class="q-px-lg" />
+              <q-btn
+                unelevated
+                class="full-width text-weight-bold"
+                :class="course.totalSeats === course.registeredSeats ? 'btn-soldout' : 'btn-detail'"
+                :label="
+                  course.totalSeats === course.registeredSeats ? 'ที่นั่งเต็มแล้ว' : 'ดูรายละเอียด'
+                "
+                no-caps
+              />
             </div>
           </div>
         </div>
@@ -226,7 +234,7 @@ const formatPrice = (price: number) => {
 
 <style scoped lang="scss">
 .bg-light-theme {
-  background-color: $background;
+  background-color: $background-light;
   min-height: 100vh;
 }
 .container-width {

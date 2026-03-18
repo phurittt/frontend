@@ -32,7 +32,7 @@
 <style scoped lang="scss">
 /* ================= Background ================= */
 .bg-light {
-  background-color: $background;
+  background-color: $background-light;
 }
 
 /* ================= 404 Text Design ================= */

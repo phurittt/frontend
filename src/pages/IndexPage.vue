@@ -205,7 +205,7 @@ const formatPrice = (price: number) => {
 
 <style scoped lang="scss">
 .bg-light-theme {
-  background-color: $background;
+  background-color: $background-light;
   min-height: 100vh;
 }
 .container-width {
@@ -258,7 +258,7 @@ const formatPrice = (price: number) => {
 .hero-skeleton {
   min-height: 400px;
   border-radius: 20px;
-  background-color: $background;
+  background-color: $background-light;
 }
 
 .carousel-bg {

@@ -361,7 +361,7 @@ watch(menuOpen, (val) => {
 
 <style scoped lang="scss">
 .q-layout {
-  background-color: $background;
+  background-color: $background-light;
   min-height: 100vh;
 }
 
@@ -374,7 +374,7 @@ watch(menuOpen, (val) => {
 
 .header {
   z-index: 2000;
-  background-color: $background;
+  background-color: $background-light;
   border-bottom: 1px solid rgba(0, 0, 0, 0.03);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
   color: #4b5563;
@@ -452,7 +452,7 @@ watch(menuOpen, (val) => {
   position: absolute;
   top: 100%;
   left: 0;
-  background-color: $background;
+  background-color: $background-light;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
   clip-path: inset(0px -100px -100px -100px);

@@ -190,7 +190,7 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
       </q-scroll-area>
     </q-drawer>
 
-    <q-page-container>
+    <q-page-container class="bg-light">
       <transition name="breadcrumb-slide" mode="out-in">
         <div class="q-px-xl q-pt-lg q-pb-none" style="margin: 0 auto" :key="route.fullPath">
           <q-breadcrumbs class="text-grey-6 text-weight-medium" active-color="primary">
@@ -223,6 +223,10 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
 </template>
 
 <style scoped lang="scss">
+.bg-light {
+  background-color: $background-light;
+}
+
 /* ================= Header & Sidebar Borders ================= */
 .header-bar {
   z-index: 1998;

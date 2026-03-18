@@ -226,7 +226,7 @@ const formatPrice = (price: number) => {
 
 <style scoped lang="scss">
 .bg-light-theme {
-  background-color: $background;
+  background-color: $background-light;
   min-height: 100vh;
 }
 .container-width {

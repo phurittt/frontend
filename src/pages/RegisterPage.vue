@@ -640,7 +640,7 @@ onUnmounted(() => {
 .page-container {
   min-height: 100vh;
   position: relative;
-  background-color: $background;
+  background-color: $background-light;
   transition: background-color 0.4s ease;
   overflow-x: hidden;
 }
@@ -682,7 +682,7 @@ onUnmounted(() => {
 
 /* ================= Input Styles ================= */
 :deep(.q-field--outlined .q-field__control) {
-  background-color: $background !important;
+  background-color: $background-light !important;
   border-radius: 10px;
   border: 1px solid #d1d5db !important;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
