@@ -71,10 +71,10 @@ const confirmRegistration = () => {
   }
 
   // 2. เช็คเบอร์โทรศัพท์ (ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมี 10 หลัก)
-  const phoneRegex = /^0[689]\d{8}$/;
+  const phoneRegex = /^0\d{8}$/;
   if (!phoneRegex.test(phone)) {
     $q.notify({
-      message: 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (ต้องมี 10 หลัก และขึ้นต้นด้วย 06, 08 หรือ 09)',
+      message: 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (ต้องมี 10 หลัก และขึ้นต้นด้วย 0)',
       color: 'negative',
       icon: 'error_outline',
       position: 'top',
@@ -655,7 +655,7 @@ const addToCart = () => {
                 lazy-rules
                 :rules="[
                   val => !!val || 'กรุณากรอกเบอร์โทรศัพท์',
-                  val => /^0\d{9}$/.test(val) || 'เบอร์โทรต้องมี 10 หลัก ต้องมี 10 หลัก และขึ้นต้นด้วย 0'
+                  val => /^0\d{9}$/.test(val) || 'เบอร์โทรต้องมี 10 หลัก และขึ้นต้นด้วย 0'
                 ]"
               >
                 <template v-slot:append>
