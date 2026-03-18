@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import { useCourseStore } from 'src/stores/course-store';
-import { useAuthStore } from 'src/stores/auth-store'; // นำเข้า Auth Store
-import { computed, onMounted } from 'vue';
+import { useAuthStore } from 'src/stores/auth-store';
+import { computed, onMounted, ref } from 'vue';
 import { useQuasar } from 'quasar';
 
 const route = useRoute();
@@ -42,7 +42,71 @@ const handleNotify = () => {
   });
 };
 
-// Logic สำหรับจัดการปุ่มลงทะเบียน/Login
+// ==========================================
+// ส่วนจัดการ Dialog ลงทะเบียน
+// ==========================================
+const showRegisterDialog = ref(false);
+const registerForm = ref({
+  phone: '',
+  email: ''
+});
+
+const handleRegisterClick = () => {
+  showRegisterDialog.value = true;
+};
+
+const confirmRegistration = () => {
+  const phone = registerForm.value.phone;
+  const email = registerForm.value.email;
+
+  // 1. เช็คว่ากรอกครบไหม
+  if (!phone || !email) {
+    $q.notify({
+      message: 'กรุณากรอกเบอร์โทรศัพท์มือถือและอีเมลให้ครบถ้วน',
+      color: 'warning',
+      icon: 'warning',
+      position: 'top',
+    });
+    return;
+  }
+
+  // 2. เช็คเบอร์โทรศัพท์ (ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมี 10 หลัก)
+  const phoneRegex = /^0[689]\d{8}$/;
+  if (!phoneRegex.test(phone)) {
+    $q.notify({
+      message: 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (ต้องมี 10 หลัก และขึ้นต้นด้วย 06, 08 หรือ 09)',
+      color: 'negative',
+      icon: 'error_outline',
+      position: 'top',
+    });
+    return;
+  }
+
+  // 3. เช็ครูปแบบอีเมล
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    $q.notify({
+      message: 'รูปแบบอีเมลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง',
+      color: 'negative',
+      icon: 'error_outline',
+      position: 'top',
+    });
+    return;
+  }
+
+  showRegisterDialog.value = false;
+
+  $q.notify({
+    message: 'ลงทะเบียนสำเร็จ ระบบกำลังดำเนินการ...',
+    color: 'positive',
+    icon: 'check_circle',
+    position: 'top',
+    timeout: 2000,
+    classes: 'text-weight-medium',
+  });
+};
+// ==========================================
+
 const buttonLabel = computed(() => {
   if (!authStore.isLoggedIn) return 'เข้าสู่ระบบ เพื่อลงทะเบียน';
 
@@ -68,19 +132,8 @@ const handleMainButtonClick = () => {
   if (course.value?.totalSeats === course.value?.registeredSeats) {
     handleNotify();
   } else {
-    handleRegister();
+    handleRegisterClick();
   }
-};
-
-const handleRegister = () => {
-  $q.notify({
-    message: 'กำลังพาท่านเข้าสู่หน้าลงทะเบียน...',
-    color: 'positive',
-    icon: 'check_circle',
-    position: 'top',
-    timeout: 2000,
-    classes: 'text-weight-medium',
-  });
 };
 
 const toggleFavorite = () => {
@@ -555,13 +608,109 @@ const addToCart = () => {
         class="q-px-xl q-py-sm text-weight-bold"
       />
     </div>
+
+    <q-dialog v-model="showRegisterDialog" persistent>
+      <q-card class="register-dialog-card q-pa-md" style="min-width: 350px; max-width: 700px; width: 100%;">
+        <q-card-section class="text-center q-pb-none">
+          <div class="text-h5 text-weight-bolder text-dark line-height-tight q-mb-md">
+            การลงทะเบียนอบรมหลักสูตร <br>
+            <span class="text-red-10">{{ course?.title }}</span>
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-sm">
+          <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-md">
+            <template v-slot:avatar>
+              <q-icon name="info" color="blue-7" />
+            </template>
+            กรุณายืนยันข้อมูลอีเมลและเบอร์โทรศัพท์มือถือที่ติดต่อได้ สำหรับแจ้งยืนยันการเข้าร่วมโครงการ
+          </q-banner>
+
+          <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-lg">
+            <template v-slot:avatar>
+              <q-icon name="policy" color="blue-7" />
+            </template>
+            คำประกาศนโยบายความเป็นส่วนตัว (Privacy Notice) ของฝ่ายบริการวิชาการ สำนักคอมพิวเตอร์ ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 โดย 
+            <a 
+              href="https://ict.buu.ac.th/policy/privacy-notice-as.pdf" 
+              target="_blank" 
+              class="text-red-6 text-weight-bold" 
+              style="text-decoration: underline;"
+            >
+          คลิกที่นี่
+        </a>
+          </q-banner>
+
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-sm-6">
+              <div class="text-subtitle2 text-weight-bold q-mb-xs">เบอร์โทรศัพท์มือถือ <span class="text-red">*</span></div>
+              <q-input 
+                v-model="registerForm.phone" 
+                outlined 
+                dense 
+                placeholder="08x-xxx-xxxx"
+                color="primary"
+                mask="###-###-####"
+                unmasked-value
+                lazy-rules
+                :rules="[
+                  val => !!val || 'กรุณากรอกเบอร์โทรศัพท์',
+                  val => /^0\d{9}$/.test(val) || 'เบอร์โทรต้องมี 10 หลัก ต้องมี 10 หลัก และขึ้นต้นด้วย 0'
+                ]"
+              >
+                <template v-slot:append>
+                  <q-icon name="phone" color="grey-5" />
+                </template>
+              </q-input>
+            </div>
+            
+            <div class="col-12 col-sm-6">
+              <div class="text-subtitle2 text-weight-bold q-mb-xs">อีเมล <span class="text-red">*</span></div>
+              <q-input 
+                v-model="registerForm.email" 
+                outlined 
+                dense 
+                type="email"
+                placeholder="example@mail.com"
+                color="primary"
+                lazy-rules
+                :rules="[
+                  val => !!val || 'กรุณากรอกอีเมล',
+                  val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'รูปแบบอีเมลไม่ถูกต้อง'
+                ]"
+              >
+                <template v-slot:append>
+                  <q-icon name="email" color="grey-5" />
+                </template>
+              </q-input>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="center" class="q-pt-md q-pb-lg">
+          <q-btn 
+            unelevated 
+            color="positive" 
+            label="ยืนยัน" 
+            class="q-px-xl q-py-sm text-weight-bold btn-action" 
+            @click="confirmRegistration" 
+          />
+          <q-btn 
+            unelevated 
+            color="grey-2" 
+            text-color="dark" 
+            label="ยกเลิก" 
+            class="q-px-xl q-py-sm text-weight-bold btn-action q-ml-md" 
+            v-close-popup 
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
 <style scoped lang="scss">
-span {
-  font-size: 13px;
-}
 
 /* ================= Skeleton Styles ================= */
 .border-radius-16 {
@@ -837,6 +986,26 @@ span {
 
 .btn-favorite.is-active :deep(.q-icon) {
   animation: heartPop 0.5s ease-in-out forwards;
+}
+
+/* ================= Register Dialog CSS ================= */
+.register-dialog-card {
+  border-radius: 16px;
+}
+.btn-action {
+  border-radius: 8px;
+  font-size: 16px;
+}
+.line-height-tight {
+  line-height: 1.4;
+}
+
+.q-banner :deep(.q-icon) {
+  font-size: 26px !important; /* ปรับตัวเลขได้ตามต้องการ (ค่าเริ่มต้นของ Quasar คือประมาณ 40px) */
+}
+
+.q-banner :deep(.q-banner__avatar) {
+  align-self: center !important; 
 }
 
 /* ================= Responsive ================= */
