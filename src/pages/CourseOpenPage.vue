@@ -313,7 +313,6 @@ const formatPrice = (price: number) => {
 /* Badges & Elements */
 .glass-badge {
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(4px);
   color: #1e293b;
   padding: 4px 10px;
   border-radius: 12px;

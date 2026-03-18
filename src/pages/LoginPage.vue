@@ -312,11 +312,7 @@ onUnmounted(() => {
           <q-inner-loading
             :showing="googleLoading"
             class="login-card"
-            style="
-              background-color: rgba(0, 0, 0, 0.7);
-              backdrop-filter: blur(1px);
-              -webkit-backdrop-filter: blur(1px);
-            "
+            style="background-color: rgba(0, 0, 0, 0.7)"
           >
             <q-spinner-puff size="80px" color="pink-6" />
           </q-inner-loading>
@@ -368,15 +364,15 @@ onUnmounted(() => {
   display: none !important;
 }
 :deep(.q-field--outlined .q-field__control:hover) {
-  border-color: $accent !important;
-  box-shadow: 0 0 0 1.5px $accent !important;
+  border-color: $primary !important;
+  box-shadow: 0 0 0 1.5px $primary !important;
   transition: box-shadow 0.3s ease !important;
 }
 :deep(.q-field--focused .q-field__control) {
-  border-color: $accent !important;
+  border-color: $primary !important;
   border-width: 1px !important;
   box-shadow:
-    0 0 0 1.5px $accent,
+    0 0 0 1.5px $primary,
     0 0 0 3px rgba(79, 70, 229, 0.1) !important;
 }
 :deep(.q-field__bottom) {

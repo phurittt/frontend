@@ -42,33 +42,35 @@ const handleNotify = () => {
   });
 };
 
-
 // Logic สำหรับจัดการปุ่มลงทะเบียน/Login
 const buttonLabel = computed(() => {
+  if (!authStore.isLoggedIn) return 'เข้าสู่ระบบ เพื่อลงทะเบียน';
+
   if (course.value?.totalSeats === course.value?.registeredSeats) {
     return 'แจ้งเตือนเมื่อเปิดรอบใหม่';
   }
-  return authStore.isLoggedIn ? 'ลงทะเบียนอบรม' : 'กรุณาเข้าสู่ระบบ ก่อนลงทะเบียน';
+
+  return 'ลงทะเบียนอบรม';
 });
 
 const handleMainButtonClick = () => {
-  if (course.value?.totalSeats === course.value?.registeredSeats) {
-    handleNotify();
-  } else if (!authStore.isLoggedIn) {
-    // ถ้ายังไม่ Login ให้แจ้งเตือนและไปหน้า Login
+  if (!authStore.isLoggedIn) {
     $q.notify({
       message: 'กรุณาเข้าสู่ระบบก่อนลงทะเบียน',
       color: 'warning',
       icon: 'lock',
       position: 'top',
     });
-    router.push('/login'); 
+    router.push('/login');
+    return;
+  }
+
+  if (course.value?.totalSeats === course.value?.registeredSeats) {
+    handleNotify();
   } else {
-    // ถ้า Login แล้วให้ทำตามปกติ
     handleRegister();
   }
 };
-
 
 const handleRegister = () => {
   $q.notify({
@@ -423,43 +425,66 @@ const addToCart = () => {
                   <div class="column q-gutter-y-sm">
                     <q-btn
                       unelevated
-                      :class="course.totalSeats === course.registeredSeats ? 'btn-notify' : 'btn-main'"
-                        class="full-width text-weight-bold q-py-md text-subtitle1"
+                      :class="[
+                        !authStore.isLoggedIn
+                          ? 'btn-login-required'
+                          : course.totalSeats === course.registeredSeats
+                            ? 'btn-notify'
+                            : 'btn-main',
+                      ]"
+                      class="full-width text-weight-bold q-py-md text-subtitle1"
                       :label="buttonLabel"
                       :icon="
-                        course.totalSeats === course.registeredSeats
-                      ? 'notifications_active'
-                      : (!authStore.isLoggedIn ? 'warning' : undefined)
+                        !authStore.isLoggedIn
+                          ? 'eva-alert-triangle-outline'
+                          : course.totalSeats === course.registeredSeats
+                            ? 'notifications_active'
+                            : undefined
                       "
                       rounded
                       no-caps
                       @click="handleMainButtonClick"
-                  />
+                    />
 
-                    <div v-if="authStore.isLoggedIn" class="row q-gutter-x-sm">
+                    <template v-if="authStore.isLoggedIn">
                       <q-btn
+                        v-if="course.totalSeats === course.registeredSeats"
                         outline
-                        class="btn-outline col text-weight-bold q-py-sm"
-                        color="primary"
-                        icon="shopping_cart"
-                        label="ใส่รถเข็น"
-                        rounded
-                        no-caps
-                        @click="addToCart"
-                      />
-                      <q-btn
-                        outline
-                        class="btn-outline-grey text-weight-bold q-py-sm q-px-md btn-favorite"
+                        class="full-width btn-outline-grey text-weight-bold q-py-sm btn-favorite"
                         :class="{ 'is-active': isFavorite }"
                         :color="isFavorite ? 'pink' : 'grey-4'"
                         :text-color="isFavorite ? 'pink' : 'dark'"
                         :icon="isFavorite ? 'favorite' : 'favorite_border'"
+                        :label="isFavorite ? 'บันทึกหลักสูตรแล้ว' : 'บันทึกหลักสูตรไว้ดูภายหลัง'"
                         rounded
                         no-caps
                         @click="toggleFavorite"
-                      >
-                      </q-btn>
-                    </div>
+                      />
+
+                      <div v-else class="row q-gutter-x-sm">
+                        <q-btn
+                          outline
+                          class="btn-outline col text-weight-bold q-py-sm"
+                          color="primary"
+                          icon="eva-shopping-cart"
+                          label="ใส่รถเข็น"
+                          rounded
+                          no-caps
+                          @click="addToCart"
+                        />
+                        <q-btn
+                          outline
+                          class="btn-outline-grey text-weight-bold q-py-sm q-px-md btn-favorite"
+                          :class="{ 'is-active': isFavorite }"
+                          :color="isFavorite ? 'pink' : 'grey-4'"
+                          :text-color="isFavorite ? 'pink' : 'dark'"
+                          :icon="isFavorite ? 'favorite' : 'favorite_border'"
+                          rounded
+                          no-caps
+                          @click="toggleFavorite"
+                        />
+                      </div>
+                    </template>
                   </div>
 
                   <q-separator class="q-my-lg opacity-50" />
@@ -734,6 +759,22 @@ span {
   }
 }
 
+.btn-login-required {
+  background-color: #fff0a3 !important;
+  color: #a16207 !important;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  :deep(.q-icon) {
+    color: #a16207;
+  }
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(161, 98, 7, 0.1);
+  }
+}
+
 .btn-outline {
   transition: all 0.2s ease;
   background-color: white;
@@ -787,6 +828,11 @@ span {
 
 .btn-favorite {
   transition: all 0.3s ease;
+  min-height: 40px;
+
+  &.is-active {
+    background-color: #fff1f2 !important;
+  }
 }
 
 .btn-favorite.is-active :deep(.q-icon) {

@@ -201,7 +201,7 @@
                     class="row q-col-gutter-x-md q-col-gutter-y-sm items-stretch"
                   >
                     <div class="col-12 col-md-5">
-                      <div class="text-subtitle2 text-weight-bold text-pink-4 q-mb-sm">
+                      <div class="text-subtitle2 text-weight-medium text-pink-4 q-mb-sm">
                         ข้อมูลภาษาไทย
                       </div>
                       <div class="row q-col-gutter-x-sm">
@@ -265,7 +265,7 @@
                     </div>
 
                     <div class="col-12 col-md-5">
-                      <div class="text-subtitle2 text-weight-bold text-pink-4 q-mb-sm">
+                      <div class="text-subtitle2 text-weight-medium text-pink-4 q-mb-sm">
                         ข้อมูลภาษาอังกฤษ
                       </div>
                       <div class="row q-col-gutter-x-sm">
@@ -693,15 +693,15 @@ onUnmounted(() => {
 }
 
 :deep(.q-field--outlined:hover .q-field__control) {
-  border-color: $accent !important;
-  box-shadow: 0 0 0 1.5px $accent !important;
+  border-color: $primary !important;
+  box-shadow: 0 0 0 1.5px $primary !important;
 }
 
 :deep(.q-field--focused .q-field__control) {
-  border-color: $accent !important;
+  border-color: $primary !important;
   border-width: 1px !important;
   box-shadow:
-    0 0 0 1.5px $accent,
+    0 0 0 1.5px $primary,
     0 0 0 3px rgba(79, 70, 229, 0.1) !important;
 }
 

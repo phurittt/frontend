@@ -96,7 +96,8 @@ const getCellValue = (row: any, col: TableColumn) => {
             :options="[10, 20, 50, 100]"
             dense
             outlined
-            class="bento-rows-select"
+            dropdown-icon="eva-chevron-down"
+            class="bento-rows-select q-gutter-x-sm"
             popup-content-class="bento-menu"
             @update:model-value="updateRowsPerPage"
           />
@@ -167,7 +168,7 @@ const getCellValue = (row: any, col: TableColumn) => {
   tbody tr {
     transition: all 0.2s ease;
     &:hover td {
-      background-color: #f8fafc;
+      background-color: #f0f4f8;
     }
     &:last-child td {
       border-bottom: none;

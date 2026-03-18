@@ -18,30 +18,25 @@ const copyEmail = () => {
 </script>
 
 <template>
-  <q-page class="bg-slate-50 flex justify-center q-py-xl">
+  <q-page class="bg-slate-50 flex justify-center q-pt-lg q-pb-xl">
     <div class="container-width q-px-md">
       <div class="bento-grid fade-up">
-        <div class="bento-box bento-intro text-white justify-center relative-position q-pa-xl">
-          <div class="intro-bg-gradient absolute-full pointer-events-none"></div>
-          <div class="bg-pattern absolute-full opacity-20 pointer-events-none"></div>
+        <div class="bento-box bento-intro justify-center relative-position q-pa-xl overflow-hidden">
+          <q-icon
+            name="campaign"
+            class="watermark-hero text-white opacity-10 pointer-events-none"
+            size="240px"
+          />
 
-          <div class="z-top relative-position">
-            <q-chip
-              :ripple="false"
-              text-color="dark"
-              class="text-weight-bolder q-pl-sm q-py-sm q-mb-md chip-shadow bg-white-transparent disable-select"
-              size="md"
-            >
-              <q-icon name="fiber_manual_record" size="xs" class="q-mr-xs text-primary" />
-              <span class="text-white text-weight-bold">GET IN TOUCH</span>
-            </q-chip>
+          <div class="z-top relative-position q-pl-lg">
             <h1
-              class="text-h2 text-weight-bolder q-mt-none q-mb-md tracking-tight line-height-tight text-shadow"
+              class="text-h2 text-weight-bolder text-white q-mt-none q-mb-md tracking-tight line-height-tight"
             >
               ติดต่อเรา
             </h1>
+
             <div
-              class="text-subtitle1 text-grey-3 line-height-relaxed text-weight-medium"
+              class="text-h6 text-grey-4 line-height-relaxed text-weight-medium"
               style="max-width: 90%"
             >
               สำนักคอมพิวเตอร์ มหาวิทยาลัยบูรพา
@@ -224,7 +219,7 @@ const copyEmail = () => {
   min-height: 100vh;
 }
 .container-width {
-  max-width: 1200px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
 }
@@ -314,23 +309,26 @@ const copyEmail = () => {
 }
 
 .bento-intro {
-  background-color: #0f172a;
-  border: none;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
-  &:hover {
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
-  }
+  background: linear-gradient(135deg, #424242 0%, #606060 30%, #424242 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
-.intro-bg-gradient {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 1) 0%, rgba(30, 41, 59, 1) 100%);
+
+.watermark-hero {
+  position: absolute;
+  right: -20px;
+  bottom: -40px;
+  transform: rotate(-10deg);
+  z-index: 0;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.bg-pattern {
-  background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.2) 1px, transparent 0);
-  background-size: 24px 24px;
+.opacity-10 {
+  opacity: 0.1;
 }
-.chip-shadow {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+.bento-intro:hover .watermark-hero {
+  transform: rotate(0deg) scale(1.05);
 }
+
 .bg-white-transparent {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -358,7 +356,7 @@ const copyEmail = () => {
   font-weight: 700;
   font-size: 0.95rem;
   transition: all 0.2s ease;
-  box-shadow: 0 0px 10px rgba(20, 184, 166, 0.3);
+  border: 2px solid rgba(0, 0, 0, 0.04);
 }
 
 /* Hover States for Buttons */
