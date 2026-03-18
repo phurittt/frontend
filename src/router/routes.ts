@@ -17,6 +17,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'register', component: () => import('pages/RegisterPage.vue') },
 
       { path: 'contact', component: () => import('pages/ContactPage.vue') },
+
+      { path: 'verify-certificate', component: () => import('pages/VerifyCertificatePage.vue') },
     ],
   },
 

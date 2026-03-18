@@ -61,8 +61,8 @@
             no-caps
             label="ตรวจสอบวุฒิบัตร"
             class="nav-btn"
-            to="/verify"
-            :class="{ 'is-active': route.path.startsWith('/verify') }"
+            to="/verify-certificate"
+            :class="{ 'is-active': route.path.startsWith('/verify-certificate') }"
           />
           <q-btn
             flat
