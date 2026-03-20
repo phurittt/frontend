@@ -3,18 +3,25 @@ export type RegistrantType = 'บุคคลทั่วไป' | 'บุคล
 
 export interface Registrant {
   id: number;
-  courseId: number; // เพิ่มฟิลด์นี้เพื่อเชื่อมกับหลักสูตร
-  fullName: string;
-  department: string;
-  phone: string;
+  projectId: number;
+  courseId: number;
+  userId: string | null; // เชื่อมกับรหัส User
+
+  // ให้ข้อมูลพวกนี้เป็น Optional (เผื่อกรณีแอดมินคีย์มือให้คนนอกระบบที่ไม่มี userId)
+  fullName?: string;
+  department?: string;
+  phone?: string;
+  email?: string;
+
   type: RegistrantType;
   registerDate: string;
   status: RegistrantStatus;
-  email?: string;
 }
 
 export interface CreateRegistrantDto {
-  courseId: number; // เพิ่มฟิลด์นี้
+  projectId: number;
+  courseId: number;
+  userId?: string | null;
   type: RegistrantType;
   title: string;
   firstName: string;

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { useRegistrantStore } from 'src/stores/registrant-store';
 import { useMasterCourseStore } from 'src/stores/masterCourse-store';
+import { useUserStore } from 'src/stores/user-store'; // 1. เพิ่มการ Import
 import type { RegistrantStatus, CreateRegistrantDto } from 'src/models/registrant';
 
 const $q = useQuasar();
@@ -11,17 +12,19 @@ const route = useRoute();
 const router = useRouter();
 const registrantStore = useRegistrantStore();
 const courseStore = useMasterCourseStore();
+const userStore = useUserStore(); // 2. ประกาศตัวแปร
 
 const search = ref('');
 const activeTab = ref('ทั้งหมด');
-
-// ดึง ID หลักสูตรจาก URL Parameter
 const courseId = Number(route.params.courseId);
 
 onMounted(() => {
+  userStore.fetchUsers(); // 3. สั่งโหลด User ก่อนเสมอ
   registrantStore.fetchRegistrants();
   courseStore.fetchCourses();
 });
+
+// ... (โค้ดส่วนอื่นเหมือนเดิม ไม่ต้องแก้หน้าเว็บเลยครับ!)
 
 // ค้นหาชื่อหลักสูตรเพื่อนำมาแสดงบนหัวข้อ
 const currentCourseName = computed(() => {
@@ -80,8 +83,16 @@ const getStatusColor = (status: RegistrantStatus) => {
 const showAddDialog = ref(false);
 const titleOptions = ['นาย', 'นาง', 'นางสาว', 'ดร.', 'ศ.'];
 const defaultForm = (): CreateRegistrantDto => ({
-  courseId: courseId, // ผูกกับ courseId อัตโนมัติ
-  type: 'บุคคลทั่วไป', title: 'นาย', firstName: '', lastName: '', email: '', phone: '', department: ''
+  projectId: 0,       // เพิ่มบรรทัดนี้ (ค่าเริ่มต้น)
+  courseId: courseId,
+  userId: null,       // เพิ่มบรรทัดนี้ (ค่าเริ่มต้นเมื่อแอดมินคีย์มือ)
+  type: 'บุคคลทั่วไป',
+  title: 'นาย',
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  department: ''
 });
 const addForm = ref<CreateRegistrantDto>(defaultForm());
 

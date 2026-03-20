@@ -36,15 +36,14 @@ export const useProjectStore = defineStore('project', {
         if (this.projects.length === 0) {
           this.projects = [
             {
-              id: 1,
+              id: 1, // โครงการ ID 1
               projectData: {
                 year: '2569',
                 projectType: { label: 'โครงการอบรมเชิงปฏิบัติการ', value: 1 },
-                projectName:
-                  'โครงการพัฒนาทักษะดิจิทัลสำหรับบุคลากรกองกิจการนิสิต Unlock Potential พลิกโฉมงานยุคใหม่ด้วย Generative AI',
+                projectName: 'โครงการพัฒนาทักษะดิจิทัล Unlock Potential',
                 dateFrom: '27/01/2569',
                 dateTo: '27/01/2569',
-                manager: { label: 'อนุทิน ชาญชัย', value: 1 },
+                manager: { label: 'อนุทิน ชาญชัย', value: '1' },
                 location: 'ห้องปฏิบัติการคอมพิวเตอร์',
                 regisOpenDate: '15/01/2569',
                 regisCloseDate: '25/01/2569',
@@ -55,9 +54,10 @@ export const useProjectStore = defineStore('project', {
                 isOpen: true,
               },
               courses: [
+                // หลักสูตร ID 101 อยู่ในโครงการ 1
                 {
-                  course: { label: 'การใช้ Generative AI เบื้องต้น', value: 1 },
-                  targetGroups: ['เจ้าหน้าที่'],
+                  course: { label: 'การใช้ Generative AI เบื้องต้น', value: 101 },
+                  targetGroups: ['บุคลากรภายใน'],
                   targetAmount: '40',
                   isOpen: true,
                 },
@@ -65,35 +65,30 @@ export const useProjectStore = defineStore('project', {
               lecturers: [],
             },
             {
-              id: 2,
+              id: 2, // โครงการ ID 2
               projectData: {
                 year: '2569',
                 projectType: { label: 'โครงการบริการวิชาการ', value: 2 },
-                projectName: 'โครงการอบรมเชิงปฏิบัติการ การใช้งานระบบบัญชีใหม่',
+                projectName: 'โครงการ n8n Automation: AI-Powered Workflows',
                 dateFrom: '15/02/2569',
                 dateTo: '16/02/2569',
-                manager: { label: 'สมชาย ใจดี', value: 2 },
-                location: 'ห้องประชุม 2',
+                manager: { label: 'สมชาย ใจดี', value: '2' },
+                location: 'ออนไลน์ (Zoom)',
                 regisOpenDate: '01/02/2569',
                 regisCloseDate: '10/02/2569',
                 timeFrom: '09:00',
                 timeTo: '16:00',
                 cancelDays: '5',
-                askFood: true,
-                isOpen: false,
+                askFood: false,
+                isOpen: true,
               },
               courses: [
+                // หลักสูตร ID 201 อยู่ในโครงการ 2
                 {
-                  course: { label: 'ระบบบัญชีพื้นฐาน', value: 2 },
-                  targetGroups: ['เจ้าหน้าที่'],
-                  targetAmount: '30',
+                  course: { label: 'n8n Automation สำหรับผู้เริ่มต้น', value: 201 },
+                  targetGroups: ['บุคคลทั่วไป', 'นิสิต'],
+                  targetAmount: '80',
                   isOpen: true,
-                },
-                {
-                  course: { label: 'ระบบบัญชีขั้นสูง', value: 3 },
-                  targetGroups: ['เจ้าหน้าที่'],
-                  targetAmount: '30',
-                  isOpen: false,
                 },
               ],
               lecturers: [],
