@@ -1,13 +1,26 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import type { QTableColumn } from 'quasar';
+import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
 import { useProjectStore } from 'src/stores/project-store';
+import type { Project } from 'src/models/project';
 
+const $q = useQuasar();
+const router = useRouter();
 const projectStore = useProjectStore();
 const search = ref('');
 
+// ตัวแปรสำหรับ Dialog ดูรายละเอียด
+const viewDialog = ref(false);
+const selectedProject = ref<Project | null>(null);
+
+onMounted(() => {
+  projectStore.fetchProjects();
+});
+
 const columns: QTableColumn[] = [
-  { name: 'id', label: 'ลำดับ', field: 'id', align: 'center', sortable: true },
+  { name: 'id', label: 'ลำดับ', field: 'index', align: 'center' },
   { name: 'year', label: 'ปีงบประมาณ', field: 'year', align: 'center', sortable: true },
   { name: 'name', label: 'ชื่อโครงการ', field: 'name', align: 'left' },
   { name: 'duration', label: 'ระยะเวลา', field: 'duration', align: 'left' },
@@ -18,49 +31,57 @@ const columns: QTableColumn[] = [
   { name: 'ask_food', label: 'สอบถามเรื่องอาหาร', field: 'ask_food', align: 'center' },
   { name: 'status', label: 'สถานะการเปิดอบรม', field: 'status', align: 'center' },
   { name: 'show_on_web', label: 'การแสดงผลบนหน้าเว็บ', field: 'show_on_web', align: 'center' },
-  { name: 'actions', label: 'ดูรายละเอียดและการจัดการ', field: 'actions', align: 'center' },
+  { name: 'actions', label: 'การจัดการ', field: 'actions', align: 'center' },
 ];
 
-// ข้อมูลจำลอง (Mock Data) เดิมที่มีอยู่แล้ว
-const defaultMockRows = [
-  {
-    id: 1, year: '2569',
-    name: 'โครงการพัฒนาทักษะดิจิทัลสำหรับบุคลากรกองกิจการนิสิต Unlock Potential พลิกโฉมงานกองกิจการนิสิตยุคใหม่ด้วย Generative AI',
-    duration: '27-01-2569 ถึง 27-01-2569',
-    regis_open: '27-01-2569 08:30 น.',
-    regis_close: '27-01-2569 10:00 น.',
-    manager: 'อนุทิน ชาญชัย', course_count: 1, ask_food: 'ไม่สอบถาม', status: 'เปิด', show_on_web: false,
-  },
-  {
-    id: 2, year: '2569',
-    name: 'โครงการอบรมเชิงปฏิบัติการ การใช้งานระบบ ERP',
-    duration: '15-02-2569 ถึง 16-02-2569',
-    regis_open: '01-02-2569 08:30 น.',
-    regis_close: '10-02-2569 16:00 น.',
-    manager: 'สมชาย ใจดี', course_count: 2, ask_food: 'สอบถาม', status: 'เปิด', show_on_web: true,
-  }
-];
-
-// รวมข้อมูลที่ดึงจาก Store (ที่เพิ่งกดเพิ่ม) เข้ากับข้อมูล Mock เดิม
 const rows = computed(() => {
-  // แปลงโครงสร้างข้อมูลจาก Store ให้เข้ากับตาราง
-  const storeRows = projectStore.projects.map((p, index) => ({
-    id: `NEW-${index + 1}`, // ทำสัญลักษณ์ว่าเป็นอันใหม่
+  return projectStore.projects.map((p, idx) => ({
+    rawId: p.id,
+    index: idx + 1,
     year: p.projectData.year || '-',
     name: p.projectData.projectName || 'ไม่ได้ระบุชื่อโครงการ',
     duration: `${p.projectData.dateFrom || '-'} ถึง ${p.projectData.dateTo || '-'}`,
-    regis_open: `${p.projectData.regisOpenDate || '-'} ${p.projectData.timeFrom || '-'} น.`,
-    regis_close: `${p.projectData.regisCloseDate || '-'} ${p.projectData.timeTo || '-'} น.`,
+    regis_open: `${p.projectData.regisOpenDate || '-'} ${p.projectData.timeFrom || ''}`,
+    regis_close: `${p.projectData.regisCloseDate || '-'} ${p.projectData.timeTo || ''}`,
     manager: p.projectData.manager?.label || '-',
     course_count: p.courses.length,
     ask_food: p.projectData.askFood ? 'สอบถาม' : 'ไม่สอบถาม',
     status: p.projectData.isOpen ? 'เปิด' : 'ปิด',
-    show_on_web: false,
+    show_on_web: p.projectData.isOpen,
+    _raw: p // ซ่อนข้อมูลดิบไว้ใช้ตอนกด View
   }));
-
-  // นำอันใหม่ไว้บนสุด แล้วต่อด้วยอันเก่า
-  return [...storeRows, ...defaultMockRows];
 });
+
+// ฟังก์ชันดูรายละเอียด
+const viewItem = (project: Project) => {
+  selectedProject.value = project;
+  viewDialog.value = true;
+};
+
+// ฟังก์ชันแก้ไข
+const editItem = (project: Project) => {
+  projectStore.setEditProject(project); // โหลดข้อมูลเข้า Store
+  router.push('/admin/projects/add');   // พาไปหน้าฟอร์ม (Stepper)
+};
+
+// ฟังก์ชันลบ
+const deleteItem = (id: number) => {
+  $q.dialog({
+    title: 'ยืนยันการลบ',
+    message: 'คุณต้องการลบโครงการนี้ใช่หรือไม่?',
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
+    projectStore.deleteProject(id);
+    $q.notify({ type: 'info', message: 'ลบโครงการสำเร็จ' });
+  });
+};
+
+// เมื่อกดปุ่มเพิ่มใหม่ ให้เคลียร์ฟอร์มเก่าก่อนไป
+const goToAddPage = () => {
+  projectStore.resetForm();
+  router.push('/admin/projects/add');
+};
 </script>
 
 <template>
@@ -69,28 +90,23 @@ const rows = computed(() => {
 
     <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px;">
       <q-card-section>
-
         <div class="row items-center q-mb-md q-gutter-x-sm">
           <q-input outlined dense v-model="search" placeholder="ค้นหาโครงการ..." rounded bg-color="grey-1"
             style="width: 320px;">
             <template v-slot:append><q-icon name="search" color="grey-7" /></template>
           </q-input>
 
-          <q-btn outline color="grey-4" text-color="grey-8" icon="tune" padding="6px 12px">
-            <q-tooltip>ตัวกรอง</q-tooltip>
-          </q-btn>
-
+          <q-btn outline color="grey-4" text-color="grey-8" icon="tune"
+            padding="6px 12px"><q-tooltip>ตัวกรอง</q-tooltip></q-btn>
           <q-btn unelevated color="grey-8" text-color="white" label="เพิ่มโครงการใหม่" no-caps
-            class="q-px-md text-weight-medium" to="/admin/projects/add" />
+            class="q-px-md text-weight-medium" @click="goToAddPage" />
         </div>
 
-        <q-table flat bordered :rows="rows" :columns="columns" row-key="id" separator="cell" :filter="search"
+        <q-table flat bordered :rows="rows" :columns="columns" row-key="rawId" separator="cell" :filter="search"
           :rows-per-page-options="[10, 20, 50]" table-header-class="bg-grey-1 text-weight-bold text-dark">
           <template v-slot:body-cell-name="props">
-            <q-td :props="props" style="max-width: 320px; white-space: normal; line-height: 1.4;">
-              <q-badge v-if="String(props.row.id).includes('NEW')" color="green" class="q-mr-sm">ใหม่</q-badge>
-              {{ props.value }}
-            </q-td>
+            <q-td :props="props" style="max-width: 320px; white-space: normal; line-height: 1.4;">{{ props.value
+              }}</q-td>
           </template>
 
           <template v-slot:body-cell-duration="props">
@@ -116,31 +132,56 @@ const rows = computed(() => {
 
           <template v-slot:body-cell-show_on_web="props">
             <q-td :props="props">
-              <q-checkbox v-model="props.row.show_on_web" dense color="primary" />
+              <q-checkbox v-model="props.row.show_on_web" dense color="primary" disable />
             </q-td>
           </template>
 
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <div class="row justify-center q-gutter-x-sm no-wrap">
-                <q-btn unelevated size="sm" color="light-green-3" text-color="dark" icon="search"
-                  style="border-radius: 6px; padding: 6px 10px;">
-                  <q-tooltip>ดูรายละเอียด</q-tooltip>
-                </q-btn>
-                <q-btn unelevated size="sm" color="light-blue-1" text-color="dark" icon="edit"
-                  style="border-radius: 6px; padding: 6px 10px;">
-                  <q-tooltip>แก้ไข</q-tooltip>
-                </q-btn>
-                <q-btn unelevated size="sm" color="pink-1" text-color="dark" icon="delete"
-                  style="border-radius: 6px; padding: 6px 10px;">
-                  <q-tooltip>ลบ</q-tooltip>
-                </q-btn>
+                <q-btn @click="viewItem(props.row._raw)" unelevated size="sm" color="light-green-3" text-color="dark"
+                  icon="search"
+                  style="border-radius: 6px; padding: 6px 10px;"><q-tooltip>ดูรายละเอียด</q-tooltip></q-btn>
+                <q-btn @click="editItem(props.row._raw)" unelevated size="sm" color="light-blue-1" text-color="dark"
+                  icon="edit" style="border-radius: 6px; padding: 6px 10px;"><q-tooltip>แก้ไข</q-tooltip></q-btn>
+                <q-btn @click="deleteItem(props.row.rawId)" unelevated size="sm" color="pink-1" text-color="dark"
+                  icon="delete" style="border-radius: 6px; padding: 6px 10px;"><q-tooltip>ลบ</q-tooltip></q-btn>
               </div>
             </q-td>
           </template>
         </q-table>
       </q-card-section>
     </q-card>
+
+    <q-dialog v-model="viewDialog">
+      <q-card style="min-width: 500px; border-radius: 8px;">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-weight-bold">รายละเอียดโครงการ</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section class="q-pt-md" v-if="selectedProject">
+          <div class="row q-mb-sm">
+            <div class="col-4 text-grey-7">ชื่อโครงการ:</div>
+            <div class="col-8 text-weight-bold">{{ selectedProject.projectData.projectName }}</div>
+          </div>
+          <div class="row q-mb-sm">
+            <div class="col-4 text-grey-7">ปีงบประมาณ:</div>
+            <div class="col-8">{{ selectedProject.projectData.year }}</div>
+          </div>
+          <div class="row q-mb-sm">
+            <div class="col-4 text-grey-7">ผู้รับผิดชอบ:</div>
+            <div class="col-8">{{ selectedProject.projectData.manager?.label }}</div>
+          </div>
+          <div class="row q-mb-sm">
+            <div class="col-4 text-grey-7">จำนวนหลักสูตร:</div>
+            <div class="col-8">{{ selectedProject.courses.length }} หลักสูตร</div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
