@@ -23,7 +23,7 @@ const menuGroups = [
     items: [
       { icon: 'eva-grid-outline', label: 'โครงการและหลักสูตร', to: '/admin/projects' },
       { icon: 'eva-book-open-outline', label: 'จัดการหลักสูตร', to: '/admin/courses' },
-      { icon: 'eva-people-outline', label: 'ผู้ลงทะเบียนอบรม', to: '/admin/registrations' },
+      { icon: 'eva-people-outline', label: 'ผู้ลงทะเบียนอบรม', to: '/admin/registrants' },
     ],
   },
   {
@@ -73,23 +73,13 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
   <q-layout view="hHh Lpr lFf">
     <q-header class="header-bar text-dark" height-hint="64">
       <q-toolbar class="q-py-sm q-px-lg" style="min-height: 64px">
-        <q-btn
-          unelevated
-          round
-          icon="menu_open"
-          @click="toggleLeftDrawer"
-          class="burger-btn q-mr-md"
-          :class="{ 'rotate-180': !leftDrawerOpen }"
-          size="md"
-          padding="8px"
-        />
+        <q-btn unelevated round icon="menu_open" @click="toggleLeftDrawer" class="burger-btn q-mr-md"
+          :class="{ 'rotate-180': !leftDrawerOpen }" size="md" padding="8px" />
 
         <div class="column justify-center">
           <div class="row items-center q-gutter-x-sm">
-            <span
-              class="text-h6 text-weight-bolder text-white tracking-tight gt-xs q-mr-sm"
-              style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1)"
-            >
+            <span class="text-h6 text-weight-bolder text-white tracking-tight gt-xs q-mr-sm"
+              style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1)">
               Computer Center
             </span>
 
@@ -104,32 +94,18 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
         <q-btn flat no-caps class="profile-pill" :ripple="false">
           <div class="row items-center no-wrap q-gutter-x-xs q-px-xs">
             <div class="column items-end gt-xs q-pr-xs">
-              <span class="text-weight-bold text-body2 line-height-tight text-dark"
-                >เหนือภพ อวกาศ</span
-              >
-              <span class="text-caption text-primary line-height-tight font-weight-600"
-                >Administrator</span
-              >
+              <span class="text-weight-bold text-body2 line-height-tight text-dark">เหนือภพ อวกาศ</span>
+              <span class="text-caption text-primary line-height-tight font-weight-600">Administrator</span>
             </div>
             <q-avatar size="36px" class="profile-avatar">
               <img src="https://cdn.quasar.dev/img/linux-avatar.png" />
             </q-avatar>
-            <q-icon
-              name="eva-chevron-down"
-              color="grey-4"
-              size="sm"
-              class="icon-expand"
-              :class="{ 'rotate-icon': profileMenu }"
-            />
+            <q-icon name="eva-chevron-down" color="grey-4" size="sm" class="icon-expand"
+              :class="{ 'rotate-icon': profileMenu }" />
           </div>
 
-          <q-menu
-            v-model="profileMenu"
-            transition-show="jump-down"
-            transition-hide="jump-up"
-            :offset="[0, 6]"
-            class="nav-dropdown"
-          >
+          <q-menu v-model="profileMenu" transition-show="jump-down" transition-hide="jump-up" :offset="[0, 6]"
+            class="nav-dropdown">
             <q-list style="min-width: 220px">
               <q-item clickable v-close-popup class="dropdown-item" to="/profile">
                 <q-item-section avatar style="min-width: 36px">
@@ -140,12 +116,7 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
 
               <q-separator class="q-my-xs q-mx-md horizon-line" />
 
-              <q-item
-                clickable
-                v-close-popup
-                class="dropdown-item text-negative"
-                @click="handleLogout"
-              >
+              <q-item clickable v-close-popup class="dropdown-item text-negative" @click="handleLogout">
                 <q-item-section avatar style="min-width: 36px">
                   <q-icon name="logout" color="negative" size="20px" />
                 </q-item-section>
@@ -161,23 +132,13 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
       <q-scroll-area class="fit sidebar-left">
         <q-list padding class="q-px-sm q-pb-xl q-pt-md">
           <template v-for="(group, groupIndex) in menuGroups" :key="groupIndex">
-            <q-item-label
-              header
-              class="text-weight-bold text-grey-5 q-pb-sm q-pt-lg letter-spacing-1"
-              style="font-size: 0.7rem; text-transform: uppercase"
-            >
+            <q-item-label header class="text-weight-bold text-grey-5 q-pb-sm q-pt-lg letter-spacing-1"
+              style="font-size: 0.7rem; text-transform: uppercase">
               {{ group.title }}
             </q-item-label>
 
-            <q-item
-              v-for="(item, index) in group.items"
-              :key="`item-${groupIndex}-${index}`"
-              clickable
-              v-ripple
-              :to="item.to"
-              class="menu-item q-mb-xs"
-              active-class="menu-active"
-            >
+            <q-item v-for="(item, index) in group.items" :key="`item-${groupIndex}-${index}`" clickable v-ripple
+              :to="item.to" class="menu-item q-mb-xs" active-class="menu-active">
               <q-item-section avatar style="min-width: 40px">
                 <q-icon :name="getMenuIcon(item)" size="20px" class="menu-icon" />
               </q-item-section>
@@ -202,11 +163,7 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
 
             <q-breadcrumbs-el v-if="route.meta.parent" :label="String(route.meta.parent)" />
 
-            <q-breadcrumbs-el
-              v-if="route.meta.title"
-              :label="String(route.meta.title)"
-              class="text-dark"
-            />
+            <q-breadcrumbs-el v-if="route.meta.title" :label="String(route.meta.title)" class="text-dark" />
           </q-breadcrumbs>
         </div>
       </transition>
@@ -273,15 +230,19 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
 .tracking-tight {
   letter-spacing: -0.4px;
 }
+
 .letter-spacing-1 {
   letter-spacing: 0.8px;
 }
+
 .line-height-tight {
   line-height: 1.2;
 }
+
 .line-height-none {
   line-height: 1;
 }
+
 .font-weight-600 {
   font-weight: 600;
 }
@@ -302,13 +263,16 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
   0% {
     box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6);
   }
+
   70% {
     box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
   }
 }
+
 /* ================= Profile Pill ================= */
 .profile-pill {
   background-color: rgba(255, 255, 255, 0.2);
@@ -327,6 +291,7 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
   &:hover {
     background-color: rgba(255, 255, 255, 0.35) !important;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+
     .icon-expand {
       color: $primary !important;
       transition: all 0.2s ease;
@@ -338,6 +303,7 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-block;
 }
+
 .rotate-icon {
   transform: rotate(180deg) scale(1.2);
   color: $primary !important;
@@ -366,6 +332,7 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
     color: #94a3b8;
     transition: all 0.2s ease;
   }
+
   .menu-label {
     font-size: 0.95rem;
     transition: all 0.2s ease;
@@ -374,6 +341,7 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
   &:hover {
     background-color: rgba($primary, 0.05);
     color: $primary;
+
     .menu-icon {
       color: $primary;
       transform: scale(1.1);
@@ -409,10 +377,12 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
 .fade-slide-leave-active {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .fade-slide-enter-from {
   opacity: 0;
   transform: translateY(15px);
 }
+
 .fade-slide-leave-to {
   opacity: 0;
   transform: translateY(-15px);
@@ -424,11 +394,13 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
 .breadcrumb-slide-leave-active {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .breadcrumb-slide-enter-from {
   opacity: 0;
 
   transform: translateX(15px);
 }
+
 .breadcrumb-slide-leave-to {
   opacity: 0;
 
@@ -442,6 +414,7 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
   border-radius: 5px;
   opacity: 0.3;
 }
+
 :deep(.q-scrollarea__thumb:hover) {
   opacity: 0.6;
 }

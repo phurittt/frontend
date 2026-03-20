@@ -46,6 +46,16 @@ const routes: RouteRecordRaw[] = [
         meta: { parent: 'จัดการหลักสูตร', title: 'โครงการและหลักสูตร' },
       },
       {
+        path: 'registrants',
+        component: () => import('pages/admin/RegistrantCourseSelectPage.vue'),
+        meta: { parent: 'การจัดการหลัก', title: 'ผู้ลงทะเบียนอบรม' },
+      },
+      {
+        path: 'registrants/:courseId',
+        component: () => import('pages/admin/RegistrantManagePage.vue'),
+        meta: { parent: 'ผู้ลงทะเบียนอบรม', title: 'รายชื่อผู้สมัคร' },
+      },
+      {
         path: 'project-types',
         component: () => import('pages/admin/CourseProjectTypes.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ประเภทโครงการ' },
