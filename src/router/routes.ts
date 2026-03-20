@@ -105,6 +105,12 @@ const routes: RouteRecordRaw[] = [
       },
       // --------------------------------------------------------------------------------
       {
+        path: 'members',
+        component: () => import('pages/admin/MemberManagePage.vue'),
+        meta: { parent: 'ตั้งค่าระบบ', title: 'ข้อมูลสมาชิก' },
+      },
+      // --------------------------------------------------------------------------------
+      {
         path: 'project-types',
         component: () => import('pages/admin/CourseProjectTypes.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ประเภทโครงการ' },
