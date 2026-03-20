@@ -36,6 +36,11 @@ const routes: RouteRecordRaw[] = [
         meta: { parent: 'การจัดการหลัก', title: 'โครงการและหลักสูตร' },
       },
       {
+        path: 'courses',
+        component: () => import('src/pages/admin/MasterCoursePage.vue'),
+        meta: { parent: 'จัดการหลักสูตร', title: 'โครงการและหลักสูตร' },
+      },
+      {
         path: 'project-types',
         component: () => import('pages/admin/CourseProjectTypes.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ประเภทโครงการ' },
