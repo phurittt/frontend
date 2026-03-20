@@ -133,6 +133,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/admin/LecturerManagePage.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ข้อมูลวิทยากร' },
       },
+      // --------------------------------------------------------------------------------
+      {
+        path: 'slideshow',
+        component: () => import('pages/admin/SlideShowManagePage.vue'),
+        meta: { parent: 'ตั้งค่าระบบ', title: 'จัดการ Slide Show' },
+      },
     ],
   },
 

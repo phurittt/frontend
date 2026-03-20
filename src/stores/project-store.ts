@@ -56,7 +56,7 @@ export const useProjectStore = defineStore('project', {
               courses: [
                 // หลักสูตร ID 101 อยู่ในโครงการ 1
                 {
-                  course: { label: 'การใช้ Generative AI เบื้องต้น', value: 101 },
+                  course: { label: 'การใช้ Generative AI เบื้องต้น', value: 1 },
                   targetGroups: ['บุคลากรภายใน'],
                   targetAmount: '40',
                   isOpen: true,
@@ -85,7 +85,7 @@ export const useProjectStore = defineStore('project', {
               courses: [
                 // หลักสูตร ID 201 อยู่ในโครงการ 2
                 {
-                  course: { label: 'n8n Automation สำหรับผู้เริ่มต้น', value: 201 },
+                  course: { label: 'n8n Automation สำหรับผู้เริ่มต้น', value: 2 },
                   targetGroups: ['บุคคลทั่วไป', 'นิสิต'],
                   targetAmount: '80',
                   isOpen: true,
