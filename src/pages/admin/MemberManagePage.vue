@@ -52,7 +52,7 @@ const staffCount = computed(() => userStore.usersList.filter((u) => u.role === '
 const roleTheme: Record<string, { bg: string; text: string; label: string }> = {
   admin: { bg: 'red-1', text: 'red-9', label: 'ผู้ดูแลระบบ' },
   staff: { bg: 'brown-4', text: 'white', label: 'เจ้าหน้าที่' },
-  student: { bg: 'grey-4', text: 'grey-8', label: 'บุคคลทั่วไป' },
+  student: { bg: 'grey-4', text: 'grey-8', label: 'ผู้เข้าอบรม' },
 };
 const getRoleTheme = (role: string) => roleTheme[role as UserRole] || { bg: 'grey-2', text: 'grey-9', label: 'ไม่ระบุ' };
 
@@ -76,7 +76,7 @@ const showMemberDialog = ref(false);
 const isEdit = ref(false);
 const titleOptions = ['นาย', 'นาง', 'นางสาว', 'ดร.', 'ศ.'];
 const roleOptions = [
-  { label: 'บุคคลทั่วไป (Student)', value: 'student' },
+  { label: 'ผู้เข้าอบรม (Student)', value: 'student' },
   { label: 'เจ้าหน้าที่ (Staff)', value: 'staff' },
   { label: 'ผู้ดูแลระบบ (Admin)', value: 'admin' }
 ];
@@ -203,7 +203,7 @@ const getStatusColor = (status: string) => {
             <q-separator vertical color="grey-3" style="height: 78px" />
             <div class="stat-item">
               <div class="text-h3 text-weight-bolder text-teal-6 line-height-none">{{ studentCount }}</div>
-              <div class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm">บุคคลทั่วไป
+              <div class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm">ผู้เข้าอบรม
               </div>
             </div>
             <q-separator vertical color="grey-3" style="height: 78px" />
@@ -226,7 +226,7 @@ const getStatusColor = (status: string) => {
 
           <div class="text-caption text-grey-6 text-weight-medium q-mb-sm">แสดงประเภทสมาชิก</div>
           <div class="row q-gutter-x-md q-gutter-y-sm">
-            <q-checkbox v-model="filterRoles.student" color="teal-5" label="บุคคลทั่วไป"
+            <q-checkbox v-model="filterRoles.student" color="teal-5" label="ผู้เข้าอบรม"
               class="bento-checkbox disable-select" dense />
             <q-checkbox v-model="filterRoles.staff" color="brown-5" label="เจ้าหน้าที่"
               class="bento-checkbox disable-select" dense />
@@ -391,11 +391,11 @@ const getStatusColor = (status: string) => {
             separator="horizontal" table-header-class="bg-grey-1 text-weight-bold text-dark" hide-bottom>
             <template v-slot:body-cell-projectName="props">
               <q-td :props="props" style="max-width: 250px; white-space: normal; line-height: 1.3;">{{ props.value
-                }}</q-td>
+              }}</q-td>
             </template>
             <template v-slot:body-cell-courseName="props">
               <q-td :props="props" style="max-width: 250px; white-space: normal; line-height: 1.3;">{{ props.value
-                }}</q-td>
+              }}</q-td>
             </template>
             <template v-slot:body-cell-status="props">
               <q-td :props="props">
