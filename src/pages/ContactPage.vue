@@ -356,18 +356,18 @@ const copyEmail = () => {
   font-weight: 700;
   font-size: 0.95rem;
   transition: all 0.2s ease;
-  border: 2px solid rgba(0, 0, 0, 0.04);
+  border: 2px dashed rgba(0, 0, 0, 0.04);
 }
 
 /* Hover States for Buttons */
 .hover-red:hover {
-  background-color: #a21d2e !important;
+  background-color: #e53935 !important;
   color: white !important;
   box-shadow: 0 6px 16px rgba(162, 29, 46, 0.3);
 }
 
 .hover-blue:hover {
-  background-color: #1d4ed8 !important;
+  background-color: #1e88e5 !important;
   color: white !important;
   box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
 }

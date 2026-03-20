@@ -135,7 +135,7 @@ onMounted(() => {
                 Total Users
               </div>
             </div>
-            <q-separator vertical color="grey-3" style="height: 40px" />
+            <q-separator vertical color="grey-3" style="height: 78px" />
             <div class="stat-item">
               <div class="text-h3 text-weight-bolder text-red-5 line-height-none">
                 {{ adminCount }}
@@ -146,7 +146,7 @@ onMounted(() => {
                 Admins
               </div>
             </div>
-            <q-separator vertical color="grey-3" style="height: 40px" />
+            <q-separator vertical color="grey-3" style="height: 78px" />
             <div class="stat-item">
               <div class="text-h3 text-weight-bolder text-blue-5 line-height-none">
                 {{ staffCount }}
@@ -293,7 +293,7 @@ onMounted(() => {
 .bento-box {
   background-color: #ffffff;
   border-radius: 24px;
-  border: 3px solid rgba(0, 0, 0, 0.04);
+  border: 2px solid rgba(0, 0, 0, 0.04);
   box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.05) !important;
   transition:
     transform 0.3s ease,

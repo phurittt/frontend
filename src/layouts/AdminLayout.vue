@@ -27,9 +27,8 @@ const menuGroups = [
     ],
   },
   {
-    title: 'การเงินและเอกสาร',
+    title: 'การจัดการวุฒิบัตร',
     items: [
-      { icon: 'eva-credit-card-outline', label: 'รายรับและรายจ่าย', to: '/admin/finance' },
       { icon: 'eva-award-outline', label: 'จัดการวุฒิบัตร', to: '/admin/certificates' },
       { icon: 'eva-printer-outline', label: 'พิมพ์วุฒิบัตร', to: '/admin/print' },
     ],
@@ -50,6 +49,10 @@ const menuGroups = [
       { icon: 'eva-list-outline', label: 'ประเภทหลักสูตร', to: '/admin/course-types' },
       { icon: 'eva-shield-outline', label: 'สิทธิ์ผู้ใช้งาน', to: '/admin/user-management' },
     ],
+  },
+  {
+    title: 'การเงิน',
+    items: [{ icon: 'eva-credit-card-outline', label: 'รายรับและรายจ่าย', to: '/admin/finance' }],
   },
 ];
 
@@ -73,13 +76,23 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
   <q-layout view="hHh Lpr lFf">
     <q-header class="header-bar text-dark" height-hint="64">
       <q-toolbar class="q-py-sm q-px-lg" style="min-height: 64px">
-        <q-btn unelevated round icon="menu_open" @click="toggleLeftDrawer" class="burger-btn q-mr-md"
-          :class="{ 'rotate-180': !leftDrawerOpen }" size="md" padding="8px" />
+        <q-btn
+          unelevated
+          round
+          icon="menu_open"
+          @click="toggleLeftDrawer"
+          class="burger-btn q-mr-md"
+          :class="{ 'rotate-180': !leftDrawerOpen }"
+          size="md"
+          padding="8px"
+        />
 
         <div class="column justify-center">
           <div class="row items-center q-gutter-x-sm">
-            <span class="text-h6 text-weight-bolder text-white tracking-tight gt-xs q-mr-sm"
-              style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1)">
+            <span
+              class="text-h6 text-weight-bolder text-white tracking-tight gt-xs q-mr-sm"
+              style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1)"
+            >
               Computer Center
             </span>
 
@@ -94,18 +107,32 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
         <q-btn flat no-caps class="profile-pill" :ripple="false">
           <div class="row items-center no-wrap q-gutter-x-xs q-px-xs">
             <div class="column items-end gt-xs q-pr-xs">
-              <span class="text-weight-bold text-body2 line-height-tight text-dark">เหนือภพ อวกาศ</span>
-              <span class="text-caption text-primary line-height-tight font-weight-600">Administrator</span>
+              <span class="text-weight-bold text-body2 line-height-tight text-dark"
+                >เหนือภพ อวกาศ</span
+              >
+              <span class="text-caption text-primary line-height-tight font-weight-600"
+                >Administrator</span
+              >
             </div>
             <q-avatar size="36px" class="profile-avatar">
               <img src="https://cdn.quasar.dev/img/linux-avatar.png" />
             </q-avatar>
-            <q-icon name="eva-chevron-down" color="grey-4" size="sm" class="icon-expand"
-              :class="{ 'rotate-icon': profileMenu }" />
+            <q-icon
+              name="eva-chevron-down"
+              color="grey-4"
+              size="sm"
+              class="icon-expand"
+              :class="{ 'rotate-icon': profileMenu }"
+            />
           </div>
 
-          <q-menu v-model="profileMenu" transition-show="jump-down" transition-hide="jump-up" :offset="[0, 6]"
-            class="nav-dropdown">
+          <q-menu
+            v-model="profileMenu"
+            transition-show="jump-down"
+            transition-hide="jump-up"
+            :offset="[0, 6]"
+            class="nav-dropdown"
+          >
             <q-list style="min-width: 220px">
               <q-item clickable v-close-popup class="dropdown-item" to="/profile">
                 <q-item-section avatar style="min-width: 36px">
@@ -116,7 +143,12 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
 
               <q-separator class="q-my-xs q-mx-md horizon-line" />
 
-              <q-item clickable v-close-popup class="dropdown-item text-negative" @click="handleLogout">
+              <q-item
+                clickable
+                v-close-popup
+                class="dropdown-item text-negative"
+                @click="handleLogout"
+              >
                 <q-item-section avatar style="min-width: 36px">
                   <q-icon name="logout" color="negative" size="20px" />
                 </q-item-section>
@@ -132,13 +164,23 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
       <q-scroll-area class="fit sidebar-left">
         <q-list padding class="q-px-sm q-pb-xl q-pt-md">
           <template v-for="(group, groupIndex) in menuGroups" :key="groupIndex">
-            <q-item-label header class="text-weight-bold text-grey-5 q-pb-sm q-pt-lg letter-spacing-1"
-              style="font-size: 0.7rem; text-transform: uppercase">
+            <q-item-label
+              header
+              class="text-weight-bold text-grey-5 q-pb-sm q-pt-lg letter-spacing-1"
+              style="font-size: 0.7rem; text-transform: uppercase"
+            >
               {{ group.title }}
             </q-item-label>
 
-            <q-item v-for="(item, index) in group.items" :key="`item-${groupIndex}-${index}`" clickable v-ripple
-              :to="item.to" class="menu-item q-mb-xs" active-class="menu-active">
+            <q-item
+              v-for="(item, index) in group.items"
+              :key="`item-${groupIndex}-${index}`"
+              clickable
+              v-ripple
+              :to="item.to"
+              class="menu-item q-mb-xs"
+              active-class="menu-active"
+            >
               <q-item-section avatar style="min-width: 40px">
                 <q-icon :name="getMenuIcon(item)" size="20px" class="menu-icon" />
               </q-item-section>
@@ -161,9 +203,24 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
 
             <q-breadcrumbs-el icon="eva-home" to="/admin/dashboard" />
 
-            <q-breadcrumbs-el v-if="route.meta.parent" :label="String(route.meta.parent)" />
+            <template v-if="route.meta.breadcrumbs && Array.isArray(route.meta.breadcrumbs)">
+              <q-breadcrumbs-el
+                v-for="(crumb, index) in route.meta.breadcrumbs"
+                :key="index"
+                :label="crumb.label"
+                :to="crumb.to"
+                :class="{ 'text-dark': index === route.meta.breadcrumbs.length - 1 }"
+              />
+            </template>
 
-            <q-breadcrumbs-el v-if="route.meta.title" :label="String(route.meta.title)" class="text-dark" />
+            <template v-else>
+              <q-breadcrumbs-el v-if="route.meta.parent" :label="String(route.meta.parent)" />
+              <q-breadcrumbs-el
+                v-if="route.meta.title"
+                :label="String(route.meta.title)"
+                class="text-dark"
+              />
+            </template>
           </q-breadcrumbs>
         </div>
       </transition>

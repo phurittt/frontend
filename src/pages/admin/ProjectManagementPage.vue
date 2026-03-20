@@ -48,7 +48,7 @@ const rows = computed(() => {
     ask_food: p.projectData.askFood ? 'สอบถาม' : 'ไม่สอบถาม',
     status: p.projectData.isOpen ? 'เปิด' : 'ปิด',
     show_on_web: p.projectData.isOpen,
-    _raw: p // ซ่อนข้อมูลดิบไว้ใช้ตอนกด View
+    _raw: p, // ซ่อนข้อมูลดิบไว้ใช้ตอนกด View
   }));
 });
 
@@ -59,9 +59,13 @@ const viewItem = (project: Project) => {
 };
 
 // ฟังก์ชันแก้ไข
-const editItem = (project: Project) => {
-  projectStore.setEditProject(project); // โหลดข้อมูลเข้า Store
-  router.push('/admin/projects/add');   // พาไปหน้าฟอร์ม (Stepper)
+const editItem = (project: Project, id: number) => {
+  projectStore.setEditProject(project);
+
+  router.push({
+    name: 'project-edit',
+    params: { id: id },
+  });
 };
 
 // ฟังก์ชันลบ
@@ -70,7 +74,7 @@ const deleteItem = (id: number) => {
     title: 'ยืนยันการลบ',
     message: 'คุณต้องการลบโครงการนี้ใช่หรือไม่?',
     cancel: true,
-    persistent: true
+    persistent: true,
   }).onOk(() => {
     projectStore.deleteProject(id);
     $q.notify({ type: 'info', message: 'ลบโครงการสำเร็จ' });
@@ -88,25 +92,50 @@ const goToAddPage = () => {
   <q-page class="q-pa-md">
     <div class="text-h6 q-mb-md text-weight-bold">จัดการโครงการและหลักสูตร</div>
 
-    <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px;">
+    <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px">
       <q-card-section>
         <div class="row items-center q-mb-md q-gutter-x-sm">
-          <q-input outlined dense v-model="search" placeholder="ค้นหาโครงการ..." rounded bg-color="grey-1"
-            style="width: 320px;">
+          <q-input
+            outlined
+            dense
+            v-model="search"
+            placeholder="ค้นหาโครงการ..."
+            rounded
+            bg-color="grey-1"
+            style="width: 320px"
+          >
             <template v-slot:append><q-icon name="search" color="grey-7" /></template>
           </q-input>
 
-          <q-btn outline color="grey-4" text-color="grey-8" icon="tune"
-            padding="6px 12px"><q-tooltip>ตัวกรอง</q-tooltip></q-btn>
-          <q-btn unelevated color="grey-8" text-color="white" label="เพิ่มโครงการใหม่" no-caps
-            class="q-px-md text-weight-medium" @click="goToAddPage" />
+          <q-btn outline color="grey-4" text-color="grey-8" icon="tune" padding="6px 12px"
+            ><q-tooltip>ตัวกรอง</q-tooltip></q-btn
+          >
+          <q-btn
+            unelevated
+            color="grey-8"
+            text-color="white"
+            label="เพิ่มโครงการใหม่"
+            no-caps
+            class="q-px-md text-weight-medium"
+            @click="goToAddPage"
+          />
         </div>
 
-        <q-table flat bordered :rows="rows" :columns="columns" row-key="rawId" separator="cell" :filter="search"
-          :rows-per-page-options="[10, 20, 50]" table-header-class="bg-grey-1 text-weight-bold text-dark">
+        <q-table
+          flat
+          bordered
+          :rows="rows"
+          :columns="columns"
+          row-key="rawId"
+          separator="cell"
+          :filter="search"
+          :rows-per-page-options="[10, 20, 50]"
+          table-header-class="bg-grey-1 text-weight-bold text-dark"
+        >
           <template v-slot:body-cell-name="props">
-            <q-td :props="props" style="max-width: 320px; white-space: normal; line-height: 1.4;">{{ props.value
-              }}</q-td>
+            <q-td :props="props" style="max-width: 320px; white-space: normal; line-height: 1.4">{{
+              props.value
+            }}</q-td>
           </template>
 
           <template v-slot:body-cell-duration="props">
@@ -139,13 +168,36 @@ const goToAddPage = () => {
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <div class="row justify-center q-gutter-x-sm no-wrap">
-                <q-btn @click="viewItem(props.row._raw)" unelevated size="sm" color="light-green-3" text-color="dark"
+                <q-btn
+                  @click="viewItem(props.row._raw)"
+                  unelevated
+                  size="sm"
+                  color="light-green-3"
+                  text-color="dark"
                   icon="search"
-                  style="border-radius: 6px; padding: 6px 10px;"><q-tooltip>ดูรายละเอียด</q-tooltip></q-btn>
-                <q-btn @click="editItem(props.row._raw)" unelevated size="sm" color="light-blue-1" text-color="dark"
-                  icon="edit" style="border-radius: 6px; padding: 6px 10px;"><q-tooltip>แก้ไข</q-tooltip></q-btn>
-                <q-btn @click="deleteItem(props.row.rawId)" unelevated size="sm" color="pink-1" text-color="dark"
-                  icon="delete" style="border-radius: 6px; padding: 6px 10px;"><q-tooltip>ลบ</q-tooltip></q-btn>
+                  style="border-radius: 6px; padding: 6px 10px"
+                  ><q-tooltip>ดูรายละเอียด</q-tooltip></q-btn
+                >
+                <q-btn
+                  @click="editItem(props.row._raw, props.row.rawId)"
+                  unelevated
+                  size="sm"
+                  color="light-blue-1"
+                  text-color="dark"
+                  icon="edit"
+                  style="border-radius: 6px; padding: 6px 10px"
+                  ><q-tooltip>แก้ไข</q-tooltip></q-btn
+                >
+                <q-btn
+                  @click="deleteItem(props.row.rawId)"
+                  unelevated
+                  size="sm"
+                  color="pink-1"
+                  text-color="dark"
+                  icon="delete"
+                  style="border-radius: 6px; padding: 6px 10px"
+                  ><q-tooltip>ลบ</q-tooltip></q-btn
+                >
               </div>
             </q-td>
           </template>
@@ -154,7 +206,7 @@ const goToAddPage = () => {
     </q-card>
 
     <q-dialog v-model="viewDialog">
-      <q-card style="min-width: 500px; border-radius: 8px;">
+      <q-card style="min-width: 500px; border-radius: 8px">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6 text-weight-bold">รายละเอียดโครงการ</div>
           <q-space />
@@ -181,7 +233,6 @@ const goToAddPage = () => {
         </q-card-section>
       </q-card>
     </q-dialog>
-
   </q-page>
 </template>
 

@@ -1,4 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router';
+import { RouterView } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
   // ==========================================
@@ -32,22 +33,49 @@ const routes: RouteRecordRaw[] = [
       { path: '', redirect: '/admin/projects' },
       {
         path: 'projects',
-        component: () => import('src/pages/admin/ProjectManagementPage.vue'),
-        meta: { parent: 'การจัดการหลัก', title: 'โครงการและหลักสูตร' },
-      },
-      {
-        path: 'projects/add',
-        component: () => import('pages/admin/ProjectAddPage.vue'),
-        meta: { parent: 'จัดการโครงการ', title: 'เพิ่ม' },
+        component: RouterView,
+        children: [
+          {
+            path: '',
+            component: () => import('pages/admin/ProjectManagementPage.vue'),
+            meta: {
+              title: 'จัดการโครงการและหลักสูตร',
+              breadcrumbs: [{ label: 'จัดการโครงการและหลักสูตร' }],
+            },
+          },
+          {
+            path: 'add',
+            component: () => import('pages/admin/ProjectAddPage.vue'),
+            meta: {
+              title: 'เพิ่มหลักสูตร',
+              breadcrumbs: [
+                { label: 'จัดการโครงการและหลักสูตร', to: '/admin/projects' },
+                { label: 'เพิ่มหลักสูตร' },
+              ],
+            },
+          },
+          {
+            path: 'edit/:id',
+            name: 'project-edit',
+            component: () => import('pages/admin/ProjectAddPage.vue'),
+            meta: {
+              title: 'แก้ไขหลักสูตร',
+              breadcrumbs: [
+                { label: 'จัดการโครงการและหลักสูตร', to: '/admin/projects' },
+                { label: 'แก้ไขหลักสูตร' },
+              ],
+            },
+          },
+        ],
       },
       {
         path: 'courses',
-        component: () => import('src/pages/admin/MasterCoursePage.vue'),
+        component: () => import('pages/admin/MasterCoursePage.vue'),
         meta: { parent: 'จัดการหลักสูตร', title: 'โครงการและหลักสูตร' },
       },
       {
         path: 'registrants',
-        component: () => import('pages/admin/RegistrantCourseSelectPage.vue'),
+        component: () => import('pages/admin/RegistrantPage.vue'),
         meta: { parent: 'การจัดการหลัก', title: 'ผู้ลงทะเบียนอบรม' },
       },
       {
