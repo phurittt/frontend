@@ -30,7 +30,9 @@ const routes: RouteRecordRaw[] = [
     path: '/admin',
     component: () => import('layouts/AdminLayout.vue'),
     children: [
+      // --------------------------------------------------------------------------------
       { path: '', redirect: '/admin/projects' },
+      // --------------------------------------------------------------------------------
       {
         path: 'projects',
         component: RouterView,
@@ -68,36 +70,58 @@ const routes: RouteRecordRaw[] = [
           },
         ],
       },
+      // --------------------------------------------------------------------------------
       {
         path: 'courses',
         component: () => import('pages/admin/MasterCoursePage.vue'),
         meta: { parent: 'จัดการหลักสูตร', title: 'โครงการและหลักสูตร' },
       },
+      // --------------------------------------------------------------------------------
       {
         path: 'registrants',
-        component: () => import('pages/admin/RegistrantPage.vue'),
-        meta: { parent: 'การจัดการหลัก', title: 'ผู้ลงทะเบียนอบรม' },
+        component: RouterView,
+        children: [
+          {
+            path: '',
+            component: () => import('pages/admin/RegistrantPage.vue'),
+            meta: {
+              title: 'จัดการผู้ลงทะเบียนอบรม',
+              breadcrumbs: [{ label: 'จัดการผู้ลงทะเบียนอบรม' }],
+            },
+          },
+          {
+            path: ':courseId',
+            name: 'registrant-manage',
+            component: () => import('pages/admin/RegistrantManagementPage.vue'),
+            meta: {
+              title: 'จัดการผู้ลงทะเบียนอบรม',
+              breadcrumbs: [
+                { label: 'จัดการผู้ลงทะเบียนอบรม', to: '/admin/registrants' },
+                { label: 'ตรวจสอบรายชื่อผู้ลงทะเบียนอบรม' },
+              ],
+            },
+          },
+        ],
       },
-      {
-        path: 'registrants/:courseId',
-        component: () => import('pages/admin/RegistrantManagePage.vue'),
-        meta: { parent: 'ผู้ลงทะเบียนอบรม', title: 'รายชื่อผู้สมัคร' },
-      },
+      // --------------------------------------------------------------------------------
       {
         path: 'project-types',
         component: () => import('pages/admin/CourseProjectTypes.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ประเภทโครงการ' },
       },
+      // --------------------------------------------------------------------------------
       {
         path: 'user-management',
         component: () => import('pages/admin/UserManagementPage.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'สิทธิ์ผู้ใช้งาน' },
       },
+      // --------------------------------------------------------------------------------
       {
         path: 'course-types',
         component: () => import('pages/admin/CourseCategoryPage.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ประเภทหลักสูตร' },
       },
+      // --------------------------------------------------------------------------------
       {
         path: 'lecturers',
         component: () => import('pages/admin/LecturerManagePage.vue'),

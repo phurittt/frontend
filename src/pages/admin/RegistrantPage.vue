@@ -96,7 +96,10 @@ const filteredRows = computed(() => {
 });
 
 const goToManage = (courseId: number) => {
-  router.push(`/admin/registrants/${courseId}`);
+  router.push({
+    name: 'registrant-manage',
+    params: { courseId: courseId },
+  });
 };
 </script>
 
@@ -148,9 +151,7 @@ const goToManage = (courseId: number) => {
 
           <div class="column q-gutter-y-md">
             <div>
-              <label
-                class="block text-caption text-weight-medium text-grey-6 q-mb-sm uppercase letter-spacing-1"
-              >
+              <label class="block text-caption text-weight-medium text-grey-6 q-mb-sm">
                 ค้นหาหลักสูตร
               </label>
               <q-input
@@ -167,9 +168,7 @@ const goToManage = (courseId: number) => {
             </div>
 
             <div>
-              <label
-                class="block text-caption text-weight-medium text-grey-6 q-mb-sm uppercase letter-spacing-1"
-              >
+              <label class="block text-caption text-weight-medium text-grey-6 q-mb-sm">
                 หมวดหมู่ของหลักสูตร
               </label>
               <q-select
@@ -235,6 +234,9 @@ const goToManage = (courseId: number) => {
 
 .tracking-tight {
   letter-spacing: -0.5px;
+}
+.letter-spacing-1 {
+  letter-spacing: 0.8px;
 }
 .line-height-tight {
   line-height: 1.2;

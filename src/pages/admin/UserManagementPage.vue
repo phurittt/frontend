@@ -98,7 +98,7 @@ onMounted(() => {
 <template>
   <q-page class="q-pa-md q-pa-lg-xl q-mb-xl">
     <div class="row q-col-gutter-lg">
-      <div class="col-12 col-md-8 fade-up">
+      <div class="col-12 col-md-8 fade-up" style="animation-delay: 0.1s">
         <q-card
           flat
           class="bento-box bg-white full-height q-pa-xl flex column justify-between"
@@ -161,9 +161,10 @@ onMounted(() => {
         </q-card>
       </div>
 
-      <div class="col-12 col-md-4 fade-up" style="animation-delay: 0.1s">
+      <div class="col-12 col-md-4 fade-up" style="animation-delay: 0.15s">
         <q-card flat class="bento-box bg-white full-height q-pa-xl flex column justify-center">
           <div class="text-h6 text-weight-bold text-dark q-mb-md">ค้นหาและกรองข้อมูล</div>
+          <div class="text-caption text-grey-6 text-weight-medium q-mb-sm">ค้นหาผู้ใช้งาน</div>
           <q-input
             outlined
             dense
@@ -172,9 +173,7 @@ onMounted(() => {
             class="bento-input q-mb-lg"
             ><template v-slot:prepend><q-icon name="search" color="grey-5" /></template
           ></q-input>
-          <div class="text-caption text-grey-6 text-weight-bold uppercase q-mb-sm">
-            แสดงสิทธิ์การใช้งาน
-          </div>
+          <div class="text-caption text-grey-6 text-weight-medium q-mb-sm">แสดงสิทธิ์การใช้งาน</div>
           <div class="row q-gutter-x-md q-gutter-y-sm">
             <q-checkbox
               v-model="filterRoles.admin"
