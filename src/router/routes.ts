@@ -55,6 +55,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/admin/CourseCategoryPage.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ประเภทหลักสูตร' },
       },
+      {
+        path: 'lecturers',
+        component: () => import('pages/admin/LecturerManagePage.vue'),
+        meta: { parent: 'ตั้งค่าระบบ', title: 'ข้อมูลวิทยากร' },
+      },
     ],
   },
 
