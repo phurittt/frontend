@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type { QTableColumn } from 'quasar';
+import { useProjectStore } from 'src/stores/project-store';
 
-// กำหนดคอลัมน์ตามในรูปภาพ
+const projectStore = useProjectStore();
+const search = ref('');
+
 const columns: QTableColumn[] = [
   { name: 'id', label: 'ลำดับ', field: 'id', align: 'center', sortable: true },
   { name: 'year', label: 'ปีงบประมาณ', field: 'year', align: 'center', sortable: true },
@@ -18,50 +21,46 @@ const columns: QTableColumn[] = [
   { name: 'actions', label: 'ดูรายละเอียดและการจัดการ', field: 'actions', align: 'center' },
 ];
 
-// ข้อมูลจำลอง (Mock Data) อิงตามในรูป
-const rows = ref([
+// ข้อมูลจำลอง (Mock Data) เดิมที่มีอยู่แล้ว
+const defaultMockRows = [
   {
-    id: 1,
-    year: '2569',
+    id: 1, year: '2569',
     name: 'โครงการพัฒนาทักษะดิจิทัลสำหรับบุคลากรกองกิจการนิสิต Unlock Potential พลิกโฉมงานกองกิจการนิสิตยุคใหม่ด้วย Generative AI',
     duration: '27-01-2569 ถึง 27-01-2569',
     regis_open: '27-01-2569 08:30 น.',
     regis_close: '27-01-2569 10:00 น.',
-    manager: 'อนุทิน ชาญชัย',
-    course_count: 1,
-    ask_food: 'ไม่สอบถาม',
-    status: 'เปิด',
-    show_on_web: false,
+    manager: 'อนุทิน ชาญชัย', course_count: 1, ask_food: 'ไม่สอบถาม', status: 'เปิด', show_on_web: false,
   },
   {
-    id: 2,
-    year: '2569',
-    name: 'โครงการพัฒนาทักษะดิจิทัลสำหรับบุคลากรกองกิจการนิสิต Unlock Potential พลิกโฉมงานกองกิจการนิสิตยุคใหม่ด้วย Generative AI',
-    duration: '27-01-2569 ถึง 27-01-2569',
-    regis_open: '27-01-2569 08:30 น.',
-    regis_close: '27-01-2569 10:00 น.',
-    manager: 'อนุทิน ชาญชัย',
-    course_count: 1,
-    ask_food: 'ไม่สอบถาม',
-    status: 'เปิด',
-    show_on_web: false,
-  },
-  {
-    id: 3,
-    year: '2569',
-    name: 'โครงการพัฒนาทักษะดิจิทัลสำหรับบุคลากรกองกิจการนิสิต Unlock Potential พลิกโฉมงานกองกิจการนิสิตยุคใหม่ด้วย Generative AI',
-    duration: '27-01-2569 ถึง 27-01-2569',
-    regis_open: '27-01-2569 08:30 น.',
-    regis_close: '27-01-2569 10:00 น.',
-    manager: 'อนุทิน ชาญชัย',
-    course_count: 1,
-    ask_food: 'ไม่สอบถาม',
-    status: 'เปิด',
-    show_on_web: false,
+    id: 2, year: '2569',
+    name: 'โครงการอบรมเชิงปฏิบัติการ การใช้งานระบบ ERP',
+    duration: '15-02-2569 ถึง 16-02-2569',
+    regis_open: '01-02-2569 08:30 น.',
+    regis_close: '10-02-2569 16:00 น.',
+    manager: 'สมชาย ใจดี', course_count: 2, ask_food: 'สอบถาม', status: 'เปิด', show_on_web: true,
   }
-]);
+];
 
-const search = ref('');
+// รวมข้อมูลที่ดึงจาก Store (ที่เพิ่งกดเพิ่ม) เข้ากับข้อมูล Mock เดิม
+const rows = computed(() => {
+  // แปลงโครงสร้างข้อมูลจาก Store ให้เข้ากับตาราง
+  const storeRows = projectStore.projects.map((p, index) => ({
+    id: `NEW-${index + 1}`, // ทำสัญลักษณ์ว่าเป็นอันใหม่
+    year: p.projectData.year || '-',
+    name: p.projectData.projectName || 'ไม่ได้ระบุชื่อโครงการ',
+    duration: `${p.projectData.dateFrom || '-'} ถึง ${p.projectData.dateTo || '-'}`,
+    regis_open: `${p.projectData.regisOpenDate || '-'} ${p.projectData.timeFrom || '-'} น.`,
+    regis_close: `${p.projectData.regisCloseDate || '-'} ${p.projectData.timeTo || '-'} น.`,
+    manager: p.projectData.manager?.label || '-',
+    course_count: p.courses.length,
+    ask_food: p.projectData.askFood ? 'สอบถาม' : 'ไม่สอบถาม',
+    status: p.projectData.isOpen ? 'เปิด' : 'ปิด',
+    show_on_web: false,
+  }));
+
+  // นำอันใหม่ไว้บนสุด แล้วต่อด้วยอันเก่า
+  return [...storeRows, ...defaultMockRows];
+});
 </script>
 
 <template>
@@ -74,9 +73,7 @@ const search = ref('');
         <div class="row items-center q-mb-md q-gutter-x-sm">
           <q-input outlined dense v-model="search" placeholder="ค้นหาโครงการ..." rounded bg-color="grey-1"
             style="width: 320px;">
-            <template v-slot:append>
-              <q-icon name="search" color="grey-7" />
-            </template>
+            <template v-slot:append><q-icon name="search" color="grey-7" /></template>
           </q-input>
 
           <q-btn outline color="grey-4" text-color="grey-8" icon="tune" padding="6px 12px">
@@ -84,13 +81,14 @@ const search = ref('');
           </q-btn>
 
           <q-btn unelevated color="grey-8" text-color="white" label="เพิ่มโครงการใหม่" no-caps
-            class="q-px-md text-weight-medium" />
+            class="q-px-md text-weight-medium" to="/admin/projects/add" />
         </div>
 
         <q-table flat bordered :rows="rows" :columns="columns" row-key="id" separator="cell" :filter="search"
           :rows-per-page-options="[10, 20, 50]" table-header-class="bg-grey-1 text-weight-bold text-dark">
           <template v-slot:body-cell-name="props">
             <q-td :props="props" style="max-width: 320px; white-space: normal; line-height: 1.4;">
+              <q-badge v-if="String(props.row.id).includes('NEW')" color="green" class="q-mr-sm">ใหม่</q-badge>
               {{ props.value }}
             </q-td>
           </template>
@@ -105,14 +103,14 @@ const search = ref('');
           <template v-slot:body-cell-regis_open="props">
             <q-td :props="props">
               <div>{{ props.row.regis_open.split(' ')[0] }}</div>
-              <div>{{ props.row.regis_open.split(' ')[1] }} น.</div>
+              <div>{{ props.row.regis_open.split(' ')[1] || '' }} น.</div>
             </q-td>
           </template>
 
           <template v-slot:body-cell-regis_close="props">
             <q-td :props="props">
               <div>{{ props.row.regis_close.split(' ')[0] }}</div>
-              <div>{{ props.row.regis_close.split(' ')[1] }} น.</div>
+              <div>{{ props.row.regis_close.split(' ')[1] || '' }} น.</div>
             </q-td>
           </template>
 
@@ -141,7 +139,6 @@ const search = ref('');
             </q-td>
           </template>
         </q-table>
-
       </q-card-section>
     </q-card>
   </q-page>
@@ -159,7 +156,6 @@ const search = ref('');
   color: #333;
 }
 
-/* ปรับสีเส้นตารางให้อ่อนลงคล้ายในรูป */
 :deep(.q-table tbody td),
 :deep(.q-table thead th) {
   border-color: #f0f0f0 !important;
