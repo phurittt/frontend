@@ -50,6 +50,63 @@ const getCellValue = (row: any, col: TableColumn) => {
 
 <template>
   <div class="bento-box bg-white overflow-hidden flex column full-height">
+    <div class="bento-table-header col-auto">
+      <div class="row full-width items-center justify-between">
+        <div class="row items-center">
+          <div class="bg-grey-2 q-pa-sm border-radius-8 q-mr-sm flex flex-center">
+            <q-icon name="list_alt" color="grey-7" size="18px" />
+          </div>
+          <span class="text-weight-bold text-dark" style="font-size: 15px">รายการข้อมูล</span>
+        </div>
+
+        <div class="row items-center q-gutter-x-md">
+          <div
+            class="row items-center q-gutter-x-sm text-grey-6 text-weight-medium"
+            style="font-size: 13px"
+          >
+            <span>แสดง</span>
+            <q-select
+              :model-value="pagination.rowsPerPage"
+              :options="[10, 20, 50, 100]"
+              dense
+              outlined
+              dropdown-icon="eva-chevron-down"
+              class="bento-rows-select q-gutter-x-sm"
+              popup-content-class="bento-menu"
+              @update:model-value="updateRowsPerPage"
+            />
+            <span>รายการ (จากทั้งหมด {{ rows.length }})</span>
+          </div>
+
+          <q-separator vertical color="grey-3" />
+
+          <div class="row items-center q-gutter-x-xs">
+            <span class="text-weight-medium text-grey-6 q-mr-sm q-ml-xs" style="font-size: 13px">
+              หน้า {{ pagination.page }} จาก {{ totalPages }}
+            </span>
+            <q-btn
+              flat
+              dense
+              round
+              icon="eva-chevron-left"
+              class="pagination-btn-small"
+              :disable="pagination.page === 1"
+              @click="prevPage"
+            />
+            <q-btn
+              flat
+              dense
+              round
+              icon="eva-chevron-right"
+              class="pagination-btn-small"
+              :disable="pagination.page === totalPages"
+              @click="nextPage"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="table-responsive col">
       <table class="bento-custom-table">
         <thead>
@@ -138,10 +195,22 @@ const getCellValue = (row: any, col: TableColumn) => {
   border: 1px solid rgba(0, 0, 0, 0.04);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
 }
+.border-radius-8 {
+  border-radius: 8px;
+}
+
+/* Header Pagination */
+.bento-table-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #ffffff;
+}
+
 .table-responsive {
   width: 100%;
   overflow-x: auto;
 }
+
 .bento-custom-table {
   width: 100%;
   border-collapse: separate;
@@ -150,13 +219,13 @@ const getCellValue = (row: any, col: TableColumn) => {
   th {
     position: sticky;
     top: 0;
-    background-color: #ffffff;
+    background-color: #f8fafc;
     z-index: 1;
     font-size: 13px;
     font-weight: 600;
-    color: $dark;
-    padding: 16px 24px;
-    border-bottom: 2px solid #f1f5f9;
+    color: #475569;
+    padding: 14px 24px;
+    border-bottom: 1px solid #e2e8f0;
   }
   td {
     padding: 16px 24px;
@@ -176,12 +245,14 @@ const getCellValue = (row: any, col: TableColumn) => {
   }
 }
 
-/* Pagination */
+/* Footer Pagination */
 .bento-table-footer {
   padding: 16px 24px;
   border-top: 1px solid #f1f5f9;
   background-color: #ffffff;
 }
+
+/* Select สำหรับด้านล่าง (ใหญ่กว่า) */
 .bento-rows-select {
   width: 76px;
   :deep(.q-field__control) {
@@ -217,6 +288,46 @@ const getCellValue = (row: any, col: TableColumn) => {
     color: $dark;
   }
 }
+
+/* Select สำหรับด้านบน (เล็กกระทัดรัด) */
+.bento-rows-select-small {
+  width: 65px;
+  :deep(.q-field__control) {
+    height: 32px;
+    min-height: 32px;
+    border-radius: 6px;
+    background-color: #f8fafc;
+    border: none;
+    transition: all 0.2s ease;
+    &::before {
+      display: none;
+    }
+    &:hover {
+      background-color: #f1f5f9;
+      cursor: pointer;
+    }
+  }
+  :deep(.q-field__native) {
+    padding: 0;
+    color: $dark;
+    font-weight: 700;
+    text-align: center;
+    font-size: 13px;
+  }
+  :deep(.q-field__append) {
+    padding-left: 0;
+    .q-icon {
+      font-size: 16px;
+      color: #94a3b8;
+      transition: color 0.2s;
+    }
+  }
+  &:hover :deep(.q-icon) {
+    color: $dark;
+  }
+}
+
+/* ปุ่มกดเปลี่ยนหน้า */
 .pagination-btn {
   background-color: #f8fafc;
   color: #64748b;
@@ -232,6 +343,24 @@ const getCellValue = (row: any, col: TableColumn) => {
   }
   &.disabled {
     opacity: 0.4;
+    background-color: transparent;
+  }
+}
+
+/* ปุ่มกดเปลี่ยนหน้าด้านบน */
+.pagination-btn-small {
+  background-color: #f1f5f9;
+  color: #475569;
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  transition: all 0.2s ease;
+  &:hover:not(.disabled) {
+    background-color: #111827;
+    color: white;
+  }
+  &.disabled {
+    opacity: 0.3;
     background-color: transparent;
   }
 }
