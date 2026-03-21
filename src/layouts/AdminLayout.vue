@@ -21,38 +21,38 @@ const menuGroups = [
   {
     title: 'การจัดการหลัก',
     items: [
-      { icon: 'eva-grid-outline', label: 'โครงการและหลักสูตร', to: '/admin/projects' },
-      { icon: 'eva-book-open-outline', label: 'จัดการหลักสูตร', to: '/admin/courses' },
+      { icon: 'o_assignment', label: 'โครงการ', to: '/admin/projects' },
+      { icon: 'eva-book-open-outline', label: 'หลักสูตร', to: '/admin/courses' },
       { icon: 'eva-people-outline', label: 'ผู้ลงทะเบียนอบรม', to: '/admin/registrants' },
     ],
   },
   {
     title: 'การจัดการวุฒิบัตร',
     items: [
-      { icon: 'eva-award-outline', label: 'จัดการวุฒิบัตร', to: '/admin/certificates' },
+      { icon: 'eva-award-outline', label: 'วุฒิบัตร', to: '/admin/certificates' },
       { icon: 'eva-printer-outline', label: 'พิมพ์วุฒิบัตร', to: '/admin/print' },
     ],
   },
   {
     title: 'รายงานและเว็บไซต์',
     items: [
-      { icon: 'eva-bar-chart-outline', label: 'รายงานผล', to: '/admin/reports' },
-      { icon: 'eva-image-outline', label: 'จัดการ Slide Show', to: '/admin/slideshow' },
+      { icon: 'eva-bar-chart-outline', label: 'รายงาน', to: '/admin/reports' },
+      { icon: 'eva-image-outline', label: 'แบนเนอร์ / สไลด์โชว์', to: '/admin/slideshow' },
     ],
   },
   {
-    title: 'ตั้งค่าระบบ',
+    title: 'ข้อมูลพื้นฐาน',
     items: [
-      { icon: 'eva-person-outline', label: 'ข้อมูลสมาชิก', to: '/admin/members' },
-      { icon: 'o_school', label: 'ข้อมูลวิทยากร', to: '/admin/lecturers' },
+      { icon: 'eva-person-outline', label: 'สมาชิก', to: '/admin/members' },
+      { icon: 'o_school', label: 'วิทยากร', to: '/admin/lecturers' },
       { icon: 'eva-layers-outline', label: 'ประเภทโครงการ', to: '/admin/project-types' },
       { icon: 'eva-list-outline', label: 'ประเภทหลักสูตร', to: '/admin/course-types' },
-      { icon: 'eva-shield-outline', label: 'สิทธิ์ผู้ใช้งาน', to: '/admin/user-management' },
+      { icon: 'eva-shield-outline', label: 'บุคลากรและสิทธิ์', to: '/admin/user-management' },
     ],
   },
   {
     title: 'การเงิน',
-    items: [{ icon: 'eva-credit-card-outline', label: 'รายรับและรายจ่าย', to: '/admin/finance' }],
+    items: [{ icon: 'eva-credit-card-outline', label: 'ค่าใช้จ่าย', to: '/admin/finance' }],
   },
 ];
 
