@@ -29,6 +29,7 @@ export const useUserStore = defineStore('user', {
           organization: 'สำนักคอมพิวเตอร์',
           avatar: '',
           role: 'staff',
+          createdAt: '2023-01-15T09:30:00Z',
         },
         {
           id: '2',
@@ -42,6 +43,7 @@ export const useUserStore = defineStore('user', {
           organization: 'สำนักคอมพิวเตอร์',
           avatar: '',
           role: 'admin',
+          createdAt: '2023-02-20T14:20:00Z',
         },
         {
           id: '3',
@@ -55,6 +57,7 @@ export const useUserStore = defineStore('user', {
           organization: 'สำนักคอมพิวเตอร์',
           avatar: '',
           role: 'student',
+          createdAt: '2023-05-10T10:15:00Z',
         },
         {
           id: '4',
@@ -68,6 +71,7 @@ export const useUserStore = defineStore('user', {
           organization: 'คณะวิศวกรรมศาสตร์',
           avatar: '',
           role: 'student',
+          createdAt: '2023-07-05T08:45:00Z',
         },
         {
           id: '5',
@@ -81,6 +85,7 @@ export const useUserStore = defineStore('user', {
           organization: 'กองกิจการนักศึกษา',
           avatar: '',
           role: 'staff',
+          createdAt: '2023-08-12T11:00:00Z',
         },
         {
           id: '6',
@@ -94,6 +99,7 @@ export const useUserStore = defineStore('user', {
           organization: 'ศูนย์นวัตกรรม',
           avatar: '',
           role: 'admin',
+          createdAt: '2023-09-25T16:30:00Z',
         },
         {
           id: '7',
@@ -107,6 +113,7 @@ export const useUserStore = defineStore('user', {
           organization: 'คณะบริหารธุรกิจ',
           avatar: '',
           role: 'student',
+          createdAt: '2023-11-01T09:00:00Z',
         },
         {
           id: '8',
@@ -120,6 +127,7 @@ export const useUserStore = defineStore('user', {
           organization: 'แผนกทรัพยากรบุคคล',
           avatar: '',
           role: 'staff',
+          createdAt: '2023-12-15T13:45:00Z',
         },
         {
           id: '9',
@@ -133,6 +141,7 @@ export const useUserStore = defineStore('user', {
           organization: 'คณะศิลปศาสตร์',
           avatar: '',
           role: 'student',
+          createdAt: '2024-01-10T10:30:00Z',
         },
         {
           id: '10',
@@ -146,6 +155,7 @@ export const useUserStore = defineStore('user', {
           organization: 'ภาควิชาคอมพิวเตอร์',
           avatar: '',
           role: 'staff',
+          createdAt: '2024-02-05T15:20:00Z',
         },
         {
           id: '11',
@@ -159,6 +169,7 @@ export const useUserStore = defineStore('user', {
           organization: 'สำนักทะเบียน',
           avatar: '',
           role: 'student',
+          createdAt: '2024-02-14T08:15:00Z',
         },
         {
           id: '12',
@@ -172,6 +183,7 @@ export const useUserStore = defineStore('user', {
           organization: 'ห้องสมุดส่วนกลาง',
           avatar: '',
           role: 'admin',
+          createdAt: '2024-03-01T11:45:00Z',
         },
         {
           id: '13',
@@ -185,6 +197,7 @@ export const useUserStore = defineStore('user', {
           organization: 'คณะแพทยศาสตร์',
           avatar: '',
           role: 'student',
+          createdAt: '2024-03-15T09:10:00Z',
         },
         {
           id: '14',
@@ -198,6 +211,7 @@ export const useUserStore = defineStore('user', {
           organization: 'สำนักงานอธิการบดี',
           avatar: '',
           role: 'staff',
+          createdAt: '2024-03-20T14:00:00Z',
         },
         {
           id: '15',
@@ -211,14 +225,22 @@ export const useUserStore = defineStore('user', {
           organization: 'คณะวิทยาศาสตร์',
           avatar: '',
           role: 'student',
+          createdAt: '2024-03-21T16:55:00Z',
         },
       ];
     },
 
     // --- เพิ่มฟังก์ชันจัดการข้อมูลตรงนี้ ---
-    addUser(user: Omit<UserProfile, 'id'>) {
+    addUser(user: Omit<UserProfile, 'id' | 'createdAt'>) {
       const newId = String(this.usersList.length + 1 + Math.floor(Math.random() * 100));
-      this.usersList.push({ ...user, id: newId });
+
+      const currentDate = new Date().toISOString();
+
+      this.usersList.push({
+        ...user,
+        id: newId,
+        createdAt: currentDate,
+      });
     },
 
     updateUser(updatedUser: UserProfile) {

@@ -24,12 +24,14 @@ export interface UserProfile extends UserBase {
   id: string;
   avatar: string;
   role: UserRole;
+  createdAt?: string;
 }
+
+export const MEMBER_ROLE_OPTIONS = [{ label: 'ผู้เข้าอบรม (Student)', value: 'student' }];
 
 export const USER_ROLE_OPTIONS = [
   { label: 'ผู้ดูแลระบบ (Admin)', value: 'admin' },
   { label: 'เจ้าหน้าที่จัดฝึกอบรม (Staff)', value: 'staff' },
-  { label: 'ผู้เข้าอบรม (Student)', value: 'student' },
 ];
 
 export const ROLE_LABELS: Record<UserRole, string> = {

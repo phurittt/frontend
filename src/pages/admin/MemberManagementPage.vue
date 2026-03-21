@@ -1,25 +1,47 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
+import { useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/user-store';
+import { useRegistrantStore } from 'src/stores/registrant-store';
+import { useProjectStore } from 'src/stores/project-store';
+import { useMasterCourseStore } from 'src/stores/masterCourse-store';
 import type { UserProfile, UserRole } from 'src/models/user';
 
 import CustomTableComponent from 'components/CustomTableComponent.vue';
 import type { TableColumn } from 'components/CustomTableComponent.vue';
 
-import UserManagementFormDialog from 'components/UserManagementPage/UserManagementFormDialog.vue';
+import MemberManagementFormDialog from 'components/MemberManagementPage/MemberManagementFormDialog.vue';
+import MemberHistoryDialog from 'components/MemberManagementPage/MemberHistoryDialog.vue';
+import MemberDeleteDialog from 'components/MemberManagementPage/MemberDeleteDialog.vue';
 
+const $q = useQuasar();
+
+// --- Stores ---
 const userStore = useUserStore();
+const registrantStore = useRegistrantStore();
+const projectStore = useProjectStore();
+const masterCourseStore = useMasterCourseStore();
+
+// --- State ---
 const search = ref('');
+const filterRoles = ref({ student: true });
 
-// --- Filter ---
-const filterRoles = ref({ admin: true, staff: true });
+onMounted(() => {
+  userStore.fetchUsers();
+  registrantStore.fetchRegistrants();
+  projectStore.fetchProjects();
+  masterCourseStore.fetchCourses();
+});
 
+// ==========================================
+// ส่วนของการแสดงผลตารางหลัก
+// ==========================================
 const filteredUsersList = computed(() => {
   const keyword = search.value.toLowerCase().trim();
 
   return userStore.usersList.filter((user) => {
-    const isStaffOrAdmin = user.role === 'admin' || user.role === 'staff';
-    if (!isStaffOrAdmin) return false;
+    const isStudent = user.role === 'student';
+    if (!isStudent) return false;
 
     const rolePass = filterRoles.value[user.role as keyof typeof filterRoles.value];
     const fullName = `${user.firstNameTh} ${user.lastNameTh}`.toLowerCase();
@@ -27,48 +49,28 @@ const filteredUsersList = computed(() => {
     const rawId = String(user.id);
 
     const searchPass =
-      keyword === '' || // ถ้าช่องค้นหาว่าง ให้แสดงทั้งหมด
-      fullName.includes(keyword) || // ค้นหา ชื่อ, สกุล, หรือ ชื่อ สกุล
-      user.username.toLowerCase().includes(keyword) || // ค้นหา Username
-      paddedId.includes(keyword) || // ค้นหา ID แบบมี 0 นำหน้า
-      rawId.includes(keyword); // ค้นหา ID แบบพิมพ์ตัวเลขตรงๆ
+      keyword === '' ||
+      fullName.includes(keyword) ||
+      user.username.toLowerCase().includes(keyword) ||
+      paddedId.includes(keyword) ||
+      rawId.includes(keyword);
 
     return rolePass && searchPass;
   });
 });
 
-// --- Stats ---
-const totalUsers = computed(() => userStore.usersList.length);
-const adminCount = computed(() => userStore.usersList.filter((u) => u.role === 'admin').length);
-const staffCount = computed(() => userStore.usersList.filter((u) => u.role === 'staff').length);
+const studentCount = computed(() => userStore.usersList.filter((u) => u.role === 'student').length);
 
 const roleTheme: Record<string, { bg: string; text: string; label: string }> = {
-  admin: { bg: 'red-1', text: 'red-9', label: 'ผู้ดูแลระบบ' },
-  staff: { bg: 'blue-1', text: 'blue-9', label: 'เจ้าหน้าที่' },
   student: { bg: 'teal-1', text: 'teal-9', label: 'ผู้เข้าอบรม' },
 };
 const getRoleTheme = (role: string) =>
   roleTheme[role as UserRole] || { bg: 'grey-2', text: 'grey-9', label: 'ไม่ระบุ' };
 
-// --- การเรียก Dialog ---
-const isDialogOpen = ref(false);
-const selectedUser = ref<UserProfile | null>(null);
-
-const openAddDialog = () => {
-  selectedUser.value = null; // ส่ง null = โหมด Add
-  isDialogOpen.value = true;
-};
-
-const openEditDialog = (user: UserProfile) => {
-  selectedUser.value = user; // ส่ง user = โหมด Edit
-  isDialogOpen.value = true;
-};
-
-// --- Table Config ---
 const columns: TableColumn[] = [
   {
     name: 'fullname',
-    label: 'ข้อมูลผู้ใช้งาน',
+    label: 'ข้อมูลสมาชิก',
     field: 'firstNameTh',
     align: 'left',
     style: 'width: 30%',
@@ -81,14 +83,20 @@ const columns: TableColumn[] = [
     style: 'width: 25%',
   },
   {
-    name: 'department',
-    label: 'สังกัด / หน่วยงาน',
-    field: (row: UserProfile) => row.organization || '-',
+    name: 'joinDate',
+    label: 'วันที่สมัครสมาชิก',
+    field: 'createdAt',
     align: 'left',
     style: 'width: 20%',
   },
-  { name: 'role', label: 'สิทธิ์การใช้งาน', field: 'role', align: 'center', style: 'width: 15%' },
-  { name: 'actions', label: '', field: 'actions', align: 'center', style: 'width: 10%' },
+  {
+    name: 'history',
+    label: 'ประวัติลงทะเบียน',
+    field: 'history',
+    align: 'center',
+    style: 'width: 15%',
+  },
+  { name: 'actions', label: 'จัดการ', field: 'actions', align: 'center', style: 'width: 10%' },
 ];
 
 const pagination = ref({ page: 1, rowsPerPage: 10 });
@@ -100,9 +108,82 @@ watch(
   { deep: true },
 );
 
-onMounted(() => {
-  userStore.fetchUsers();
-});
+const formatDate = (dateString?: string) => {
+  if (!dateString) return { date: '-', time: '-' };
+  const d = new Date(dateString);
+  const optionsDate: Intl.DateTimeFormatOptions = {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  };
+  const optionsTime: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+
+  return {
+    date: d.toLocaleDateString('th-TH', optionsDate),
+    time: d.toLocaleTimeString('th-TH', optionsTime) + ' น.',
+  };
+};
+
+// ==========================================
+// Dialog States
+// ==========================================
+
+// 1. Form Add/Edit
+const isDialogOpen = ref(false);
+const selectedUser = ref<UserProfile | null>(null);
+
+const openAddDialog = () => {
+  selectedUser.value = null;
+  isDialogOpen.value = true;
+};
+
+const editMember = (row: UserProfile) => {
+  selectedUser.value = row;
+  isDialogOpen.value = true;
+};
+
+// 2. History Dialog
+const isHistoryOpen = ref(false);
+const historyUser = ref<UserProfile | null>(null);
+const historyRows = ref<any[]>([]);
+
+const viewHistory = (user: UserProfile) => {
+  historyUser.value = user;
+  const userRegs = registrantStore.rawRegistrants.filter((r) => r.userId === user.id);
+  historyRows.value = userRegs.map((reg, index) => {
+    const project = projectStore.projects.find((p) => p.id === reg.projectId);
+    const mCourse = masterCourseStore.courses.find((c) => c.id === reg.courseId);
+    return {
+      index: index + 1,
+      projectName: project?.projectData.projectName || 'ไม่ระบุ',
+      courseName: mCourse?.name || 'ไม่ระบุ',
+      registerDate: reg.registerDate,
+      status: reg.status,
+    };
+  });
+  isHistoryOpen.value = true;
+};
+
+// 3. Delete Dialog
+const isDeleteOpen = ref(false);
+const userToDelete = ref<UserProfile | null>(null);
+
+const promptDelete = (user: UserProfile) => {
+  userToDelete.value = user;
+  isDeleteOpen.value = true;
+};
+
+const executeDelete = () => {
+  if (userToDelete.value?.id) {
+    userStore.deleteUser(userToDelete.value.id);
+    $q.notify({
+      type: 'info',
+      icon: 'delete',
+      message: 'ลบผู้เข้าอบรมเรียบร้อยแล้ว',
+      position: 'top',
+    });
+  }
+};
 </script>
 
 <template>
@@ -117,10 +198,10 @@ onMounted(() => {
           <div class="row items-start justify-between">
             <div class="col-12 col-sm-auto q-mb-md q-mb-sm-none">
               <h1 class="text-h4 text-weight-bolder text-dark q-my-none tracking-tight">
-                บุคลากรและสิทธิ์
+                จัดการข้อมูลสมาชิก
               </h1>
               <p class="text-grey-6 q-mt-sm q-mb-none text-body1">
-                จัดการข้อมูลบุคลากรและสิทธิ์การเข้าถึงระบบ
+                จัดการข้อมูลสมาชิกทั้งหมดในระบบ
               </p>
             </div>
             <div class="col-12 col-sm-auto">
@@ -128,9 +209,9 @@ onMounted(() => {
                 unelevated
                 text-color="white"
                 icon="person_add"
-                label="เพิ่มผู้ใช้ใหม่"
+                label="เพิ่มสมาชิกใหม่"
                 no-caps
-                class="bento-btn-primary"
+                class="bento-btn-success q-px-md"
                 @click="openAddDialog"
               />
             </div>
@@ -138,35 +219,13 @@ onMounted(() => {
 
           <div class="row items-center q-gutter-x-xl q-mt-xl">
             <div class="stat-item">
-              <div class="text-h3 text-weight-bolder text-dark line-height-none">
-                {{ totalUsers }}
+              <div class="text-h3 text-weight-bolder text-teal-5 line-height-none">
+                {{ studentCount }}
               </div>
               <div
                 class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
               >
-                จำนวนผู้ใช้ทั้งหมด
-              </div>
-            </div>
-            <q-separator vertical color="grey-3" style="height: 78px" />
-            <div class="stat-item">
-              <div class="text-h3 text-weight-bolder text-blue-5 line-height-none">
-                {{ staffCount }}
-              </div>
-              <div
-                class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
-              >
-                เจ้าหน้าที่
-              </div>
-            </div>
-            <q-separator vertical color="grey-3" style="height: 78px" />
-            <div class="stat-item">
-              <div class="text-h3 text-weight-bolder text-red-5 line-height-none">
-                {{ adminCount }}
-              </div>
-              <div
-                class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
-              >
-                ผู้ดูแลระบบ
+                จำนวนสมาชิกทั้งหมด
               </div>
             </div>
           </div>
@@ -175,33 +234,17 @@ onMounted(() => {
 
       <div class="col-12 col-md-4 fade-up" style="animation-delay: 0.15s">
         <q-card flat class="bento-box bg-white full-height q-pa-xl flex column justify-center">
-          <div class="text-h6 text-weight-bold text-dark q-mb-md">ค้นหาและกรองข้อมูล</div>
-          <div class="text-caption text-grey-6 text-weight-medium q-mb-sm">ค้นหาผู้ใช้งาน</div>
+          <div class="text-h6 text-weight-bold text-dark q-mb-md">ค้นหาข้อมูล</div>
+          <div class="text-caption text-grey-6 text-weight-medium q-mb-sm">พิมพ์คำค้นหา</div>
           <q-input
             outlined
             dense
             v-model="search"
             placeholder="ชื่อ-สกุล, ชื่อผู้ใช้, รหัสผู้ใช้..."
-            class="bento-input q-mb-lg"
-            ><template v-slot:prepend><q-icon name="search" color="grey-5" /></template
-          ></q-input>
-          <div class="text-caption text-grey-6 text-weight-medium q-mb-sm">แสดงสิทธิ์การใช้งาน</div>
-          <div class="row q-gutter-x-md q-gutter-y-sm">
-            <q-checkbox
-              v-model="filterRoles.admin"
-              color="red-5"
-              label="ผู้ดูแลระบบ"
-              class="bento-checkbox disable-select"
-              dense
-            />
-            <q-checkbox
-              v-model="filterRoles.staff"
-              color="blue-5"
-              label="เจ้าหน้าที่"
-              class="bento-checkbox disable-select"
-              dense
-            />
-          </div>
+            class="bento-input"
+          >
+            <template v-slot:prepend><q-icon name="search" color="grey-5" /></template>
+          </q-input>
         </q-card>
       </div>
 
@@ -245,10 +288,9 @@ onMounted(() => {
                   {{ String(row.id).padStart(9, '0') }}
                 </span>
               </div>
-
               <div class="flex items-center">
                 <div class="icon-box q-mr-sm">
-                  <q-icon name="eva-at" size="14px" color="primary" />
+                  <q-icon name="eva-at" size="14px" color="teal-6" />
                 </div>
                 <span class="text-weight-bold text-subtitle2 text-dark">
                   {{ row.username }}
@@ -257,41 +299,69 @@ onMounted(() => {
             </div>
           </template>
 
-          <template #body-cell-department="{ row }">
-            <span class="text-weight-medium text-grey-8">{{ row.organization || '-' }}</span>
+          <template #body-cell-joinDate="{ row }">
+            <div class="flex items-center">
+              <div class="icon-box q-mr-sm bg-grey-1">
+                <q-icon name="eva-calendar-outline" size="14px" color="grey-6" />
+              </div>
+              <div class="column justify-center">
+                <span class="text-weight-bold text-grey-8" style="font-size: 13px">
+                  {{ formatDate(row.createdAt).date }}
+                </span>
+                <span class="text-caption text-grey-5" style="margin-top: -2px">
+                  เวลา {{ formatDate(row.createdAt).time }}
+                </span>
+              </div>
+            </div>
           </template>
 
-          <template #body-cell-role="{ row }">
-            <q-chip
-              :ripple="false"
-              :class="`bg-${getRoleTheme(row.role).bg} text-${getRoleTheme(row.role).text}`"
-              size="13px"
-              class="text-weight-medium bento-chip"
-              square
-              flat
-            >
-              {{ getRoleTheme(row.role).label }}
-            </q-chip>
-          </template>
-
-          <template #body-cell-actions="{ row }">
+          <template #body-cell-history="{ row }">
             <q-btn
               flat
               round
-              color="grey-6"
-              icon="eva-edit"
+              color="blue-8"
+              icon="eva-clock-outline"
               size="md"
-              class="bento-action-btn bg-grey-1"
-              @click="openEditDialog(row)"
+              class="bento-action-btn bg-blue-1"
+              @click.stop="viewHistory(row)"
             >
-              <q-tooltip class="bg-dark text-body2">แก้ไขข้อมูล</q-tooltip>
+              <q-tooltip class="bg-dark text-body2">ดูประวัติการลงทะเบียน</q-tooltip>
             </q-btn>
+          </template>
+
+          <template #body-cell-actions="{ row }">
+            <div class="row justify-center q-gutter-x-sm no-wrap">
+              <q-btn
+                flat
+                round
+                color="green-7"
+                icon="eva-edit"
+                size="md"
+                class="bento-action-btn bg-green-1"
+                @click="editMember(row)"
+              >
+                <q-tooltip class="bg-dark text-body2">แก้ไขข้อมูล</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                round
+                color="red-6"
+                icon="eva-trash-2"
+                size="md"
+                class="bento-action-btn bg-red-1"
+                @click="promptDelete(row)"
+              >
+                <q-tooltip class="bg-dark text-body2">ลบสมาชิก</q-tooltip>
+              </q-btn>
+            </div>
           </template>
         </CustomTableComponent>
       </div>
     </div>
 
-    <UserManagementFormDialog v-model="isDialogOpen" :user-to-edit="selectedUser" />
+    <MemberManagementFormDialog v-model="isDialogOpen" :user-to-edit="selectedUser" />
+    <MemberHistoryDialog v-model="isHistoryOpen" :user="historyUser" :rows="historyRows" />
+    <MemberDeleteDialog v-model="isDeleteOpen" :user="userToDelete" @confirm="executeDelete" />
   </q-page>
 </template>
 
@@ -321,25 +391,25 @@ onMounted(() => {
     box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.08) !important;
   }
 }
+
 .stat-item {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.bento-btn-primary {
+.bento-btn-success {
   border-radius: 12px;
   font-weight: 700;
   padding: 8px 20px;
-  background-color: #ff9966 !important;
+  background-color: #0d9488 !important;
   transition:
     transform 0.2s,
     box-shadow 0.2s;
-
   &:hover {
-    background-color: #ff8060 !important;
+    background-color: #0f766e !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(97, 154, 107, 0.3);
+    box-shadow: 0 6px 15px rgba(13, 148, 136, 0.3);
   }
 }
 
@@ -362,15 +432,7 @@ onMounted(() => {
     }
   }
 }
-.bento-checkbox {
-  :deep(.q-checkbox__bg) {
-    border-radius: 6px;
-  }
-  font-weight: 500;
-  color: $dark;
-}
 
-/* Table Slots UI */
 .icon-box {
   display: flex;
   align-items: center;
@@ -386,15 +448,11 @@ onMounted(() => {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   font-weight: 800;
 }
-.bento-chip {
-  border-radius: 8px;
-  padding: 4px 10px;
-}
+
 .bento-action-btn {
   transition: all 0.2s;
   &:hover {
-    background: #f1f5f9 !important;
-    color: $dark !important;
+    filter: brightness(0.95);
     transform: scale(1.05);
   }
 }

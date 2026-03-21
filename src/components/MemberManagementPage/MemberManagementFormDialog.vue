@@ -3,7 +3,6 @@ import { ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/user-store';
 import type { UserProfile } from 'src/models/user';
-import { TITLE_OPTIONS, USER_ROLE_OPTIONS } from 'src/models/user';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -17,6 +16,10 @@ const emit = defineEmits<{
 const $q = useQuasar();
 const userStore = useUserStore();
 
+// ตัวเลือกสำหรับหน้า Member
+const TITLE_OPTIONS = ['นาย', 'นาง', 'นางสาว', 'ดร.', 'ศ.'];
+const ROLE_OPTIONS = [{ label: 'ผู้เข้าอบรม (Student)', value: 'student' }];
+
 const defaultForm = (): Omit<UserProfile, 'id'> => ({
   username: '',
   email: '',
@@ -24,10 +27,10 @@ const defaultForm = (): Omit<UserProfile, 'id'> => ({
   firstNameTh: '',
   lastNameTh: '',
   phone: '',
-  province: 'กรุงเทพมหานคร',
+  province: '',
   organization: '',
   avatar: '',
-  role: 'staff',
+  role: 'student', // บังคับเป็น student
 });
 
 const formData = ref<Partial<UserProfile>>(defaultForm());
@@ -62,27 +65,11 @@ const onSubmit = () => {
   $q.notify({
     type: 'positive',
     icon: 'check_circle',
-    message: isUpdate ? 'อัปเดตข้อมูลสำเร็จ' : 'เพิ่มผู้ใช้งานสำเร็จ',
+    message: isUpdate ? 'อัปเดตข้อมูลผู้เข้าอบรมสำเร็จ' : 'เพิ่มผู้เข้าอบรมสำเร็จ',
     position: 'top',
-    color: 'dark',
+    color: 'teal-8',
   });
   closeDialog();
-};
-
-const onDelete = () => {
-  if (formData.value.id) {
-    $q.dialog({
-      title: 'ลบผู้ใช้งาน',
-      message: 'คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?',
-      cancel: { flat: true, color: 'grey-6', label: 'ยกเลิก', noCaps: true },
-      ok: { unelevated: true, color: 'negative', label: 'ลบข้อมูล', noCaps: true, rounded: true },
-      class: 'custom-dialog',
-    }).onOk(() => {
-      userStore.deleteUser(formData.value.id as string);
-      $q.notify({ type: 'info', icon: 'delete', message: 'ลบผู้ใช้งานแล้ว', position: 'top' });
-      closeDialog();
-    });
-  }
 };
 </script>
 
@@ -96,7 +83,7 @@ const onDelete = () => {
   >
     <q-card
       class="custom-dialog"
-      style="width: 640px; max-width: 95vw; display: flex; flex-direction: column"
+      style="width: 700px; max-width: 95vw; display: flex; flex-direction: column"
     >
       <q-form
         @submit="onSubmit"
@@ -108,8 +95,8 @@ const onDelete = () => {
         >
           <div class="row items-center">
             <q-avatar
-              :color="isEditMode ? 'grey-2' : 'dark'"
-              :text-color="isEditMode ? 'dark' : 'white'"
+              :color="isEditMode ? 'grey-2' : 'teal-6'"
+              :text-color="isEditMode ? 'teal-8' : 'white'"
               size="46px"
               class="q-mr-md shadow-soft"
             >
@@ -119,13 +106,13 @@ const onDelete = () => {
               <div
                 class="text-h6 text-weight-bold text-dark tracking-tight line-height-none q-mb-xs"
               >
-                {{ isEditMode ? 'แก้ไขข้อมูลบัญชีผู้ใช้' : 'เพิ่มผู้ใช้งานใหม่' }}
+                {{ isEditMode ? 'แก้ไขข้อมูลผู้เข้าอบรม' : 'เพิ่มผู้เข้าอบรมใหม่' }}
               </div>
               <div class="text-caption text-grey-5 text-weight-medium">
                 {{
                   isEditMode
-                    ? 'อัปเดตรายละเอียดและสิทธิ์การเข้าถึงระบบ'
-                    : 'ระบุข้อมูลพื้นฐานเพื่อสร้างบัญชีผู้ใช้งานใหม่'
+                    ? 'อัปเดตรายละเอียดของสมาชิก'
+                    : 'ระบุข้อมูลพื้นฐานเพื่อสร้างบัญชีสำหรับผู้เข้าอบรม'
                 }}
               </div>
             </div>
@@ -142,11 +129,11 @@ const onDelete = () => {
         </q-card-section>
 
         <q-card-section class="q-px-xl q-py-lg scroll" style="flex-grow: 1; overflow-y: auto">
-          <div class="q-gutter-y-xl">
+          <div class="q-gutter-y-lg">
             <div>
               <div class="row items-center q-mb-md">
                 <div class="bg-grey-2 q-pa-xs border-radius-8 q-mr-sm flex flex-center">
-                  <q-icon name="badge" color="dark" size="18px" />
+                  <q-icon name="badge" color="teal-7" size="18px" />
                 </div>
                 <span
                   class="text-subtitle2 text-weight-bold text-dark letter-spacing-1 text-uppercase"
@@ -181,11 +168,19 @@ const onDelete = () => {
                   hide-bottom-space
                 />
                 <q-input
-                  class="col-12"
+                  class="col-12 col-sm-6"
                   outlined
                   dense
                   v-model="formData.organization"
-                  label="สังกัด / หน่วยงาน"
+                  label="หน่วยงาน / สังกัด"
+                  hide-bottom-space
+                />
+                <q-input
+                  class="col-12 col-sm-6"
+                  outlined
+                  dense
+                  v-model="formData.province"
+                  label="จังหวัด"
                   hide-bottom-space
                 />
               </div>
@@ -194,11 +189,11 @@ const onDelete = () => {
             <div>
               <div class="row items-center q-mb-md">
                 <div class="bg-grey-2 q-pa-xs border-radius-8 q-mr-sm flex flex-center">
-                  <q-icon name="login" color="dark" size="18px" />
+                  <q-icon name="login" color="teal-7" size="18px" />
                 </div>
                 <span
                   class="text-subtitle2 text-weight-bold text-dark letter-spacing-1 text-uppercase"
-                  >ข้อมูลเข้าสู่ระบบ</span
+                  >ข้อมูลการติดต่อและเข้าสู่ระบบ</span
                 >
               </div>
               <div class="row q-col-gutter-md">
@@ -219,6 +214,21 @@ const onDelete = () => {
                   class="col-12 col-sm-6"
                   outlined
                   dense
+                  v-model="formData.phone"
+                  label="เบอร์โทรศัพท์"
+                  mask="###-###-####"
+                  unmasked-value
+                  :rules="[(val) => !!val || '']"
+                  hide-bottom-space
+                >
+                  <template v-slot:prepend
+                    ><q-icon name="eva-phone-outline" size="18px" color="grey-5"
+                  /></template>
+                </q-input>
+                <q-input
+                  class="col-12"
+                  outlined
+                  dense
                   v-model="formData.email"
                   type="email"
                   label="อีเมลติดต่อ"
@@ -230,34 +240,6 @@ const onDelete = () => {
                 </q-input>
               </div>
             </div>
-
-            <div class="bg-grey-1 q-pa-lg border-radius-16 border-soft">
-              <div class="row items-center justify-between">
-                <div class="row items-center">
-                  <q-avatar color="white" text-color="dark" size="40px" class="shadow-soft q-mr-md">
-                    <q-icon name="admin_panel_settings" size="20px" />
-                  </q-avatar>
-                  <div>
-                    <div class="text-weight-bold text-dark text-subtitle2">
-                      ระดับสิทธิ์การใช้งาน
-                    </div>
-                    <div class="text-caption text-grey-6 line-height-tight">
-                      กำหนดขอบเขตการเข้าถึงหน้าต่างต่างๆ
-                    </div>
-                  </div>
-                </div>
-                <q-select
-                  outlined
-                  dense
-                  v-model="formData.role"
-                  :options="USER_ROLE_OPTIONS"
-                  emit-value
-                  map-options
-                  style="min-width: 180px"
-                  bg-color="white"
-                />
-              </div>
-            </div>
           </div>
         </q-card-section>
 
@@ -265,22 +247,12 @@ const onDelete = () => {
           class="row items-center justify-between q-px-xl q-py-lg border-top bg-white z-top"
           style="flex-shrink: 0"
         >
-          <q-btn
-            v-if="isEditMode"
-            flat
-            color="red-6"
-            icon="eva-trash-2-outline"
-            label="ลบผู้ใช้งาน"
-            @click="onDelete"
-            no-caps
-            class="custom-btn-danger text-weight-bold"
-          />
-          <div v-else></div>
+          <div></div>
           <div class="row q-gutter-x-sm">
             <q-btn
               flat
               label="ยกเลิก"
-              color="dark"
+              color="grey-8"
               @click="closeDialog"
               no-caps
               class="custom-btn-cancel text-weight-bold q-px-md"
@@ -289,7 +261,7 @@ const onDelete = () => {
               unelevated
               label="บันทึกข้อมูล"
               type="submit"
-              color="dark"
+              color="teal-6"
               no-caps
               class="custom-btn-submit text-weight-bold q-px-xl"
             />
@@ -362,10 +334,10 @@ const onDelete = () => {
 }
 .custom-btn-submit {
   border-radius: 12px;
-  background-color: $dark !important;
+  background-color: #0d9488 !important; /* Teal-6 */
   transition: transform 0.2s;
   &:hover {
-    background-color: #424242 !important;
+    background-color: #0f766e !important; /* Teal-7 */
     transform: translateY(-2px);
   }
 }
@@ -396,13 +368,13 @@ const onDelete = () => {
 :deep(.q-field--outlined.q-field--focused .q-field__control) {
   background: #ffffff;
   &::after {
-    border-color: $dark !important;
+    border-color: #0d9488 !important; /* เปลี่ยนสีกรอบตอนโฟกัสเป็น Teal */
     border-width: 2px;
   }
 }
 
 :deep(.q-field--focused .q-field__label) {
-  color: $dark !important;
+  color: #0d9488 !important; /* สี Label ตอนโฟกัส */
 }
 
 :deep(.q-field--error .q-field__control) {
