@@ -34,6 +34,15 @@ const columns: QTableColumn[] = [
 const rows = computed(() => projectTypeStore.projectTypes);
 const search = ref('');
 
+// 4.1 คำนวณสถิติสำหรับรายงาน
+const totalProjectTypes = computed(() => projectTypeStore.projectTypes.length);
+const projectTypesWithFee = computed(() =>
+  projectTypeStore.projectTypes.filter(pt => pt.regis_fee === 1).length
+);
+const projectTypesWithoutFee = computed(() =>
+  projectTypeStore.projectTypes.filter(pt => pt.regis_fee === 0).length
+);
+
 // 5. ฟังก์ชันเปิด Dialog เพิ่มข้อมูล
 function openAddDialog() {
   isEdit.value = false;
@@ -86,6 +95,28 @@ onMounted(() => {
 <template>
   <q-page class="q-pa-md">
     <div class="text-h6 q-mb-md text-weight-bold">จัดการประเภทโครงการ</div>
+
+    <!-- ส่วนแสดงสถิติ/รายงาน -->
+    <q-card flat bordered class="bg-white q-mb-md">
+      <q-card-section>
+        <div class="row items-center q-gutter-x-xl">
+          <div class="stat-item">
+            <div class="text-h3 text-weight-bolder text-dark">{{ totalProjectTypes }}</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">ประเภทโครงการทั้งหมด</div>
+          </div>
+          <q-separator vertical style="height: 60px" />
+          <div class="stat-item">
+            <div class="text-h3 text-weight-bolder text-blue-7">{{ projectTypesWithFee }}</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">มีค่าลงทะเบียน</div>
+          </div>
+          <q-separator vertical style="height: 60px" />
+          <div class="stat-item">
+            <div class="text-h3 text-weight-bolder text-green-7">{{ projectTypesWithoutFee }}</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">ไม่มีค่าลงทะเบียน</div>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
 
     <q-card flat bordered class="bg-white">
       <q-card-section>
