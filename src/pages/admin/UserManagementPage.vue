@@ -12,17 +12,27 @@ const userStore = useUserStore();
 const search = ref('');
 
 // --- Filter ---
-const filterRoles = ref({ admin: true, staff: true, student: true });
+const filterRoles = ref({ admin: true, staff: true });
 
 const filteredUsersList = computed(() => {
   const keyword = search.value.toLowerCase().trim();
+
   return userStore.usersList.filter((user) => {
-    const rolePass = filterRoles.value[user.role];
+    const isStaffOrAdmin = user.role === 'admin' || user.role === 'staff';
+    if (!isStaffOrAdmin) return false;
+
+    const rolePass = filterRoles.value[user.role as keyof typeof filterRoles.value];
+    const fullName = `${user.firstNameTh} ${user.lastNameTh}`.toLowerCase();
+    const paddedId = String(user.id).padStart(9, '0');
+    const rawId = String(user.id);
+
     const searchPass =
-      keyword === '' ||
-      user.firstNameTh.toLowerCase().includes(keyword) ||
-      user.lastNameTh.toLowerCase().includes(keyword) ||
-      user.username.toLowerCase().includes(keyword);
+      keyword === '' || // ถ้าช่องค้นหาว่าง ให้แสดงทั้งหมด
+      fullName.includes(keyword) || // ค้นหา ชื่อ, สกุล, หรือ ชื่อ สกุล
+      user.username.toLowerCase().includes(keyword) || // ค้นหา Username
+      paddedId.includes(keyword) || // ค้นหา ID แบบมี 0 นำหน้า
+      rawId.includes(keyword); // ค้นหา ID แบบพิมพ์ตัวเลขตรงๆ
+
     return rolePass && searchPass;
   });
 });
@@ -65,7 +75,7 @@ const columns: TableColumn[] = [
   },
   {
     name: 'username',
-    label: 'บัญชีผู้ใช้ (Username)',
+    label: 'รหัสและชื่อผู้ใช้',
     field: 'username',
     align: 'left',
     style: 'width: 25%',
@@ -105,23 +115,25 @@ onMounted(() => {
           style="min-height: 200px"
         >
           <div class="row items-start justify-between">
-            <div>
+            <div class="col-12 col-sm-auto q-mb-md q-mb-sm-none">
               <h1 class="text-h4 text-weight-bolder text-dark q-my-none tracking-tight">
-                User Management
+                บุคลากรและสิทธิ์
               </h1>
               <p class="text-grey-6 q-mt-sm q-mb-none text-body1">
                 จัดการข้อมูลบุคลากรและสิทธิ์การเข้าถึงระบบ
               </p>
             </div>
-            <q-btn
-              unelevated
-              text-color="white"
-              icon="add"
-              label="เพิ่มผู้ใช้งาน"
-              no-caps
-              class="bento-btn-primary"
-              @click="openAddDialog"
-            />
+            <div class="col-12 col-sm-auto">
+              <q-btn
+                unelevated
+                text-color="white"
+                icon="person_add"
+                label="เพิ่มผู้ใช้ใหม่"
+                no-caps
+                class="bento-btn-primary"
+                @click="openAddDialog"
+              />
+            </div>
           </div>
 
           <div class="row items-center q-gutter-x-xl q-mt-xl">
@@ -132,18 +144,7 @@ onMounted(() => {
               <div
                 class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
               >
-                Total Users
-              </div>
-            </div>
-            <q-separator vertical color="grey-3" style="height: 78px" />
-            <div class="stat-item">
-              <div class="text-h3 text-weight-bolder text-red-5 line-height-none">
-                {{ adminCount }}
-              </div>
-              <div
-                class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
-              >
-                Admins
+                จำนวนผู้ใช้ทั้งหมด
               </div>
             </div>
             <q-separator vertical color="grey-3" style="height: 78px" />
@@ -154,7 +155,18 @@ onMounted(() => {
               <div
                 class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
               >
-                Staffs
+                เจ้าหน้าที่
+              </div>
+            </div>
+            <q-separator vertical color="grey-3" style="height: 78px" />
+            <div class="stat-item">
+              <div class="text-h3 text-weight-bolder text-red-5 line-height-none">
+                {{ adminCount }}
+              </div>
+              <div
+                class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
+              >
+                ผู้ดูแลระบบ
               </div>
             </div>
           </div>
@@ -169,7 +181,7 @@ onMounted(() => {
             outlined
             dense
             v-model="search"
-            placeholder="ค้นหาชื่อ, Username..."
+            placeholder="ชื่อ-สกุล, ชื่อผู้ใช้, รหัสผู้ใช้..."
             class="bento-input q-mb-lg"
             ><template v-slot:prepend><q-icon name="search" color="grey-5" /></template
           ></q-input>
@@ -186,13 +198,6 @@ onMounted(() => {
               v-model="filterRoles.staff"
               color="blue-5"
               label="เจ้าหน้าที่"
-              class="bento-checkbox disable-select"
-              dense
-            />
-            <q-checkbox
-              v-model="filterRoles.student"
-              color="teal-5"
-              label="ผู้เข้าอบรม"
               class="bento-checkbox disable-select"
               dense
             />
@@ -217,7 +222,7 @@ onMounted(() => {
                 <span v-else class="text-weight-bolder">{{ row.firstNameTh.charAt(0) }}</span>
               </q-avatar>
               <div class="column justify-center">
-                <span class="text-weight-medium text-dark text-subtitle2 line-height-tight"
+                <span class="text-weight-bold text-dark text-subtitle2 line-height-tight"
                   >{{ row.title }}{{ row.firstNameTh }} {{ row.lastNameTh }}</span
                 >
                 <span class="text-caption text-grey-5 q-mt-xs">{{
@@ -228,11 +233,24 @@ onMounted(() => {
           </template>
 
           <template #body-cell-username="{ row }">
-            <div class="flex items-center text-weight-medium text-grey-8">
-              <div class="icon-box q-mr-sm">
-                <q-icon name="eva-hash" size="16px" color="grey-5" />
+            <div class="column justify-center q-py-xs">
+              <div class="flex items-center q-mb-xs">
+                <div class="icon-box q-mr-sm">
+                  <q-icon name="eva-hash" size="16px" color="grey-5" />
+                </div>
+                <span class="text-grey-6 text-weight-medium" style="letter-spacing: 0.5px">
+                  {{ String(row.id).padStart(9, '0') }}
+                </span>
               </div>
-              {{ row.username }}
+
+              <div class="flex items-center">
+                <div class="icon-box q-mr-sm">
+                  <q-icon name="eva-at" size="16px" color="primary" />
+                </div>
+                <span class="text-weight-bold text-dark">
+                  {{ row.username }}
+                </span>
+              </div>
             </div>
           </template>
 
@@ -309,14 +327,12 @@ onMounted(() => {
 
 .bento-btn-primary {
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 8px 20px;
-  background-color: $dark !important;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  background-color: #4caf50 !important;
+  transition: all 0.3s ease;
   &:hover {
-    background-color: #424242 !important;
+    background-color: #45a049 !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
   }
@@ -354,11 +370,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background-color: #f1f5f9;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background-color: transparent;
 }
+
 .bento-avatar {
   border: 2px solid white;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);

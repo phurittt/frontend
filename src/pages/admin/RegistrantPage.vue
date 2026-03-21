@@ -125,18 +125,18 @@ const goToManage = (courseId: number) => {
                 {{ totalUsers }}
               </div>
               <div
-                class="text-caption text-grey-5 text-weight-medium text-uppercase letter-spacing-1 q-mt-sm"
+                class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
               >
                 จำนวนหลักสูตรทั้งหมด
               </div>
             </div>
             <q-separator vertical color="grey-3" style="height: 78px" />
             <div class="stat-item">
-              <div class="text-h3 text-weight-bolder text-red-5 line-height-none">
+              <div class="text-h3 text-weight-bolder text-teal-5 line-height-none">
                 {{ totalRegistrants }}
               </div>
               <div
-                class="text-caption text-grey-5 text-weight-medium text-uppercase letter-spacing-1 q-mt-sm"
+                class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
               >
                 จำนวนผู้ลงทะเบียนทั้งหมด
               </div>
