@@ -229,7 +229,11 @@ export const useUserStore = defineStore('user', {
     },
 
     deleteUser(userId: string) {
-      this.usersList = this.usersList.filter((u) => u.id !== userId);
+      // ใช้ findIndex และ splice เพื่อบังคับให้หน้าจอ (UI) รีเฟรชทันที
+      const index = this.usersList.findIndex((u) => u.id === userId);
+      if (index !== -1) {
+        this.usersList.splice(index, 1);
+      }
     },
   },
 });
