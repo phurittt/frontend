@@ -29,6 +29,12 @@ const columns: QTableColumn[] = [
 
 const rows = computed(() => categoryStore.categories);
 
+// คำนวณสถิติสำหรับรายงาน
+const totalCategories = computed(() => categoryStore.categories.length);
+const totalCourses = computed(() =>
+  categoryStore.categories.reduce((sum, cat) => sum + (cat.courseCount || 0), 0)
+);
+
 function openAddDialog() {
   isEdit.value = false;
   editId.value = null;
@@ -78,6 +84,23 @@ onMounted(() => {
 <template>
   <q-page class="q-pa-md">
     <div class="text-h6 q-mb-md text-weight-bold">จัดการประเภทหลักสูตร</div>
+
+    <!-- ส่วนแสดงสถิติ/รายงาน -->
+    <q-card flat bordered class="bg-white q-mb-md">
+      <q-card-section>
+        <div class="row items-center q-gutter-x-xl">
+          <div class="stat-item">
+            <div class="text-h3 text-weight-bolder text-dark">{{ totalCategories }}</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">ประเภทหลักสูตรทั้งหมด</div>
+          </div>
+          <q-separator vertical style="height: 60px" />
+          <div class="stat-item">
+            <div class="text-h3 text-weight-bolder text-blue-7">{{ totalCourses }}</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">จำนวนหลักสูตรทั้งหมด</div>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
 
     <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px;">
       <q-card-section>
