@@ -85,8 +85,8 @@ const routes: RouteRecordRaw[] = [
             path: '',
             component: () => import('pages/admin/RegistrantPage.vue'),
             meta: {
-              title: 'จัดการผู้ลงทะเบียนอบรม',
-              breadcrumbs: [{ label: 'จัดการผู้ลงทะเบียนอบรม' }],
+              title: 'ตรวจสอบการลงทะเบียนอบรม',
+              breadcrumbs: [{ label: 'ตรวจสอบการลงทะเบียนอบรม' }],
             },
           },
           {
@@ -94,10 +94,10 @@ const routes: RouteRecordRaw[] = [
             name: 'registrant-manage',
             component: () => import('pages/admin/RegistrantManagementPage.vue'),
             meta: {
-              title: 'จัดการผู้ลงทะเบียนอบรม',
+              title: 'จัดการรายชื่อผู้ลงทะเบียนอบรม',
               breadcrumbs: [
-                { label: 'จัดการผู้ลงทะเบียนอบรม', to: '/admin/registrants' },
-                { label: 'ตรวจสอบรายชื่อผู้ลงทะเบียนอบรม' },
+                { label: 'ตรวจสอบการลงทะเบียนอบรม', to: '/admin/registrants' },
+                { label: 'จัดการรายชื่อผู้ลงทะเบียนอบรม' },
               ],
             },
           },
