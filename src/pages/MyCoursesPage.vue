@@ -2,53 +2,22 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth-store';
+import { useCourseStore } from 'src/stores/course-store'; // 1. นำเข้า Course Store
 import { useQuasar } from 'quasar';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const store = useCourseStore(); // 2. ประกาศใช้ Store
 const $q = useQuasar();
 const tab = ref('history');
 
 // ==========================================
-// 1. Mock Data: จำลองข้อมูลคอร์สที่ลงทะเบียนไว้
+// 1. ดึงข้อมูลประวัติการลงทะเบียนจาก Store
 // ==========================================
-const enrolledCourses = ref([
-  {
-    id: 1,
-    title: 'Vue.js for Beginners',
-    date: '25 มีนาคม 2026',
-    status: 'รอเข้าอบรม',
-    statusCode: 'registered', // 'registered', 'waiting', 'confirmed', 'cancelled'
-    image: 'https://via.placeholder.com/400x200',
-    canCancel: true,
-    canConfirm: true,
-    isOnline: false
-  },
-  {
-    id: 2,
-    title: 'Cybersecurity Awareness',
-    date: '10 เมษายน 2026',
-    status: 'รอคิวสำรอง',
-    statusCode: 'waiting',
-    image: 'https://via.placeholder.com/400x200',
-    canCancel: true,
-    canConfirm: false,
-    isOnline: true
-  },
-  {
-    id: 3,
-    title: 'Data Science with Python',
-    date: '15 พฤษภาคม 2026',
-    status: 'ยืนยันเข้าร่วมแล้ว',
-    statusCode: 'confirmed',
-    image: 'https://via.placeholder.com/400x200',
-    canCancel: false,
-    canConfirm: false,
-    isOnline: false
-  }
-]);
+// เปลี่ยนจาก Mock Data เป็นการดึงข้อมูลจาก Store แบบ Real-time
+const enrolledCourses = computed(() => store.enrolledCourses);
 
-// จำลองข้อมูลวุฒิบัตร (UC-21)
+// จำลองข้อมูลวุฒิบัตร (UC-21) - ส่วนนี้ยังจำลองไว้ก่อนจนกว่าจะทำระบบวุฒิบัตร
 const certificates = ref([
   {
     id: 101,
@@ -87,18 +56,9 @@ const executeCancel = async () => {
   const dismiss = $q.notify({ spinner: true, message: 'กำลังยกเลิกการลงทะเบียน...', color: 'primary', timeout: 0 });
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000)); // จำลอง API
-    
-    // อัปเดตข้อมูลในหน้าจอ (แก้ TypeScript Error)
-    const index = enrolledCourses.value.findIndex(c => c.id === courseToCancel.value);
-    if (index !== -1) {
-      const targetCourse = enrolledCourses.value[index];
-      if (targetCourse) {
-        targetCourse.status = 'ยกเลิกการลงทะเบียนแล้ว';
-        targetCourse.statusCode = 'cancelled';
-        targetCourse.canCancel = false;
-        targetCourse.canConfirm = false;
-      }
+    // 3.1 เรียกใช้ฟังก์ชันยกเลิกจาก Store
+    if (courseToCancel.value !== null) {
+      await store.cancelEnrollment(courseToCancel.value);
     }
 
     dismiss();
@@ -108,14 +68,13 @@ const executeCancel = async () => {
     });
   } catch (error) {
     dismiss();
-    $q.notify({ message: 'เกิดข้อผิดพลาด', color: 'negative', position: 'top' });
+    $q.notify({ message: 'เกิดข้อผิดพลาดในการยกเลิก', color: 'negative', position: 'top' });
   }
 };
 
 // ==========================================
 // 4. ฟังก์ชันยืนยันการเข้าร่วม (UC-08)
 // ==========================================
-// แก้ไข: ลบ async ออกจากฟังก์ชันหลักเพื่อแก้ ESLint
 const confirmAttendance = (id: number) => {
   $q.dialog({
     title: 'ยืนยันการเข้าร่วม',
@@ -124,22 +83,17 @@ const confirmAttendance = (id: number) => {
     persistent: true
   }).onOk(async () => {
     const dismiss = $q.notify({ spinner: true, message: 'กำลังบันทึก...', color: 'primary', timeout: 0 });
-    await new Promise(resolve => setTimeout(resolve, 800)); 
     
-    // อัปเดตข้อมูลในหน้าจอ (แก้ TypeScript Error)
-    const index = enrolledCourses.value.findIndex(c => c.id === id);
-    if (index !== -1) {
-      const targetCourse = enrolledCourses.value[index];
-      if (targetCourse) {
-        targetCourse.status = 'ยืนยันเข้าร่วมแล้ว';
-        targetCourse.statusCode = 'confirmed';
-        targetCourse.canCancel = false;
-        targetCourse.canConfirm = false;
-      }
+    try {
+      // 4.1 เรียกใช้ฟังก์ชันยืนยันจาก Store
+      await store.confirmEnrollmentAttendance(id);
+      
+      dismiss();
+      $q.notify({ message: 'ยืนยันการเข้าร่วมสำเร็จ', color: 'positive', position: 'top' });
+    } catch (error) {
+      dismiss();
+      $q.notify({ message: 'เกิดข้อผิดพลาดในการยืนยัน', color: 'negative', position: 'top' });
     }
-    
-    dismiss();
-    $q.notify({ message: 'ยืนยันการเข้าร่วมสำเร็จ', color: 'positive', position: 'top' });
   });
 };
 
@@ -151,7 +105,6 @@ const downloadCertificate = (id: number) => {
     message: 'กำลังสร้างไฟล์ PDF วุฒิบัตร...',
     color: 'primary', icon: 'picture_as_pdf', position: 'top', timeout: 2000
   });
-  // โค้ดสำหรับเปิดแท็บใหม่เพื่อโหลดไฟล์จาก Backend API
 };
 </script>
 
@@ -206,7 +159,7 @@ const downloadCertificate = (id: number) => {
                   <q-card-actions align="right" class="q-px-md q-py-sm bg-grey-1">
                     <q-btn v-if="course.canCancel" flat color="negative" label="ยกเลิกสิทธิ์" no-caps class="text-weight-bold" @click="promptCancel(course.id)" />
                     <q-btn v-if="course.canConfirm" unelevated color="primary" label="ยืนยันเข้าร่วม" no-caps class="text-weight-bold q-px-md q-ml-sm" @click="confirmAttendance(course.id)" />
-                    <q-btn v-if="course.statusCode === 'confirmed' && course.isOnline" unelevated color="positive" icon="play_circle_outline" label="เข้าเรียนออนไลน์" no-caps class="text-weight-bold q-px-md q-ml-sm" @click="router.push(`/courses/${course.id}`)" />
+                    <q-btn v-if="course.statusCode === 'confirmed'" unelevated color="positive" icon="visibility" label="ดูรายละเอียด" no-caps class="text-weight-bold q-px-md q-ml-sm" @click="router.push(`/courses/${course.courseId}`)" />
                   </q-card-actions>
                 </q-card>
               </div>

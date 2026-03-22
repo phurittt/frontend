@@ -63,8 +63,15 @@ const executeRegistration = async (isWaitingList: boolean) => {
   });
 
   try {
-    // จำลองการเรียก API ลงทะเบียน (แทนที่ด้วย store.registerCourse(...) ในของจริง)
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // ==========================================
+    // เพิ่ม if ครอบไว้เพื่อแก้ Error TypeScript
+    // ==========================================
+    if (course.value) {
+      await store.registerCourse(course.value.id, isWaitingList);
+    } else {
+      throw new Error('ไม่พบข้อมูลคอร์ส');
+    }
+    // ==========================================
     
     dismissLoading();
 
@@ -79,12 +86,12 @@ const executeRegistration = async (isWaitingList: boolean) => {
       classes: 'text-weight-medium',
     });
 
-    // พาผู้ใช้งานไปที่หน้า "ประวัติการอบรม" หลังจากลงทะเบียนสำเร็จ (ตาม UC-06)
-    router.push('/my-courses'); 
+    setTimeout(() => {
+      router.push('/my-courses'); 
+    }, 1500);
 
   } catch (error) {
     dismissLoading();
-    // กรณีเกิดข้อผิดพลาด เช่น ไม่มีสิทธิ์ (Target Group ไม่ตรง)
     $q.notify({
       message: 'ท่านไม่มีสิทธิ์ลงทะเบียนในหลักสูตรนี้ หรือเกิดข้อผิดพลาด',
       color: 'negative',
