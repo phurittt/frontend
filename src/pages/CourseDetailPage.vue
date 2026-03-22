@@ -101,6 +101,8 @@ const executeRegistration = async (isWaitingList: boolean) => {
 const buttonLabel = computed(() => {
   if (!authStore.isLoggedIn) return 'เข้าสู่ระบบ เพื่อลงทะเบียน';
 
+  if (hasCancelled.value) return 'ท่านเคยยกเลิกสิทธิ์ในหลักสูตรนี้แล้ว';
+
   if (isEnrolled.value) return 'ท่านลงทะเบียนหลักสูตรนี้แล้ว';
 
   if (course.value?.totalSeats === course.value?.registeredSeats) {
@@ -158,6 +160,13 @@ const addToCart = () => {
     });
   }
 };
+
+const hasCancelled = computed(() => {
+  if (!course.value || !authStore.isLoggedIn) return false;
+  return store.enrolledCourses.some(
+    (e) => e.courseId === course.value?.id && e.statusCode === 'cancelled'
+  );
+});
 </script>
 
 <template>
@@ -469,11 +478,11 @@ const addToCart = () => {
                   <div class="column q-gutter-y-sm">
                     <q-btn
                       unelevated
-                      :disable="isEnrolled" 
+                      :disable="isEnrolled || hasCancelled" 
                       :class="[
-                        !authStore.isLoggedIn
+                        !authStore.isLoggedIn 
                           ? 'btn-login-required'
-                          : isEnrolled               
+                          : (isEnrolled || hasCancelled)               
                             ? 'btn-enrolled'
                             : course.totalSeats === course.registeredSeats
                               ? 'btn-notify'
@@ -495,7 +504,7 @@ const addToCart = () => {
                       @click="handleMainButtonClick"
                     />
 
-                    <template v-if="authStore.isLoggedIn && !isEnrolled">
+                    <template v-if="authStore.isLoggedIn && !isEnrolled && !hasCancelled">
                       <div v-if="course.totalSeats === course.registeredSeats" class="row">
                         <q-btn
                             outline
