@@ -34,9 +34,12 @@ export const useRegistrantStore = defineStore('registrant', {
   },
 
   actions: {
-    fetchRegistrants() {
+    async fetchRegistrants() {
       this.loading = true;
       try {
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        
         if (this.rawRegistrants.length === 0) {
           this.rawRegistrants = [
             // สังเกตว่าคนที่มี userId เราไม่ต้องเก็บชื่อ, เมล, เบอร์โทร ไว้ในนี้เลยครับ!

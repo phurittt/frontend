@@ -30,9 +30,12 @@ export const useProjectStore = defineStore('project', {
 
   actions: {
     // 1. จำลองข้อมูลโครงการ
-    fetchProjects() {
+    async fetchProjects() {
       this.loading = true;
       try {
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         if (this.projects.length === 0) {
           this.projects = [
             {

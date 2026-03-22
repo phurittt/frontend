@@ -9,9 +9,10 @@ export const useMasterCourseStore = defineStore('masterCourse', {
   }),
 
   actions: {
-    fetchCourses() {
+    async fetchCourses() {
       this.loading = true;
       try {
+        await new Promise((resolve) => setTimeout(resolve, 500));
         // ถ้ายังไม่มีข้อมูล ให้โหลดข้อมูลเริ่มต้น
         if (this.courses.length === 0) {
           this.courses = [

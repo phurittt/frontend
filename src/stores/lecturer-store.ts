@@ -8,9 +8,12 @@ export const useLecturerStore = defineStore('lecturer', {
   }),
 
   actions: {
-    fetchLecturers() {
+    async fetchLecturers() {
       this.loading = true;
       try {
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         if (this.lecturers.length === 0) {
           // ข้อมูลจำลองอิงตามรูปภาพของคุณ
           this.lecturers = [

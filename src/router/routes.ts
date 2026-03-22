@@ -132,6 +132,12 @@ const routes: RouteRecordRaw[] = [
       },
       // --------------------------------------------------------------------------------
       {
+        path: 'reports',
+        component: () => import('pages/admin/ReportDashboardPage.vue'),
+        meta: { parent: 'รายงานและเว็บไซต์', title: 'รายงาน' },
+      },
+      // --------------------------------------------------------------------------------
+      {
         path: 'members',
         component: () => import('pages/admin/MemberManagementPage.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ข้อมูลสมาชิก' },
