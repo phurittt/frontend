@@ -15,7 +15,7 @@ const search = ref('');
 const form = ref({
   code: '',
   name: '',
-  description: ''
+  description: '',
 });
 
 const columns: QTableColumn[] = [
@@ -23,7 +23,13 @@ const columns: QTableColumn[] = [
   { name: 'code', label: 'รหัสประเภท', field: 'code', align: 'left', sortable: true },
   { name: 'name', label: 'ชื่อประเภทหลักสูตร', field: 'name', align: 'left', sortable: true },
   { name: 'description', label: 'คำอธิบาย', field: 'description', align: 'left' },
-  { name: 'courseCount', label: 'จำนวนหลักสูตร', field: 'courseCount', align: 'center', sortable: true },
+  {
+    name: 'courseCount',
+    label: 'จำนวนหลักสูตร',
+    field: 'courseCount',
+    align: 'center',
+    sortable: true,
+  },
   { name: 'actions', label: 'จัดการ', field: 'actions', align: 'center' },
 ];
 
@@ -32,7 +38,7 @@ const rows = computed(() => categoryStore.categories);
 // คำนวณสถิติสำหรับรายงาน
 const totalCategories = computed(() => categoryStore.categories.length);
 const totalCourses = computed(() =>
-  categoryStore.categories.reduce((sum, cat) => sum + (cat.courseCount || 0), 0)
+  categoryStore.categories.reduce((sum, cat) => sum + (cat.courseCount || 0), 0),
 );
 
 function openAddDialog() {
@@ -69,7 +75,7 @@ function deleteItem(id: number) {
     title: 'ยืนยันการลบ',
     message: 'คุณต้องการลบประเภทหลักสูตรนี้ใช่หรือไม่?',
     cancel: true,
-    persistent: true
+    persistent: true,
   }).onOk(async () => {
     await categoryStore.deleteCategory(id);
     $q.notify({ type: 'info', message: 'ลบข้อมูลสำเร็จ' });
@@ -91,23 +97,33 @@ onMounted(() => {
         <div class="row items-center q-gutter-x-xl">
           <div class="stat-item">
             <div class="text-h3 text-weight-bolder text-dark">{{ totalCategories }}</div>
-            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">ประเภทหลักสูตรทั้งหมด</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">
+              ประเภทหลักสูตรทั้งหมด
+            </div>
           </div>
           <q-separator vertical style="height: 60px" />
           <div class="stat-item">
             <div class="text-h3 text-weight-bolder text-blue-7">{{ totalCourses }}</div>
-            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">จำนวนหลักสูตรทั้งหมด</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">
+              จำนวนหลักสูตรทั้งหมด
+            </div>
           </div>
         </div>
       </q-card-section>
     </q-card>
 
-    <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px;">
+    <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px">
       <q-card-section>
-
         <div class="row items-center q-mb-md q-gutter-x-sm">
-          <q-input outlined dense v-model="search" placeholder="ค้นหาประเภทหลักสูตร..." rounded bg-color="grey-1"
-            style="width: 320px;">
+          <q-input
+            outlined
+            dense
+            v-model="search"
+            placeholder="ค้นหาประเภทหลักสูตร..."
+            rounded
+            bg-color="grey-1"
+            style="width: 320px"
+          >
             <template v-slot:append>
               <q-icon name="search" color="grey-7" />
             </template>
@@ -117,53 +133,104 @@ onMounted(() => {
             <q-tooltip>ตัวกรอง</q-tooltip>
           </q-btn>
 
-          <q-btn unelevated color="grey-8" text-color="white" label="เพิ่มประเภทหลักสูตร" no-caps
-            class="q-px-md text-weight-medium" @click="openAddDialog" />
+          <q-btn
+            unelevated
+            color="grey-8"
+            text-color="white"
+            label="เพิ่มประเภทหลักสูตร"
+            no-caps
+            class="q-px-md text-weight-medium"
+            @click="openAddDialog"
+          />
         </div>
 
-        <q-table flat bordered :rows="rows" :columns="columns" row-key="id" separator="horizontal" :filter="search"
-          :loading="categoryStore.loading" table-header-class="bg-grey-1 text-weight-bold text-dark">
+        <q-table
+          flat
+          bordered
+          :rows="rows"
+          :columns="columns"
+          row-key="id"
+          separator="horizontal"
+          :filter="search"
+          :loading="categoryStore.loading"
+          table-header-class="bg-grey-1 text-weight-bold text-dark"
+        >
           <template v-slot:body-cell-actions="props">
             <q-td :props="props" class="q-gutter-x-sm">
               <q-btn flat round size="sm" color="primary" icon="edit" @click="editItem(props.row)">
                 <q-tooltip>แก้ไข</q-tooltip>
               </q-btn>
-              <q-btn flat round size="sm" color="negative" icon="delete" @click="deleteItem(props.row.id)">
+              <q-btn
+                flat
+                round
+                size="sm"
+                color="negative"
+                icon="delete"
+                @click="deleteItem(props.row.id)"
+              >
                 <q-tooltip>ลบ</q-tooltip>
               </q-btn>
             </q-td>
           </template>
         </q-table>
-
       </q-card-section>
     </q-card>
 
     <q-dialog v-model="showDialog" persistent>
-      <q-card style="width: 450px; max-width: 90vw;">
+      <q-card style="width: 450px; max-width: 90vw">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-weight-bold">{{ isEdit ? 'แก้ไขประเภทหลักสูตร' : 'เพิ่มประเภทหลักสูตร' }}</div>
+          <div class="text-h6 text-weight-bold">
+            {{ isEdit ? 'แก้ไขประเภทหลักสูตร' : 'เพิ่มประเภทหลักสูตร' }}
+          </div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
         <q-card-section class="q-pt-md">
           <q-form @submit.prevent="saveData" class="q-gutter-md">
-            <q-input v-model="form.code" label="รหัสประเภท *" outlined dense
-              :rules="[val => !!val || 'กรุณากรอกรหัส']" />
-            <q-input v-model="form.name" label="ชื่อประเภทหลักสูตร *" outlined dense
-              :rules="[val => !!val || 'กรุณากรอกชื่อ']" />
-            <q-input v-model="form.description" label="คำอธิบาย" outlined dense type="textarea" rows="3" />
+            <q-input
+              v-model="form.code"
+              label="รหัสประเภท *"
+              outlined
+              dense
+              :rules="[(val) => !!val || 'กรุณากรอกรหัส']"
+            />
+            <q-input
+              v-model="form.name"
+              label="ชื่อประเภทหลักสูตร *"
+              outlined
+              dense
+              :rules="[(val) => !!val || 'กรุณากรอกชื่อ']"
+            />
+            <q-input
+              v-model="form.description"
+              label="คำอธิบาย"
+              outlined
+              dense
+              type="textarea"
+              rows="3"
+            />
 
             <div class="row justify-end q-mt-lg q-gutter-sm">
-              <q-btn flat label="ยกเลิก" v-close-popup color="grey-7" :disable="categoryStore.loading" />
-              <q-btn unelevated :label="isEdit ? 'บันทึกการแก้ไข' : 'บันทึกข้อมูล'" type="submit" color="primary"
-                :loading="categoryStore.loading" />
+              <q-btn
+                flat
+                label="ยกเลิก"
+                v-close-popup
+                color="grey-7"
+                :disable="categoryStore.loading"
+              />
+              <q-btn
+                unelevated
+                :label="isEdit ? 'บันทึกการแก้ไข' : 'บันทึกข้อมูล'"
+                type="submit"
+                color="primary"
+                :loading="categoryStore.loading"
+              />
             </div>
           </q-form>
         </q-card-section>
       </q-card>
     </q-dialog>
-
   </q-page>
 </template>
 

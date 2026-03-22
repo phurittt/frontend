@@ -15,7 +15,7 @@ const editId = ref<number | null>(null);
 const form = ref({
   name: '',
   regis_fee: 0,
-  description: ''
+  description: '',
 });
 
 const columns: QTableColumn[] = [
@@ -25,7 +25,7 @@ const columns: QTableColumn[] = [
     name: 'has_registration_fee',
     label: 'ค่าลงทะเบียน',
     field: 'regis_fee',
-    align: 'center'
+    align: 'center',
   },
   { name: 'actions', label: 'จัดการ', field: 'actions', align: 'center' },
 ];
@@ -36,11 +36,11 @@ const search = ref('');
 
 // 4.1 คำนวณสถิติสำหรับรายงาน
 const totalProjectTypes = computed(() => projectTypeStore.projectTypes.length);
-const projectTypesWithFee = computed(() =>
-  projectTypeStore.projectTypes.filter(pt => pt.regis_fee === 1).length
+const projectTypesWithFee = computed(
+  () => projectTypeStore.projectTypes.filter((pt) => pt.regis_fee === 1).length,
 );
-const projectTypesWithoutFee = computed(() =>
-  projectTypeStore.projectTypes.filter(pt => pt.regis_fee === 0).length
+const projectTypesWithoutFee = computed(
+  () => projectTypeStore.projectTypes.filter((pt) => pt.regis_fee === 0).length,
 );
 
 // 5. ฟังก์ชันเปิด Dialog เพิ่มข้อมูล
@@ -59,7 +59,7 @@ function editItem(item: any) {
   form.value = {
     name: item.name,
     regis_fee: item.regis_fee,
-    description: item.description || ''
+    description: item.description || '',
   };
   showDialog.value = true;
 }
@@ -102,17 +102,23 @@ onMounted(() => {
         <div class="row items-center q-gutter-x-xl">
           <div class="stat-item">
             <div class="text-h3 text-weight-bolder text-dark">{{ totalProjectTypes }}</div>
-            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">ประเภทโครงการทั้งหมด</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">
+              ประเภทโครงการทั้งหมด
+            </div>
           </div>
           <q-separator vertical style="height: 60px" />
           <div class="stat-item">
             <div class="text-h3 text-weight-bolder text-blue-7">{{ projectTypesWithFee }}</div>
-            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">มีค่าลงทะเบียน</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">
+              มีค่าลงทะเบียน
+            </div>
           </div>
           <q-separator vertical style="height: 60px" />
           <div class="stat-item">
             <div class="text-h3 text-weight-bolder text-green-7">{{ projectTypesWithoutFee }}</div>
-            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">ไม่มีค่าลงทะเบียน</div>
+            <div class="text-caption text-grey-6 text-weight-bold text-uppercase q-mt-sm">
+              ไม่มีค่าลงทะเบียน
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -199,7 +205,14 @@ onMounted(() => {
 
         <q-card-section>
           <q-input v-model="form.name" label="ชื่อประเภทโครงการ *" outlined dense class="q-mb-md" />
-          <q-input v-model="form.description" label="รายละเอียด" outlined dense type="textarea" class="q-mb-md" />
+          <q-input
+            v-model="form.description"
+            label="รายละเอียด"
+            outlined
+            dense
+            type="textarea"
+            class="q-mb-md"
+          />
 
           <div class="text-subtitle2 q-mb-sm">การจัดเก็บค่าลงทะเบียน</div>
           <q-btn-toggle
@@ -212,8 +225,8 @@ onMounted(() => {
             color="white"
             text-color="primary"
             :options="[
-              {label: 'ไม่มีค่าลงทะเบียน', value: 0},
-              {label: 'มีค่าลงทะเบียน', value: 1}
+              { label: 'ไม่มีค่าลงทะเบียน', value: 0 },
+              { label: 'มีค่าลงทะเบียน', value: 1 },
             ]"
           />
         </q-card-section>

@@ -18,17 +18,22 @@ const certificates = ref([
     id: 101,
     courseTitle: 'Basic HTML/CSS & Web Design',
     dateIssued: '10 มกราคม 2026',
-    certNo: 'CERT-2026-0012'
-  }
+    certNo: 'CERT-2026-0012',
+  },
 ]);
 
 const getStatusColor = (code: string) => {
   switch (code) {
-    case 'registered': return 'blue-1 text-blue-9';
-    case 'waiting': return 'orange-1 text-orange-9';
-    case 'confirmed': return 'green-1 text-green-9';
-    case 'cancelled': return 'grey-2 text-grey-8';
-    default: return 'grey-2 text-grey-8';
+    case 'registered':
+      return 'blue-1 text-blue-9';
+    case 'waiting':
+      return 'orange-1 text-orange-9';
+    case 'confirmed':
+      return 'green-1 text-green-9';
+    case 'cancelled':
+      return 'grey-2 text-grey-8';
+    default:
+      return 'grey-2 text-grey-8';
   }
 };
 
@@ -42,7 +47,12 @@ const promptCancel = (id: number) => {
 
 const executeCancel = async () => {
   showCancelDialog.value = false;
-  const dismiss = $q.notify({ spinner: true, message: 'กำลังยกเลิกการลงทะเบียน...', color: 'primary', timeout: 0 });
+  const dismiss = $q.notify({
+    spinner: true,
+    message: 'กำลังยกเลิกการลงทะเบียน...',
+    color: 'primary',
+    timeout: 0,
+  });
 
   try {
     if (courseToCancel.value !== null) {
@@ -52,7 +62,9 @@ const executeCancel = async () => {
     dismiss();
     $q.notify({
       message: 'ยกเลิกการลงทะเบียนสำเร็จ ระบบได้เลื่อนคิวสำรองถัดไปแล้ว',
-      color: 'positive', icon: 'check_circle', position: 'top'
+      color: 'positive',
+      icon: 'check_circle',
+      position: 'top',
     });
   } catch (error) {
     dismiss();
@@ -64,13 +76,18 @@ const confirmAttendance = (id: number) => {
     title: 'ยืนยันการเข้าร่วม',
     message: 'ท่านยืนยันที่จะเข้าร่วมการอบรมในวันและเวลาดังกล่าวใช่หรือไม่?',
     cancel: true,
-    persistent: true
+    persistent: true,
   }).onOk(async () => {
-    const dismiss = $q.notify({ spinner: true, message: 'กำลังบันทึก...', color: 'primary', timeout: 0 });
-    
+    const dismiss = $q.notify({
+      spinner: true,
+      message: 'กำลังบันทึก...',
+      color: 'primary',
+      timeout: 0,
+    });
+
     try {
       await store.confirmEnrollmentAttendance(id);
-      
+
       dismiss();
       $q.notify({ message: 'ยืนยันการเข้าร่วมสำเร็จ', color: 'positive', position: 'top' });
     } catch (error) {
@@ -83,7 +100,10 @@ const confirmAttendance = (id: number) => {
 const downloadCertificate = (id: number) => {
   $q.notify({
     message: 'กำลังสร้างไฟล์ PDF วุฒิบัตร...',
-    color: 'primary', icon: 'picture_as_pdf', position: 'top', timeout: 2000
+    color: 'primary',
+    icon: 'picture_as_pdf',
+    position: 'top',
+    timeout: 2000,
   });
 };
 </script>
@@ -108,8 +128,18 @@ const downloadCertificate = (id: number) => {
           align="left"
           narrow-indicator
         >
-          <q-tab name="history" icon="history" label="ประวัติการอบรม" class="text-weight-bold q-px-lg" />
-          <q-tab name="certificate" icon="workspace_premium" label="วุฒิบัตรของฉัน" class="text-weight-bold q-px-lg" />
+          <q-tab
+            name="history"
+            icon="history"
+            label="ประวัติการอบรม"
+            class="text-weight-bold q-px-lg"
+          />
+          <q-tab
+            name="certificate"
+            icon="workspace_premium"
+            label="วุฒิบัตรของฉัน"
+            class="text-weight-bold q-px-lg"
+          />
         </q-tabs>
 
         <q-separator />
@@ -117,29 +147,63 @@ const downloadCertificate = (id: number) => {
         <q-tab-panels v-model="tab" animated class="bg-white">
           <q-tab-panel name="history" class="q-pa-md q-pa-lg-xl">
             <div class="text-h6 text-weight-bold q-mb-lg">หลักสูตรที่ลงทะเบียนแล้ว</div>
-            
+
             <div class="row q-col-gutter-lg">
               <div v-for="course in enrolledCourses" :key="course.id" class="col-12 col-md-6">
                 <q-card bordered flat class="border-radius-16 h-100 column">
                   <div class="row no-wrap flex-grow-1">
-                    <q-img :src="course.image" style="width: 140px; min-height: 100%;" fit="cover" />
+                    <q-img :src="course.image" style="width: 140px; min-height: 100%" fit="cover" />
                     <q-card-section class="col column justify-center q-pa-md">
-                      <q-chip size="sm" :class="getStatusColor(course.statusCode)" class="q-mb-sm text-weight-bold q-px-sm" style="width: fit-content; margin-left: 0;">
+                      <q-chip
+                        size="sm"
+                        :class="getStatusColor(course.statusCode)"
+                        class="q-mb-sm text-weight-bold q-px-sm"
+                        style="width: fit-content; margin-left: 0"
+                      >
                         {{ course.status }}
                       </q-chip>
-                      <div class="text-subtitle1 text-weight-bold line-height-tight q-mb-xs ellipsis-2-lines">{{ course.title }}</div>
+                      <div
+                        class="text-subtitle1 text-weight-bold line-height-tight q-mb-xs ellipsis-2-lines"
+                      >
+                        {{ course.title }}
+                      </div>
                       <div class="text-caption text-grey-6 flex items-center q-mb-sm">
                         <q-icon name="event" class="q-mr-xs" /> {{ course.date }}
                       </div>
                     </q-card-section>
                   </div>
-                  
+
                   <q-separator />
-                  
+
                   <q-card-actions align="right" class="q-px-md q-py-sm bg-grey-1">
-                    <q-btn v-if="course.canCancel" flat color="negative" label="ยกเลิกสิทธิ์" no-caps class="text-weight-bold" @click="promptCancel(course.id)" />
-                    <q-btn v-if="course.canConfirm" unelevated color="primary" label="ยืนยันเข้าร่วม" no-caps class="text-weight-bold q-px-md q-ml-sm" @click="confirmAttendance(course.id)" />
-                    <q-btn v-if="course.statusCode === 'confirmed'" unelevated color="positive" icon="visibility" label="ดูรายละเอียด" no-caps class="text-weight-bold q-px-md q-ml-sm" @click="router.push(`/courses/${course.courseId}`)" />
+                    <q-btn
+                      v-if="course.canCancel"
+                      flat
+                      color="negative"
+                      label="ยกเลิกสิทธิ์"
+                      no-caps
+                      class="text-weight-bold"
+                      @click="promptCancel(course.id)"
+                    />
+                    <q-btn
+                      v-if="course.canConfirm"
+                      unelevated
+                      color="primary"
+                      label="ยืนยันเข้าร่วม"
+                      no-caps
+                      class="text-weight-bold q-px-md q-ml-sm"
+                      @click="confirmAttendance(course.id)"
+                    />
+                    <q-btn
+                      v-if="course.statusCode === 'confirmed'"
+                      unelevated
+                      color="positive"
+                      icon="visibility"
+                      label="ดูรายละเอียด"
+                      no-caps
+                      class="text-weight-bold q-px-md q-ml-sm"
+                      @click="router.push(`/courses/${course.courseId}`)"
+                    />
                   </q-card-actions>
                 </q-card>
               </div>
@@ -148,7 +212,13 @@ const downloadCertificate = (id: number) => {
             <div v-if="enrolledCourses.length === 0" class="text-center q-py-xl text-grey-6">
               <q-icon name="inbox" size="64px" class="q-mb-md opacity-50" />
               <div class="text-h6">ยังไม่มีประวัติการลงทะเบียน</div>
-              <q-btn outline color="primary" label="ค้นหาหลักสูตร" class="q-mt-md rounded-borders text-weight-bold" to="/courses/all" />
+              <q-btn
+                outline
+                color="primary"
+                label="ค้นหาหลักสูตร"
+                class="q-mt-md rounded-borders text-weight-bold"
+                to="/courses/all"
+              />
             </div>
           </q-tab-panel>
 
@@ -159,12 +229,25 @@ const downloadCertificate = (id: number) => {
               <div v-for="cert in certificates" :key="cert.id" class="col-12 col-sm-6 col-md-4">
                 <q-card bordered flat class="border-radius-16 text-center q-pa-md certificate-card">
                   <q-icon name="workspace_premium" size="48px" color="amber-8" class="q-mb-sm" />
-                  <div class="text-subtitle2 text-weight-bold ellipsis-2-lines q-mb-xs" style="min-height: 40px;">
+                  <div
+                    class="text-subtitle2 text-weight-bold ellipsis-2-lines q-mb-xs"
+                    style="min-height: 40px"
+                  >
                     {{ cert.courseTitle }}
                   </div>
-                  <div class="text-caption text-grey-6 q-mb-sm">วันที่ออก: {{ cert.dateIssued }}</div>
+                  <div class="text-caption text-grey-6 q-mb-sm">
+                    วันที่ออก: {{ cert.dateIssued }}
+                  </div>
                   <div class="text-caption text-grey-5 q-mb-md">รหัส: {{ cert.certNo }}</div>
-                  <q-btn unelevated outline color="primary" icon="download" label="ดาวน์โหลด" class="full-width text-weight-bold" @click="downloadCertificate(cert.id)" />
+                  <q-btn
+                    unelevated
+                    outline
+                    color="primary"
+                    icon="download"
+                    label="ดาวน์โหลด"
+                    class="full-width text-weight-bold"
+                    @click="downloadCertificate(cert.id)"
+                  />
                 </q-card>
               </div>
             </div>
@@ -172,7 +255,9 @@ const downloadCertificate = (id: number) => {
             <div v-else class="text-center q-py-xl text-grey-6">
               <q-icon name="workspace_premium" size="64px" class="q-mb-md opacity-50" />
               <div class="text-h6">ยังไม่มีวุฒิบัตรในขณะนี้</div>
-              <div class="text-caption">คุณจะได้รับวุฒิบัตรเมื่อเข้าร่วมอบรมและทำแบบทดสอบผ่านเกณฑ์</div>
+              <div class="text-caption">
+                คุณจะได้รับวุฒิบัตรเมื่อเข้าร่วมอบรมและทำแบบทดสอบผ่านเกณฑ์
+              </div>
             </div>
           </q-tab-panel>
         </q-tab-panels>
@@ -180,38 +265,69 @@ const downloadCertificate = (id: number) => {
     </div>
 
     <q-dialog v-model="showCancelDialog" persistent>
-      <q-card class="q-pa-md border-radius-16" style="max-width: 400px; width: 100%;">
+      <q-card class="q-pa-md border-radius-16" style="max-width: 400px; width: 100%">
         <q-card-section class="text-center q-pb-none">
           <q-icon name="cancel" size="64px" color="negative" class="q-mb-md" />
-          <div class="text-h6 text-weight-bold text-dark line-height-tight q-mb-sm">ยืนยันการยกเลิกสิทธิ์?</div>
+          <div class="text-h6 text-weight-bold text-dark line-height-tight q-mb-sm">
+            ยืนยันการยกเลิกสิทธิ์?
+          </div>
           <div class="text-body1 text-grey-8 q-mb-md">
             หากท่านยกเลิก ระบบจะคืนสิทธิ์ให้ผู้ที่อยู่ในคิวสำรองลำดับถัดไปทันที
           </div>
         </q-card-section>
         <q-card-actions align="center" class="q-pt-md q-pb-sm">
-          <q-btn unelevated color="negative" label="ยืนยันการยกเลิก" class="text-weight-bold q-px-md" @click="executeCancel" />
-          <q-btn flat color="grey-7" label="ปิดหน้าต่าง" class="text-weight-bold q-ml-sm" v-close-popup />
+          <q-btn
+            unelevated
+            color="negative"
+            label="ยืนยันการยกเลิก"
+            class="text-weight-bold q-px-md"
+            @click="executeCancel"
+          />
+          <q-btn
+            flat
+            color="grey-7"
+            label="ปิดหน้าต่าง"
+            class="text-weight-bold q-ml-sm"
+            v-close-popup
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
-
   </q-page>
 </template>
 
 <style scoped>
-.bg-light-theme { background-color: #f1f5f9; min-height: 100vh; }
-.container-width { max-width: 1200px; width: 100%; }
-.border-radius-20 { border-radius: 20px; }
-.border-radius-16 { border-radius: 16px; }
-.line-height-tight { line-height: 1.3; }
-.h-100 { height: 100%; }
-.flex-grow-1 { flex-grow: 1; }
+.bg-light-theme {
+  background-color: #f1f5f9;
+  min-height: 100vh;
+}
+.container-width {
+  max-width: 1200px;
+  width: 100%;
+}
+.border-radius-20 {
+  border-radius: 20px;
+}
+.border-radius-16 {
+  border-radius: 16px;
+}
+.line-height-tight {
+  line-height: 1.3;
+}
+.h-100 {
+  height: 100%;
+}
+.flex-grow-1 {
+  flex-grow: 1;
+}
 
 .certificate-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .certificate-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 </style>

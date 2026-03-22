@@ -27,8 +27,18 @@ const columns: QTableColumn[] = [
   { name: 'regis_open', label: 'เปิดลงทะเบียน', field: 'regis_open', align: 'center' },
   { name: 'regis_close', label: 'ปิดลงทะเบียน', field: 'regis_close', align: 'center' },
   { name: 'manager', label: 'ผู้รับผิดชอบ', field: 'manager', align: 'left' },
-  { name: 'manage_certificate', label: 'จัดการการออกวุฒิบัตร', field: 'manage_certificate', align: 'center' },
-  { name: 'register_certificate', label: 'ทะเบียนคุมวุฒิบัตร', field: 'register_certificate', align: 'center' },
+  {
+    name: 'manage_certificate',
+    label: 'จัดการการออกวุฒิบัตร',
+    field: 'manage_certificate',
+    align: 'center',
+  },
+  {
+    name: 'register_certificate',
+    label: 'ทะเบียนคุมวุฒิบัตร',
+    field: 'register_certificate',
+    align: 'center',
+  },
   { name: 'view_info', label: 'ข้อมูลการออกวุฒิบัตร', field: 'view_info', align: 'center' },
 ];
 
@@ -167,7 +177,10 @@ const printCertificateRegister = (certificate: CertificateIssuance) => {
                   :disable="!!props.row._raw.managedAt"
                 >
                   <q-tooltip v-if="!props.row._raw.managedAt">จัดการการออกวุฒิบัตร</q-tooltip>
-                  <q-tooltip v-else>จัดการการออกวุฒิบัตรแล้ว {{ props.row._raw.managedAt }} {{ props.row._raw.managedTime }} โดย {{ props.row._raw.managedBy }}</q-tooltip>
+                  <q-tooltip v-else
+                    >จัดการการออกวุฒิบัตรแล้ว {{ props.row._raw.managedAt }}
+                    {{ props.row._raw.managedTime }} โดย {{ props.row._raw.managedBy }}</q-tooltip
+                  >
                 </q-btn>
               </div>
             </q-td>
@@ -209,7 +222,11 @@ const printCertificateRegister = (certificate: CertificateIssuance) => {
           <div class="row q-mb-md">
             <div class="col-5 text-grey-7 text-weight-bold">สถานะการสร้างไฟล์:</div>
             <div class="col-7">
-              {{ selectedCertificate.certificateStatus.status === 'create' ? 'สร้างไฟล์' : 'ไม่สร้างไฟล์' }}
+              {{
+                selectedCertificate.certificateStatus.status === 'create'
+                  ? 'สร้างไฟล์'
+                  : 'ไม่สร้างไฟล์'
+              }}
             </div>
           </div>
         </q-card-section>

@@ -42,7 +42,6 @@ export const useCourseStore = defineStore('course', {
 
   actions: {
     async fetchCourses() {
-
       if (this.courses.length > 0) return;
 
       this.isLoading = true;
@@ -52,8 +51,10 @@ export const useCourseStore = defineStore('course', {
         this.courses = [
           {
             id: 1,
-            title: 'AI Marketing: stepping into the Professional Digital Marketing ยกระดับสู่มืออาชีพการตลาดดิจิทัล',
-            description: 'รู้จักเทรนด์ AI เครื่องมือการตลาดดิจิทัลยุคใหม่ และการใช้ AI ในการวิเคราะห์ข้อมูลแม่นยำ โดนเป้าหมาย',
+            title:
+              'AI Marketing: stepping into the Professional Digital Marketing ยกระดับสู่มืออาชีพการตลาดดิจิทัล',
+            description:
+              'รู้จักเทรนด์ AI เครื่องมือการตลาดดิจิทัลยุคใหม่ และการใช้ AI ในการวิเคราะห์ข้อมูลแม่นยำ โดนเป้าหมาย',
             image: 'https://cdn.quasar.dev/img/parallax2.jpg',
             date: '24 ก.พ. 2569',
             time: '08:30-16:30 น.',
@@ -118,12 +119,12 @@ export const useCourseStore = defineStore('course', {
     },
 
     async registerCourse(courseId: number, isWaitingList: boolean) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const course = this.courses.find((c) => c.id === courseId);
       if (!course) throw new Error('ไม่พบข้อมูลหลักสูตร');
 
-      const alreadyEnrolled = this.enrolledCourses.find(c => c.courseId === courseId);
+      const alreadyEnrolled = this.enrolledCourses.find((c) => c.courseId === courseId);
       if (alreadyEnrolled) throw new Error('ท่านลงทะเบียนหลักสูตรนี้ไปแล้ว');
 
       const newEnrollment: EnrolledCourse = {
@@ -137,7 +138,7 @@ export const useCourseStore = defineStore('course', {
         image: course.image || '',
         canCancel: true,
         canConfirm: !isWaitingList,
-        isOnline: course.format.includes('ออนไลน์')
+        isOnline: course.format.includes('ออนไลน์'),
       };
 
       this.enrolledCourses.push(newEnrollment);

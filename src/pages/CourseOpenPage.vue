@@ -216,13 +216,17 @@ const formatPrice = (price: number) => {
               <div class="text-caption text-grey-6 q-mb-lg">
                 เปิดรับสมัคร {{ course.totalSeats }} ท่าน
               </div>
-              <q-btn 
-                unelevated 
-                :class="course.totalSeats === course.registeredSeats ? 'btn-soldout' : 'btn-register'"
-                :label="course.totalSeats === course.registeredSeats ? 'เต็ม (ลงคิวสำรอง)' : 'ลงทะเบียน'" 
-                no-caps 
-                rounded 
-                class="q-px-xl text-weight-bold" 
+              <q-btn
+                unelevated
+                :class="
+                  course.totalSeats === course.registeredSeats ? 'btn-soldout' : 'btn-register'
+                "
+                :label="
+                  course.totalSeats === course.registeredSeats ? 'เต็ม (ลงคิวสำรอง)' : 'ลงทะเบียน'
+                "
+                no-caps
+                rounded
+                class="q-px-xl text-weight-bold"
                 @click.stop="goToDetail(course.id)"
               />
             </div>
@@ -352,7 +356,9 @@ const formatPrice = (price: number) => {
   padding: 8px 0;
   font-size: 0.95rem;
   border: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);

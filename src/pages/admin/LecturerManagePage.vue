@@ -32,7 +32,7 @@ const defaultForm = () => ({
     dataAnalysis: [] as string[],
     network: [] as string[],
   },
-  otherExpertise: ''
+  otherExpertise: '',
 });
 
 const form = ref(defaultForm());
@@ -44,7 +44,7 @@ const getExpertiseString = (row: Lecturer) => {
     ...row.expertise.webDesign,
     ...row.expertise.programming,
     ...row.expertise.dataAnalysis,
-    ...row.expertise.network
+    ...row.expertise.network,
   ];
   if (row.otherExpertise) {
     allExpertise.push(row.otherExpertise);
@@ -56,7 +56,12 @@ const columns: QTableColumn[] = [
   { name: 'id', label: 'ลำดับ', field: 'id', align: 'center', sortable: true },
   { name: 'fullName', label: 'ชื่อวิทยากร', field: 'fullName', align: 'left', sortable: true },
   { name: 'organization', label: 'หน่วยงาน', field: 'organization', align: 'left', sortable: true },
-  { name: 'expertise', label: 'ความเชี่ยวชาญ', field: row => getExpertiseString(row), align: 'left' },
+  {
+    name: 'expertise',
+    label: 'ความเชี่ยวชาญ',
+    field: (row) => getExpertiseString(row),
+    align: 'left',
+  },
   { name: 'actions', label: 'การจัดการ', field: 'actions', align: 'center' },
 ];
 
@@ -97,7 +102,7 @@ function deleteItem(id: number) {
     title: 'ยืนยันการลบ',
     message: 'คุณต้องการลบวิทยากรท่านนี้ใช่หรือไม่?',
     cancel: true,
-    persistent: true
+    persistent: true,
   }).onOk(() => {
     lecturerStore.deleteLecturer(id);
     $q.notify({ type: 'info', message: 'ลบข้อมูลสำเร็จ' });
@@ -113,25 +118,62 @@ onMounted(() => {
   <q-page class="q-pa-md">
     <div class="text-h6 q-mb-md text-weight-bold">จัดการข้อมูลวิทยากร</div>
 
-    <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px;">
+    <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px">
       <q-card-section>
         <div class="row items-center q-mb-md q-gutter-x-sm">
-          <q-input outlined dense v-model="search" placeholder="ค้นหาวิทยากร..." rounded bg-color="grey-1"
-            style="width: 320px;">
+          <q-input
+            outlined
+            dense
+            v-model="search"
+            placeholder="ค้นหาวิทยากร..."
+            rounded
+            bg-color="grey-1"
+            style="width: 320px"
+          >
             <template v-slot:append><q-icon name="search" color="grey-7" /></template>
           </q-input>
 
           <q-btn outline color="grey-4" text-color="grey-8" icon="tune" padding="6px 12px" />
-          <q-btn unelevated color="grey-8" text-color="white" label="เพิ่มข้อมูลวิทยากร" no-caps
-            class="q-px-md text-weight-medium" @click="openAddDialog" />
+          <q-btn
+            unelevated
+            color="grey-8"
+            text-color="white"
+            label="เพิ่มข้อมูลวิทยากร"
+            no-caps
+            class="q-px-md text-weight-medium"
+            @click="openAddDialog"
+          />
         </div>
 
-        <q-table flat bordered :rows="rows" :columns="columns" row-key="id" separator="horizontal" :filter="search"
-          :loading="lecturerStore.loading" table-header-class="bg-grey-1 text-weight-bold text-dark">
+        <q-table
+          flat
+          bordered
+          :rows="rows"
+          :columns="columns"
+          row-key="id"
+          separator="horizontal"
+          :filter="search"
+          :loading="lecturerStore.loading"
+          table-header-class="bg-grey-1 text-weight-bold text-dark"
+        >
           <template v-slot:body-cell-actions="props">
             <q-td :props="props" class="q-gutter-x-sm">
-              <q-btn flat round size="sm" color="primary" icon="edit" @click="editItem(props.row)" />
-              <q-btn flat round size="sm" color="negative" icon="delete" @click="deleteItem(props.row.id)" />
+              <q-btn
+                flat
+                round
+                size="sm"
+                color="primary"
+                icon="edit"
+                @click="editItem(props.row)"
+              />
+              <q-btn
+                flat
+                round
+                size="sm"
+                color="negative"
+                icon="delete"
+                @click="deleteItem(props.row.id)"
+              />
             </q-td>
           </template>
         </q-table>
@@ -139,59 +181,109 @@ onMounted(() => {
     </q-card>
 
     <q-dialog v-model="showDialog" persistent>
-      <q-card style="width: 900px; max-width: 95vw; border-radius: 8px;">
+      <q-card style="width: 900px; max-width: 95vw; border-radius: 8px">
         <q-card-section class="row items-center q-pb-none border-bottom q-mb-md">
           <div class="text-h6 text-weight-bold text-grey-8">
-            จัดการข้อมูลวิทยากร / <span class="text-dark">{{ isEdit ? 'แก้ไขข้อมูลวิทยากร' : 'เพิ่มข้อมูลวิทยากร'
-              }}</span>
+            จัดการข้อมูลวิทยากร /
+            <span class="text-dark">{{
+              isEdit ? 'แก้ไขข้อมูลวิทยากร' : 'เพิ่มข้อมูลวิทยากร'
+            }}</span>
           </div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section class="q-pt-none scroll" style="max-height: 75vh;">
+        <q-card-section class="q-pt-none scroll" style="max-height: 75vh">
           <q-form @submit.prevent="saveData" class="q-gutter-y-md">
-
             <div class="row q-col-gutter-lg">
               <div class="col-12 col-md-6 column q-gutter-y-md">
                 <div>
-                  <label class="text-caption text-weight-bold text-grey-7">ชื่อ - นามสกุล <span
-                      class="text-negative">*</span></label>
-                  <q-input v-model="form.fullName" outlined dense :rules="[val => !!val || 'กรุณากรอกชื่อ-นามสกุล']" />
+                  <label class="text-caption text-weight-bold text-grey-7"
+                    >ชื่อ - นามสกุล <span class="text-negative">*</span></label
+                  >
+                  <q-input
+                    v-model="form.fullName"
+                    outlined
+                    dense
+                    :rules="[(val) => !!val || 'กรุณากรอกชื่อ-นามสกุล']"
+                  />
                 </div>
                 <div>
-                  <label class="text-caption text-weight-bold text-grey-7">หน่วยงาน <span
-                      class="text-negative">*</span></label>
-                  <q-input v-model="form.organization" outlined dense placeholder="ค้นหาหน่วยงาน"
-                    :rules="[val => !!val || 'กรุณากรอกหน่วยงาน']" />
+                  <label class="text-caption text-weight-bold text-grey-7"
+                    >หน่วยงาน <span class="text-negative">*</span></label
+                  >
+                  <q-input
+                    v-model="form.organization"
+                    outlined
+                    dense
+                    placeholder="ค้นหาหน่วยงาน"
+                    :rules="[(val) => !!val || 'กรุณากรอกหน่วยงาน']"
+                  />
                 </div>
 
                 <div class="text-subtitle2 text-weight-bold text-dark q-mt-md">ความเชี่ยวชาญ</div>
 
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7">Microsoft Office</label>
-                  <q-select v-model="form.expertise.microsoftOffice" :options="msOfficeOptions" outlined dense multiple
-                    use-chips placeholder="เลือก" />
+                  <q-select
+                    v-model="form.expertise.microsoftOffice"
+                    :options="msOfficeOptions"
+                    outlined
+                    dense
+                    multiple
+                    use-chips
+                    placeholder="เลือก"
+                  />
                 </div>
                 <div>
-                  <label class="text-caption text-weight-bold text-grey-7">Web Application & Web Design</label>
-                  <q-select v-model="form.expertise.webDesign" :options="webDesignOptions" outlined dense multiple
-                    use-chips placeholder="เลือก" />
+                  <label class="text-caption text-weight-bold text-grey-7"
+                    >Web Application & Web Design</label
+                  >
+                  <q-select
+                    v-model="form.expertise.webDesign"
+                    :options="webDesignOptions"
+                    outlined
+                    dense
+                    multiple
+                    use-chips
+                    placeholder="เลือก"
+                  />
                 </div>
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7">Programming</label>
-                  <q-select v-model="form.expertise.programming" :options="programmingOptions" outlined dense multiple
-                    use-chips placeholder="เลือก" />
+                  <q-select
+                    v-model="form.expertise.programming"
+                    :options="programmingOptions"
+                    outlined
+                    dense
+                    multiple
+                    use-chips
+                    placeholder="เลือก"
+                  />
                 </div>
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7">Data Analysis</label>
-                  <q-select v-model="form.expertise.dataAnalysis" :options="dataAnalysisOptions" outlined dense multiple
-                    use-chips placeholder="เลือก" />
+                  <q-select
+                    v-model="form.expertise.dataAnalysis"
+                    :options="dataAnalysisOptions"
+                    outlined
+                    dense
+                    multiple
+                    use-chips
+                    placeholder="เลือก"
+                  />
                 </div>
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7">Network</label>
-                  <q-select v-model="form.expertise.network" :options="networkOptions" outlined dense multiple use-chips
-                    placeholder="เลือก" />
+                  <q-select
+                    v-model="form.expertise.network"
+                    :options="networkOptions"
+                    outlined
+                    dense
+                    multiple
+                    use-chips
+                    placeholder="เลือก"
+                  />
                 </div>
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7">เพิ่มเติม</label>
@@ -201,8 +293,16 @@ onMounted(() => {
 
               <div class="col-12 col-md-6 column q-gutter-y-md">
                 <div>
-                  <label class="text-caption text-weight-bold text-grey-7">เลขประจำตัวประชาชน</label>
-                  <q-input v-model="form.nationalId" outlined dense mask="#-####-#####-##-#" unmasked-value />
+                  <label class="text-caption text-weight-bold text-grey-7"
+                    >เลขประจำตัวประชาชน</label
+                  >
+                  <q-input
+                    v-model="form.nationalId"
+                    outlined
+                    dense
+                    mask="#-####-#####-##-#"
+                    unmasked-value
+                  />
                 </div>
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7">ที่อยู่</label>
@@ -212,16 +312,30 @@ onMounted(() => {
             </div>
 
             <div class="row q-gutter-sm q-mt-xl">
-              <q-btn unelevated label="ย้อนกลับ" v-close-popup color="white" text-color="dark" class="q-px-lg"
-                style="border: 1px solid #ddd; border-radius: 4px;" :disable="lecturerStore.loading" />
-              <q-btn unelevated label="บันทึก" type="submit" color="blue-6" class="q-px-lg" style="border-radius: 4px;"
-                :loading="lecturerStore.loading" />
+              <q-btn
+                unelevated
+                label="ย้อนกลับ"
+                v-close-popup
+                color="white"
+                text-color="dark"
+                class="q-px-lg"
+                style="border: 1px solid #ddd; border-radius: 4px"
+                :disable="lecturerStore.loading"
+              />
+              <q-btn
+                unelevated
+                label="บันทึก"
+                type="submit"
+                color="blue-6"
+                class="q-px-lg"
+                style="border-radius: 4px"
+                :loading="lecturerStore.loading"
+              />
             </div>
           </q-form>
         </q-card-section>
       </q-card>
     </q-dialog>
-
   </q-page>
 </template>
 

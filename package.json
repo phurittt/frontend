@@ -14,7 +14,8 @@
     "build": "quasar build",
     "postinstall": "quasar prepare",
     "setup-node": "powershell -Command \"$v = (Get-Content .nvmrc).Trim(); nvm install $v; nvm use $v\"",
-    "setup": "npm run setup-node && npm ci"
+    "setup": "npm run setup-node && npm ci",
+    "prepare": "husky"
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",
@@ -41,6 +42,8 @@
     "eslint": "^9.39.4",
     "eslint-plugin-vue": "^10.8.0",
     "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
     "sass": "^1.98.0",
     "typescript": "^5.9.3",
@@ -54,5 +57,14 @@
   "engines": {
     "node": ">=22.0.0",
     "npm": ">=11.0.0"
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.{json,md,scss,css}": [
+      "prettier --write"
+    ]
   }
 }

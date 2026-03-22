@@ -8,12 +8,12 @@ export interface LecturerExpertise {
 
 export interface Lecturer {
   id: number;
-  fullName: string;           // ชื่อ - นามสกุล
-  organization: string;       // หน่วยงาน
-  nationalId: string;         // เลขประจำตัวประชาชน
-  address: string;            // ที่อยู่
+  fullName: string; // ชื่อ - นามสกุล
+  organization: string; // หน่วยงาน
+  nationalId: string; // เลขประจำตัวประชาชน
+  address: string; // ที่อยู่
   expertise: LecturerExpertise; // ความเชี่ยวชาญ (แยกตามหมวดหมู่)
-  otherExpertise: string;     // ความเชี่ยวชาญเพิ่มเติม
+  otherExpertise: string; // ความเชี่ยวชาญเพิ่มเติม
 }
 
 export type CreateLecturerDto = Omit<Lecturer, 'id'>;

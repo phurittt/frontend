@@ -22,11 +22,10 @@ const course = computed(() => {
   return store.courses.find((c) => c.id === id);
 });
 
-
 const isEnrolled = computed(() => {
   if (!course.value || !authStore.isLoggedIn) return false;
   return store.enrolledCourses.some(
-    (e) => e.courseId === course.value?.id && e.statusCode !== 'cancelled'
+    (e) => e.courseId === course.value?.id && e.statusCode !== 'cancelled',
   );
 });
 
@@ -60,7 +59,7 @@ const executeRegistration = async (isWaitingList: boolean) => {
     message: 'ระบบกำลังดำเนินการ...',
     color: 'primary',
     position: 'top',
-    timeout: 0 
+    timeout: 0,
   });
 
   try {
@@ -69,12 +68,12 @@ const executeRegistration = async (isWaitingList: boolean) => {
     } else {
       throw new Error('ไม่พบข้อมูลคอร์ส');
     }
-    
+
     dismissLoading();
 
     $q.notify({
-      message: isWaitingList 
-        ? 'บันทึกรายชื่อลงในคิวสำรองเรียบร้อยแล้ว หากมีผู้ยกเลิกจะแจ้งให้ทราบทางอีเมล' 
+      message: isWaitingList
+        ? 'บันทึกรายชื่อลงในคิวสำรองเรียบร้อยแล้ว หากมีผู้ยกเลิกจะแจ้งให้ทราบทางอีเมล'
         : 'ลงทะเบียนสำเร็จ! ระบบได้ส่งอีเมลยืนยันการเข้าร่วมไปยังอีเมลของคุณแล้ว',
       color: isWaitingList ? 'orange-9' : 'positive',
       icon: isWaitingList ? 'hourglass_empty' : 'check_circle',
@@ -84,9 +83,8 @@ const executeRegistration = async (isWaitingList: boolean) => {
     });
 
     setTimeout(() => {
-      router.push('/my-courses'); 
+      router.push('/my-courses');
     }, 1500);
-
   } catch (error) {
     dismissLoading();
     $q.notify({
@@ -124,7 +122,7 @@ const handleMainButtonClick = () => {
     return;
   }
 
-  if (isEnrolled.value) return; 
+  if (isEnrolled.value) return;
 
   handleRegisterClick();
 };
@@ -164,7 +162,7 @@ const addToCart = () => {
 const hasCancelled = computed(() => {
   if (!course.value || !authStore.isLoggedIn) return false;
   return store.enrolledCourses.some(
-    (e) => e.courseId === course.value?.id && e.statusCode === 'cancelled'
+    (e) => e.courseId === course.value?.id && e.statusCode === 'cancelled',
   );
 });
 </script>
@@ -478,11 +476,11 @@ const hasCancelled = computed(() => {
                   <div class="column q-gutter-y-sm">
                     <q-btn
                       unelevated
-                      :disable="isEnrolled || hasCancelled" 
+                      :disable="isEnrolled || hasCancelled"
                       :class="[
-                        !authStore.isLoggedIn 
+                        !authStore.isLoggedIn
                           ? 'btn-login-required'
-                          : (isEnrolled || hasCancelled)               
+                          : isEnrolled || hasCancelled
                             ? 'btn-enrolled'
                             : course.totalSeats === course.registeredSeats
                               ? 'btn-notify'
@@ -493,7 +491,7 @@ const hasCancelled = computed(() => {
                       :icon="
                         !authStore.isLoggedIn
                           ? 'eva-alert-triangle-outline'
-                          : isEnrolled               
+                          : isEnrolled
                             ? 'check_circle'
                             : course.totalSeats === course.registeredSeats
                               ? 'notifications_active'
@@ -507,16 +505,16 @@ const hasCancelled = computed(() => {
                     <template v-if="authStore.isLoggedIn && !isEnrolled && !hasCancelled">
                       <div v-if="course.totalSeats === course.registeredSeats" class="row">
                         <q-btn
-                            outline
-                            class="full-width btn-outline-grey text-weight-bold q-py-sm btn-favorite"
-                            :class="{ 'is-active': isFavorite }"
-                            :color="isFavorite ? 'pink' : 'grey-4'"
-                            :text-color="isFavorite ? 'pink' : 'dark'"
-                            :icon="isFavorite ? 'favorite' : 'favorite_border'"
-                            :label="isFavorite ? 'บันทึกหลักสูตรแล้ว' : 'บันทึกหลักสูตรไว้ดูภายหลัง'"
-                            rounded
-                            no-caps
-                            @click="toggleFavorite"
+                          outline
+                          class="full-width btn-outline-grey text-weight-bold q-py-sm btn-favorite"
+                          :class="{ 'is-active': isFavorite }"
+                          :color="isFavorite ? 'pink' : 'grey-4'"
+                          :text-color="isFavorite ? 'pink' : 'dark'"
+                          :icon="isFavorite ? 'favorite' : 'favorite_border'"
+                          :label="isFavorite ? 'บันทึกหลักสูตรแล้ว' : 'บันทึกหลักสูตรไว้ดูภายหลัง'"
+                          rounded
+                          no-caps
+                          @click="toggleFavorite"
                         />
                       </div>
 
@@ -616,45 +614,46 @@ const hasCancelled = computed(() => {
     </div>
 
     <q-dialog v-model="showWaitingListDialog" persistent>
-      <q-card class="q-pa-md border-radius-16" style="max-width: 400px; width: 100%;">
+      <q-card class="q-pa-md border-radius-16" style="max-width: 400px; width: 100%">
         <q-card-section class="text-center q-pb-none">
           <q-icon name="warning_amber" size="64px" color="orange-9" class="q-mb-md" />
-          <div class="text-h6 text-weight-bold text-dark line-height-tight q-mb-sm">ที่นั่งในหลักสูตรเต็มแล้ว</div>
+          <div class="text-h6 text-weight-bold text-dark line-height-tight q-mb-sm">
+            ที่นั่งในหลักสูตรเต็มแล้ว
+          </div>
           <div class="text-body1 text-grey-8 q-mb-md">
-            ท่านต้องการลงทะเบียนเป็นตัวสำรองหรือไม่? <br>
+            ท่านต้องการลงทะเบียนเป็นตัวสำรองหรือไม่? <br />
           </div>
           <q-banner rounded class="bg-orange-1 text-orange-9 text-caption text-left">
             <template v-slot:avatar>
               <q-icon name="info" color="orange-8" size="sm" />
             </template>
-            ระบบจะทำการบันทึกชื่อท่านในลำดับคิว และจะเลื่อนสถานะอัตโนมัติหากมีผู้สละสิทธิ์ พร้อมแจ้งให้ทราบผ่านทางอีเมล
+            ระบบจะทำการบันทึกชื่อท่านในลำดับคิว และจะเลื่อนสถานะอัตโนมัติหากมีผู้สละสิทธิ์
+            พร้อมแจ้งให้ทราบผ่านทางอีเมล
           </q-banner>
         </q-card-section>
 
         <q-card-actions align="center" class="q-pt-lg q-pb-sm">
-          <q-btn 
-            unelevated 
-            color="orange-9" 
-            label="ยืนยันเป็นตัวสำรอง" 
-            class="text-weight-bold q-px-md" 
-            @click="() => executeRegistration(true)" 
+          <q-btn
+            unelevated
+            color="orange-9"
+            label="ยืนยันเป็นตัวสำรอง"
+            class="text-weight-bold q-px-md"
+            @click="() => executeRegistration(true)"
           />
-          <q-btn 
-            flat 
-            color="grey-7" 
-            label="ยกเลิก" 
-            class="text-weight-bold q-ml-sm" 
-            v-close-popup 
+          <q-btn
+            flat
+            color="grey-7"
+            label="ยกเลิก"
+            class="text-weight-bold q-ml-sm"
+            v-close-popup
           />
         </q-card-actions>
       </q-card>
     </q-dialog>
-
   </q-page>
 </template>
 
 <style scoped lang="scss">
-
 .border-radius-16 {
   border-radius: 16px;
 }
@@ -923,9 +922,9 @@ const hasCancelled = computed(() => {
 }
 
 .btn-enrolled {
-  background-color: #e0e0e0 !important; 
-  color: #757575 !important;     
-  cursor: not-allowed !important; 
+  background-color: #e0e0e0 !important;
+  color: #757575 !important;
+  cursor: not-allowed !important;
 }
 @media (max-width: 1023px) {
   .sidebar-col {

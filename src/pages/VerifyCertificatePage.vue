@@ -16,7 +16,7 @@ const onMouseEnter = () => {
 const onMouseLeave = () => {
   hideTimer = setTimeout(() => {
     showImageMenu.value = false;
-  }, 200); 
+  }, 200);
 };
 
 const verifyCode = () => {
@@ -29,13 +29,13 @@ const verifyCode = () => {
     });
     return;
   }
-  
+
   $q.notify({
     message: 'กำลังตรวจสอบข้อมูล...',
     color: 'info',
     icon: 'search',
     position: 'top',
-    timeout: 1500
+    timeout: 1500,
   });
 };
 </script>
@@ -47,9 +47,7 @@ const verifyCode = () => {
         <q-icon name="workspace_premium" size="40px" />
       </q-avatar>
 
-      <h2 class="text-h4 text-weight-bolder text-dark q-mt-none q-mb-sm">
-        ตรวจสอบวุฒิบัตร
-      </h2>
+      <h2 class="text-h4 text-weight-bolder text-dark q-mt-none q-mb-sm">ตรวจสอบวุฒิบัตร</h2>
       <p class="text-grey-6 text-subtitle1 q-mb-xl">
         กรุณากรอกรหัสอ้างอิง (Code) เพื่อตรวจสอบข้อมูลการผ่านการอบรม
       </p>
@@ -64,33 +62,31 @@ const verifyCode = () => {
             color="primary"
             class="verify-input text-body1"
           >
-            
             <template v-slot:append>
-              <q-icon 
-                name="info" 
-                color="grey-5" 
+              <q-icon
+                name="info"
+                color="grey-5"
                 class="cursor-pointer hover-scale"
                 @mouseenter="onMouseEnter"
                 @mouseleave="onMouseLeave"
               >
-                <q-menu 
+                <q-menu
                   v-model="showImageMenu"
-                  anchor="top middle" 
+                  anchor="top middle"
                   self="bottom middle"
                   :offset="[0, 8]"
                   class="bg-white q-pa-xs shadow-3"
                   @mouseenter="onMouseEnter"
                   @mouseleave="onMouseLeave"
                 >
-                  <img 
-                    src="https://training.buu.ac.th/public/frontend/images/educate/icon/certificatecode.jpg" 
-                    alt="ตัวอย่างตำแหน่งรหัสอ้างอิง" 
-                    style="width: 250px; display: block; max-width: 100%; border-radius: 4px;"
+                  <img
+                    src="https://training.buu.ac.th/public/frontend/images/educate/icon/certificatecode.jpg"
+                    alt="ตัวอย่างตำแหน่งรหัสอ้างอิง"
+                    style="width: 250px; display: block; max-width: 100%; border-radius: 4px"
                   />
                 </q-menu>
               </q-icon>
             </template>
-            
           </q-input>
         </div>
 
@@ -112,7 +108,7 @@ const verifyCode = () => {
 <style scoped lang="scss">
 .bg-light-theme {
   background-color: #f8fafc;
-  min-height: 400px; 
+  min-height: 400px;
 }
 
 .verify-card {
@@ -136,7 +132,9 @@ const verifyCode = () => {
 .verify-btn {
   border-radius: 12px;
   height: 56px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-2px);

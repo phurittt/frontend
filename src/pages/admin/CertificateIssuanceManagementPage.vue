@@ -18,7 +18,8 @@ const certificateImageFile = ref<File | null>(null);
 const certificateImagePreview = ref<string>('');
 
 onMounted(() => {
-  const cert = certificateStore.selectedCertificate ||
+  const cert =
+    certificateStore.selectedCertificate ||
     certificateStore.getCertificateByCourseId(courseId.value);
 
   if (cert) {
@@ -40,7 +41,12 @@ const columns: QTableColumn[] = [
   { name: 'regis_type', label: 'ประเภทผู้ลงทะเบียน', field: 'registrationType', align: 'left' },
   { name: 'pass_status', label: 'สถานะการผ่านอบรม', field: 'passStatus', align: 'center' },
   { name: 'remarks', label: 'หมายเหตุ', field: 'remarks', align: 'left' },
-  { name: 'issued_count', label: 'ออกวุฒิบัตรไปแล้ว(ครั้ง)', field: 'issuedCount', align: 'center' },
+  {
+    name: 'issued_count',
+    label: 'ออกวุฒิบัตรไปแล้ว(ครั้ง)',
+    field: 'issuedCount',
+    align: 'center',
+  },
 ];
 
 const rows = computed(() => {
@@ -68,18 +74,24 @@ const handleImageUpload = (event: Event) => {
   }
 };
 
-const onParticipantPassStatusChange = (participant: CertificateParticipant, status: 'passed' | 'not-passed') => {
+const onParticipantPassStatusChange = (
+  participant: CertificateParticipant,
+  status: 'passed' | 'not-passed',
+) => {
   if (certificateData.value) {
-    const idx = certificateData.value.participants.findIndex(p => p.id === participant.id);
+    const idx = certificateData.value.participants.findIndex((p) => p.id === participant.id);
     if (idx !== -1 && certificateData.value.participants[idx]) {
       certificateData.value.participants[idx].passStatus = status;
     }
   }
 };
 
-const onParticipantRemarksChange = (participant: CertificateParticipant, remarks: string | number | null) => {
+const onParticipantRemarksChange = (
+  participant: CertificateParticipant,
+  remarks: string | number | null,
+) => {
   if (certificateData.value) {
-    const idx = certificateData.value.participants.findIndex(p => p.id === participant.id);
+    const idx = certificateData.value.participants.findIndex((p) => p.id === participant.id);
     if (idx !== -1 && certificateData.value.participants[idx]) {
       certificateData.value.participants[idx].remarks = String(remarks || '');
     }
@@ -129,7 +141,13 @@ const cancelEdit = () => {
   <q-page class="q-pa-md">
     <div class="text-h6 q-mb-md text-weight-bold">จัดการการออกวุฒิบัตร</div>
 
-    <q-card flat bordered class="bg-white q-pa-lg q-mb-md" style="border-radius: 8px" v-if="certificateData">
+    <q-card
+      flat
+      bordered
+      class="bg-white q-pa-lg q-mb-md"
+      style="border-radius: 8px"
+      v-if="certificateData"
+    >
       <!-- รายละเอียดหลักสูตร -->
       <div class="text-subtitle1 text-weight-bold q-mb-md">รายละเอียดหลักสูตร</div>
 
@@ -168,7 +186,9 @@ const cancelEdit = () => {
           </div>
           <div class="row q-mb-md">
             <div class="col-5 text-grey-7 text-weight-bold">จำนวนที่เปิด:</div>
-            <div class="col-7">{{ certificateData.totalSeats }} คน / สำรอง {{ certificateData.seatReserve }} คน</div>
+            <div class="col-7">
+              {{ certificateData.totalSeats }} คน / สำรอง {{ certificateData.seatReserve }} คน
+            </div>
           </div>
           <div class="row q-mb-md">
             <div class="col-5 text-grey-7 text-weight-bold">จำนวนผู้ลงทะเบียน:</div>
@@ -219,7 +239,12 @@ const cancelEdit = () => {
             <img
               :src="certificateImagePreview"
               alt="Certificate Preview"
-              style="max-width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #e0e0e0"
+              style="
+                max-width: 100%;
+                max-height: 300px;
+                border-radius: 8px;
+                border: 1px solid #e0e0e0;
+              "
             />
           </div>
         </div>
