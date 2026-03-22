@@ -247,7 +247,6 @@ const formatPrice = (price: number) => {
   font-size: clamp(1.4rem, 2.5vw, 1.8rem);
 }
 
-/* ================= Filter Bar ================= */
 .filter-btn {
   border-radius: 8px;
   border: 1px solid #e2e8f0;
@@ -260,7 +259,6 @@ const formatPrice = (price: number) => {
   }
 }
 
-/* ================= แบบ GRID ================= */
 .course-card {
   border-radius: 16px;
   background: white;
@@ -289,7 +287,6 @@ const formatPrice = (price: number) => {
   margin-bottom: 10px;
 }
 
-/* ================= แบบ LIST (Desktop & Tablet เท่านั้น) ================= */
 .course-card-list {
   border-radius: 20px;
   transition: all 0.3s ease;
@@ -318,7 +315,6 @@ const formatPrice = (price: number) => {
   border-left: 1px dashed #e2e8f0;
 }
 
-/* Badges & Elements */
 .glass-badge {
   background: rgba(255, 255, 255, 0.85);
   color: #1e293b;
@@ -343,7 +339,6 @@ const formatPrice = (price: number) => {
   background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) !important;
 }
 
-/* Buttons */
 .btn-detail {
   background-color: #f8fafc;
   color: #334155;
@@ -365,7 +360,6 @@ const formatPrice = (price: number) => {
   border: 1px solid #fecaca;
 }
 
-/* Animations */
 .fade-up {
   opacity: 0;
   animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -381,7 +375,6 @@ const formatPrice = (price: number) => {
   }
 }
 
-/* Responsive */
 @media (max-width: 1023px) and (min-width: 600px) {
   .list-img-box {
     width: 220px;

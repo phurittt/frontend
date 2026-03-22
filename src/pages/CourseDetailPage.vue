@@ -19,8 +19,15 @@ onMounted(() => {
 
 const course = computed(() => {
   const id = Number(route.params.id);
-  if (store.courses.length === 0) return undefined;
-  return store.courses.find((c) => c.id === id) || store.courses[0];
+  return store.courses.find((c) => c.id === id);
+});
+
+
+const isEnrolled = computed(() => {
+  if (!course.value || !authStore.isLoggedIn) return false;
+  return store.enrolledCourses.some(
+    (e) => e.courseId === course.value?.id && e.statusCode !== 'cancelled'
+  );
 });
 
 const formatPrice = (price?: number) => {
@@ -33,20 +40,14 @@ const isFavorite = computed(() => {
   return store.favoriteIds.includes(course.value.id);
 });
 
-// ==========================================
-// ส่วนจัดการการลงทะเบียน (ปรับตาม UC-06)
-// ==========================================
 const showWaitingListDialog = ref(false);
 
 const handleRegisterClick = () => {
-  // เช็คว่าที่นั่งเต็มหรือไม่
   const isFull = course.value?.totalSeats === course.value?.registeredSeats;
 
   if (isFull) {
-    // กรณีที่นั่งเต็ม: แสดง Popup Dialog ถามยืนยันการเป็นตัวสำรอง (UC-06 Alternative Flow 1)
     showWaitingListDialog.value = true;
   } else {
-    // กรณีปกติ: ดำเนินการลงทะเบียนทันที
     executeRegistration(false);
   }
 };
@@ -63,15 +64,11 @@ const executeRegistration = async (isWaitingList: boolean) => {
   });
 
   try {
-    // ==========================================
-    // เพิ่ม if ครอบไว้เพื่อแก้ Error TypeScript
-    // ==========================================
     if (course.value) {
       await store.registerCourse(course.value.id, isWaitingList);
     } else {
       throw new Error('ไม่พบข้อมูลคอร์ส');
     }
-    // ==========================================
     
     dismissLoading();
 
@@ -100,10 +97,11 @@ const executeRegistration = async (isWaitingList: boolean) => {
     });
   }
 };
-// ==========================================
 
 const buttonLabel = computed(() => {
   if (!authStore.isLoggedIn) return 'เข้าสู่ระบบ เพื่อลงทะเบียน';
+
+  if (isEnrolled.value) return 'ท่านลงทะเบียนหลักสูตรนี้แล้ว';
 
   if (course.value?.totalSeats === course.value?.registeredSeats) {
     return 'ลงทะเบียนสำรอง (Waiting List)';
@@ -123,6 +121,8 @@ const handleMainButtonClick = () => {
     router.push('/login');
     return;
   }
+
+  if (isEnrolled.value) return; 
 
   handleRegisterClick();
 };
@@ -469,41 +469,47 @@ const addToCart = () => {
                   <div class="column q-gutter-y-sm">
                     <q-btn
                       unelevated
+                      :disable="isEnrolled" 
                       :class="[
                         !authStore.isLoggedIn
                           ? 'btn-login-required'
-                          : course.totalSeats === course.registeredSeats
-                            ? 'btn-notify'
-                            : 'btn-main',
+                          : isEnrolled               
+                            ? 'btn-enrolled'
+                            : course.totalSeats === course.registeredSeats
+                              ? 'btn-notify'
+                              : 'btn-main',
                       ]"
                       class="full-width text-weight-bold q-py-md text-subtitle1"
                       :label="buttonLabel"
                       :icon="
                         !authStore.isLoggedIn
                           ? 'eva-alert-triangle-outline'
-                          : course.totalSeats === course.registeredSeats
-                            ? 'notifications_active'
-                            : undefined
+                          : isEnrolled               
+                            ? 'check_circle'
+                            : course.totalSeats === course.registeredSeats
+                              ? 'notifications_active'
+                              : undefined
                       "
                       rounded
                       no-caps
                       @click="handleMainButtonClick"
                     />
 
-                    <template v-if="authStore.isLoggedIn">
-                      <q-btn
-                        v-if="course.totalSeats === course.registeredSeats"
-                        outline
-                        class="full-width btn-outline-grey text-weight-bold q-py-sm btn-favorite"
-                        :class="{ 'is-active': isFavorite }"
-                        :color="isFavorite ? 'pink' : 'grey-4'"
-                        :text-color="isFavorite ? 'pink' : 'dark'"
-                        :icon="isFavorite ? 'favorite' : 'favorite_border'"
-                        :label="isFavorite ? 'บันทึกหลักสูตรแล้ว' : 'บันทึกหลักสูตรไว้ดูภายหลัง'"
-                        rounded
-                        no-caps
-                        @click="toggleFavorite"
-                      />
+                    <template v-if="authStore.isLoggedIn && !isEnrolled">
+                      <div v-if="course.totalSeats === course.registeredSeats" class="row">
+                        <q-btn
+                            outline
+                            class="full-width btn-outline-grey text-weight-bold q-py-sm btn-favorite"
+                            :class="{ 'is-active': isFavorite }"
+                            :color="isFavorite ? 'pink' : 'grey-4'"
+                            :text-color="isFavorite ? 'pink' : 'dark'"
+                            :icon="isFavorite ? 'favorite' : 'favorite_border'"
+                            :label="isFavorite ? 'บันทึกหลักสูตรแล้ว' : 'บันทึกหลักสูตรไว้ดูภายหลัง'"
+                            rounded
+                            no-caps
+                            @click="toggleFavorite"
+                        />
+                      </div>
 
                       <div v-else class="row q-gutter-x-sm">
                         <q-btn
@@ -640,7 +646,6 @@ const addToCart = () => {
 
 <style scoped lang="scss">
 
-/* ================= Skeleton Styles ================= */
 .border-radius-16 {
   border-radius: 16px;
 }
@@ -648,7 +653,6 @@ const addToCart = () => {
   border-radius: 20px;
 }
 
-/* ================= โทนสีและพื้นหลัง ================= */
 .bg-light-theme {
   background-color: #f1f5f9;
   min-height: 100vh;
@@ -679,7 +683,6 @@ const addToCart = () => {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* ================= Header Banner ================= */
 .header-banner {
   z-index: 2;
   background-color: $dark;
@@ -723,7 +726,6 @@ const addToCart = () => {
   border: 2px solid white;
 }
 
-/* ================= Cards ================= */
 .course-card {
   border-radius: 20px;
   background: white;
@@ -744,12 +746,10 @@ const addToCart = () => {
   }
 }
 
-/* ================= Sidebar ================= */
 .sticky-sidebar {
   z-index: 10;
 }
 
-/* ================= Image Hover Effect ================= */
 .image-wrapper {
   overflow: hidden;
 }
@@ -778,7 +778,6 @@ const addToCart = () => {
   background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) !important;
 }
 
-/* ================= Lists ================= */
 .objective-item {
   transition: transform 0.2s ease;
   &:hover {
@@ -796,7 +795,6 @@ const addToCart = () => {
   }
 }
 
-/* ================= ปุ่มต่างๆ ================= */
 .back-btn {
   background: rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
@@ -868,7 +866,6 @@ const addToCart = () => {
   }
 }
 
-/* ================= Animations ================= */
 .fade-up {
   opacity: 0;
   animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -916,7 +913,11 @@ const addToCart = () => {
   animation: heartPop 0.5s ease-in-out forwards;
 }
 
-/* ================= Responsive ================= */
+.btn-enrolled {
+  background-color: #e0e0e0 !important; 
+  color: #757575 !important;     
+  cursor: not-allowed !important; 
+}
 @media (max-width: 1023px) {
   .sidebar-col {
     order: -1;

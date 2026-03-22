@@ -1,7 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia';
 import type { Course } from 'src/models/course';
 
-// เพิ่ม Interface สำหรับเก็บประวัติการลงทะเบียน
 export interface EnrolledCourse {
   id: number;
   courseId: number;
@@ -24,7 +23,6 @@ export const useCourseStore = defineStore('course', {
     cart: [] as Course[],
     favoriteIds: [] as number[],
 
-    // ตัวแปรใหม่ที่ Error หาไม่เจอ: สำหรับเก็บประวัติที่ลงทะเบียนแล้ว
     enrolledCourses: [] as EnrolledCourse[],
   }),
 
@@ -44,6 +42,9 @@ export const useCourseStore = defineStore('course', {
 
   actions: {
     async fetchCourses() {
+
+      if (this.courses.length > 0) return;
+
       this.isLoading = true;
       try {
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -116,9 +117,6 @@ export const useCourseStore = defineStore('course', {
       }
     },
 
-    // =====================================
-    // ฟังก์ชันใหม่: ระบบประมวลผลการลงทะเบียน
-    // =====================================
     async registerCourse(courseId: number, isWaitingList: boolean) {
       await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -148,15 +146,12 @@ export const useCourseStore = defineStore('course', {
         course.registeredSeats += 1;
       }
     },
-    // =====================================
-    // ฟังก์ชันใหม่: ยกเลิกการลงทะเบียน
-    // =====================================
+
     async cancelEnrollment(enrollmentId: number) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const idx = this.enrolledCourses.findIndex((e) => e.id === enrollmentId);
 
       if (idx !== -1) {
-        // แก้ไข: ดึงออบเจ็กต์ออกมาก่อนเพื่อหลีกเลี่ยง Error 'undefined'
         const enrollment = this.enrolledCourses[idx];
         if (enrollment) {
           enrollment.statusCode = 'cancelled';
@@ -164,22 +159,17 @@ export const useCourseStore = defineStore('course', {
           enrollment.canCancel = false;
           enrollment.canConfirm = false;
 
-          // คืนที่นั่งให้คอร์สหลัก
           const course = this.courses.find((c) => c.id === enrollment.courseId);
           if (course && course.registeredSeats > 0) course.registeredSeats -= 1;
         }
       }
     },
 
-    // =====================================
-    // ฟังก์ชันใหม่: ยืนยันการเข้าร่วม
-    // =====================================
     async confirmEnrollmentAttendance(enrollmentId: number) {
       await new Promise((resolve) => setTimeout(resolve, 800));
       const idx = this.enrolledCourses.findIndex((e) => e.id === enrollmentId);
 
       if (idx !== -1) {
-        // แก้ไข: ดึงออบเจ็กต์ออกมาก่อนเพื่อหลีกเลี่ยง Error 'undefined'
         const enrollment = this.enrolledCourses[idx];
         if (enrollment) {
           enrollment.statusCode = 'confirmed';

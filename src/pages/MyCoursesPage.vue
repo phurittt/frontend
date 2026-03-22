@@ -11,13 +11,8 @@ const store = useCourseStore(); // 2. ประกาศใช้ Store
 const $q = useQuasar();
 const tab = ref('history');
 
-// ==========================================
-// 1. ดึงข้อมูลประวัติการลงทะเบียนจาก Store
-// ==========================================
-// เปลี่ยนจาก Mock Data เป็นการดึงข้อมูลจาก Store แบบ Real-time
 const enrolledCourses = computed(() => store.enrolledCourses);
 
-// จำลองข้อมูลวุฒิบัตร (UC-21) - ส่วนนี้ยังจำลองไว้ก่อนจนกว่าจะทำระบบวุฒิบัตร
 const certificates = ref([
   {
     id: 101,
@@ -27,9 +22,6 @@ const certificates = ref([
   }
 ]);
 
-// ==========================================
-// 2. ฟังก์ชันจัดการสถานะสีของ Chip
-// ==========================================
 const getStatusColor = (code: string) => {
   switch (code) {
     case 'registered': return 'blue-1 text-blue-9';
@@ -40,9 +32,6 @@ const getStatusColor = (code: string) => {
   }
 };
 
-// ==========================================
-// 3. ฟังก์ชันการยกเลิกการลงทะเบียน (UC-07)
-// ==========================================
 const showCancelDialog = ref(false);
 const courseToCancel = ref<number | null>(null);
 
@@ -56,7 +45,6 @@ const executeCancel = async () => {
   const dismiss = $q.notify({ spinner: true, message: 'กำลังยกเลิกการลงทะเบียน...', color: 'primary', timeout: 0 });
 
   try {
-    // 3.1 เรียกใช้ฟังก์ชันยกเลิกจาก Store
     if (courseToCancel.value !== null) {
       await store.cancelEnrollment(courseToCancel.value);
     }
@@ -71,10 +59,6 @@ const executeCancel = async () => {
     $q.notify({ message: 'เกิดข้อผิดพลาดในการยกเลิก', color: 'negative', position: 'top' });
   }
 };
-
-// ==========================================
-// 4. ฟังก์ชันยืนยันการเข้าร่วม (UC-08)
-// ==========================================
 const confirmAttendance = (id: number) => {
   $q.dialog({
     title: 'ยืนยันการเข้าร่วม',
@@ -85,7 +69,6 @@ const confirmAttendance = (id: number) => {
     const dismiss = $q.notify({ spinner: true, message: 'กำลังบันทึก...', color: 'primary', timeout: 0 });
     
     try {
-      // 4.1 เรียกใช้ฟังก์ชันยืนยันจาก Store
       await store.confirmEnrollmentAttendance(id);
       
       dismiss();
@@ -97,9 +80,6 @@ const confirmAttendance = (id: number) => {
   });
 };
 
-// ==========================================
-// 5. ดาวน์โหลดวุฒิบัตร (UC-21)
-// ==========================================
 const downloadCertificate = (id: number) => {
   $q.notify({
     message: 'กำลังสร้างไฟล์ PDF วุฒิบัตร...',
