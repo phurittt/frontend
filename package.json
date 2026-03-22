@@ -55,8 +55,8 @@
     "serialize-javascript": "^7.0.4"
   },
   "engines": {
-    "node": ">=22.0.0",
-    "npm": ">=11.0.0"
+    "node": ">=24.0.0",
+    "npm": ">=11.9.0"
   },
   "lint-staged": {
     "src/**/*.{js,ts,vue}": [
