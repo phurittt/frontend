@@ -138,14 +138,15 @@ const formatPrice = (price: number) => {
                   unelevated
                   class="full-width text-weight-bold"
                   :class="
-                    course.totalSeats === course.registeredSeats ? 'btn-soldout' : 'btn-detail'
+                    course.totalSeats === course.registeredSeats ? 'btn-soldout' : 'btn-register'
                   "
                   :label="
                     course.totalSeats === course.registeredSeats
-                      ? 'ที่นั่งเต็มแล้ว'
-                      : 'ดูรายละเอียด'
+                      ? 'เต็ม (คลิกเพื่อลงคิวสำรอง)'
+                      : 'ลงทะเบียน'
                   "
                   no-caps
+                  @click.stop="goToDetail(course.id)"
                 />
               </q-card-section>
             </q-card>
@@ -215,7 +216,15 @@ const formatPrice = (price: number) => {
               <div class="text-caption text-grey-6 q-mb-lg">
                 เปิดรับสมัคร {{ course.totalSeats }} ท่าน
               </div>
-              <q-btn unelevated color="dark" label="ดูรายละเอียด" no-caps rounded class="q-px-lg" />
+              <q-btn 
+                unelevated 
+                :class="course.totalSeats === course.registeredSeats ? 'btn-soldout' : 'btn-register'"
+                :label="course.totalSeats === course.registeredSeats ? 'เต็ม (ลงคิวสำรอง)' : 'ลงทะเบียน'" 
+                no-caps 
+                rounded 
+                class="q-px-xl text-weight-bold" 
+                @click.stop="goToDetail(course.id)"
+              />
             </div>
           </div>
         </div>
@@ -336,17 +345,17 @@ const formatPrice = (price: number) => {
 }
 
 /* Buttons */
-.btn-detail {
-  background-color: #f8fafc;
-  color: #334155;
+.btn-register {
+  background: linear-gradient(135deg, #e91e63 0%, #f43f5e 100%) !important;
+  color: white !important;
   border-radius: 10px;
   padding: 8px 0;
   font-size: 0.95rem;
-  border: 1px solid #e2e8f0;
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   &:hover {
-    background: #f1f5f9;
-    color: $primary;
-    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
   }
 }
 .btn-soldout {

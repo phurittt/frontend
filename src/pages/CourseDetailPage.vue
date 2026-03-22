@@ -33,77 +33,65 @@ const isFavorite = computed(() => {
   return store.favoriteIds.includes(course.value.id);
 });
 
-const handleNotify = () => {
-  $q.notify({
-    message: 'เราจะแจ้งเตือนคุณเมื่อคอร์สนี้เปิดรับสมัครรอบต่อไป',
-    color: 'primary',
-    icon: 'mark_email_read',
-    position: 'top',
-  });
-};
-
 // ==========================================
-// ส่วนจัดการ Dialog ลงทะเบียน
+// ส่วนจัดการการลงทะเบียน (ปรับตาม UC-06)
 // ==========================================
-const showRegisterDialog = ref(false);
-const registerForm = ref({
-  phone: '',
-  email: ''
-});
+const showWaitingListDialog = ref(false);
 
 const handleRegisterClick = () => {
-  showRegisterDialog.value = true;
+  // เช็คว่าที่นั่งเต็มหรือไม่
+  const isFull = course.value?.totalSeats === course.value?.registeredSeats;
+
+  if (isFull) {
+    // กรณีที่นั่งเต็ม: แสดง Popup Dialog ถามยืนยันการเป็นตัวสำรอง (UC-06 Alternative Flow 1)
+    showWaitingListDialog.value = true;
+  } else {
+    // กรณีปกติ: ดำเนินการลงทะเบียนทันที
+    executeRegistration(false);
+  }
 };
 
-const confirmRegistration = () => {
-  const phone = registerForm.value.phone;
-  const email = registerForm.value.email;
+const executeRegistration = async (isWaitingList: boolean) => {
+  showWaitingListDialog.value = false;
 
-  // 1. เช็คว่ากรอกครบไหม
-  if (!phone || !email) {
-    $q.notify({
-      message: 'กรุณากรอกเบอร์โทรศัพท์มือถือและอีเมลให้ครบถ้วน',
-      color: 'warning',
-      icon: 'warning',
-      position: 'top',
-    });
-    return;
-  }
-
-  // 2. เช็คเบอร์โทรศัพท์ (ต้องขึ้นต้นด้วย 06, 08 หรือ 09 และมี 10 หลัก)
-  const phoneRegex = /^0\d{8}$/;
-  if (!phoneRegex.test(phone)) {
-    $q.notify({
-      message: 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (ต้องมี 10 หลัก และขึ้นต้นด้วย 0)',
-      color: 'negative',
-      icon: 'error_outline',
-      position: 'top',
-    });
-    return;
-  }
-
-  // 3. เช็ครูปแบบอีเมล
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    $q.notify({
-      message: 'รูปแบบอีเมลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง',
-      color: 'negative',
-      icon: 'error_outline',
-      position: 'top',
-    });
-    return;
-  }
-
-  showRegisterDialog.value = false;
-
-  $q.notify({
-    message: 'ลงทะเบียนสำเร็จ ระบบกำลังดำเนินการ...',
-    color: 'positive',
-    icon: 'check_circle',
+  const dismissLoading = $q.notify({
+    spinner: true,
+    message: 'ระบบกำลังดำเนินการ...',
+    color: 'primary',
     position: 'top',
-    timeout: 2000,
-    classes: 'text-weight-medium',
+    timeout: 0 
   });
+
+  try {
+    // จำลองการเรียก API ลงทะเบียน (แทนที่ด้วย store.registerCourse(...) ในของจริง)
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    dismissLoading();
+
+    $q.notify({
+      message: isWaitingList 
+        ? 'บันทึกรายชื่อลงในคิวสำรองเรียบร้อยแล้ว หากมีผู้ยกเลิกจะแจ้งให้ทราบทางอีเมล' 
+        : 'ลงทะเบียนสำเร็จ! ระบบได้ส่งอีเมลยืนยันการเข้าร่วมไปยังอีเมลของคุณแล้ว',
+      color: isWaitingList ? 'orange-9' : 'positive',
+      icon: isWaitingList ? 'hourglass_empty' : 'check_circle',
+      position: 'top',
+      timeout: 3000,
+      classes: 'text-weight-medium',
+    });
+
+    // พาผู้ใช้งานไปที่หน้า "ประวัติการอบรม" หลังจากลงทะเบียนสำเร็จ (ตาม UC-06)
+    router.push('/my-courses'); 
+
+  } catch (error) {
+    dismissLoading();
+    // กรณีเกิดข้อผิดพลาด เช่น ไม่มีสิทธิ์ (Target Group ไม่ตรง)
+    $q.notify({
+      message: 'ท่านไม่มีสิทธิ์ลงทะเบียนในหลักสูตรนี้ หรือเกิดข้อผิดพลาด',
+      color: 'negative',
+      icon: 'error',
+      position: 'top',
+    });
+  }
 };
 // ==========================================
 
@@ -111,7 +99,7 @@ const buttonLabel = computed(() => {
   if (!authStore.isLoggedIn) return 'เข้าสู่ระบบ เพื่อลงทะเบียน';
 
   if (course.value?.totalSeats === course.value?.registeredSeats) {
-    return 'แจ้งเตือนเมื่อเปิดรอบใหม่';
+    return 'ลงทะเบียนสำรอง (Waiting List)';
   }
 
   return 'ลงทะเบียนอบรม';
@@ -129,11 +117,7 @@ const handleMainButtonClick = () => {
     return;
   }
 
-  if (course.value?.totalSeats === course.value?.registeredSeats) {
-    handleNotify();
-  } else {
-    handleRegisterClick();
-  }
+  handleRegisterClick();
 };
 
 const toggleFavorite = () => {
@@ -609,98 +593,35 @@ const addToCart = () => {
       />
     </div>
 
-    <q-dialog v-model="showRegisterDialog" persistent>
-      <q-card class="register-dialog-card q-pa-md" style="min-width: 350px; max-width: 700px; width: 100%;">
+    <q-dialog v-model="showWaitingListDialog" persistent>
+      <q-card class="q-pa-md border-radius-16" style="max-width: 400px; width: 100%;">
         <q-card-section class="text-center q-pb-none">
-          <div class="text-h5 text-weight-bolder text-dark line-height-tight q-mb-md">
-            การลงทะเบียนอบรมหลักสูตร <br>
-            <span class="text-red-10">{{ course?.title }}</span>
+          <q-icon name="warning_amber" size="64px" color="orange-9" class="q-mb-md" />
+          <div class="text-h6 text-weight-bold text-dark line-height-tight q-mb-sm">ที่นั่งในหลักสูตรเต็มแล้ว</div>
+          <div class="text-body1 text-grey-8 q-mb-md">
+            ท่านต้องการลงทะเบียนเป็นตัวสำรองหรือไม่? <br>
           </div>
+          <q-banner rounded class="bg-orange-1 text-orange-9 text-caption text-left">
+            <template v-slot:avatar>
+              <q-icon name="info" color="orange-8" size="sm" />
+            </template>
+            ระบบจะทำการบันทึกชื่อท่านในลำดับคิว และจะเลื่อนสถานะอัตโนมัติหากมีผู้สละสิทธิ์ พร้อมแจ้งให้ทราบผ่านทางอีเมล
+          </q-banner>
         </q-card-section>
 
-        <q-card-section class="q-pt-sm">
-          <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-md">
-            <template v-slot:avatar>
-              <q-icon name="info" color="blue-7" />
-            </template>
-            กรุณายืนยันข้อมูลอีเมลและเบอร์โทรศัพท์มือถือที่ติดต่อได้ สำหรับแจ้งยืนยันการเข้าร่วมโครงการ
-          </q-banner>
-
-          <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-lg">
-            <template v-slot:avatar>
-              <q-icon name="policy" color="blue-7" />
-            </template>
-            คำประกาศนโยบายความเป็นส่วนตัว (Privacy Notice) ของฝ่ายบริการวิชาการ สำนักคอมพิวเตอร์ ภายใต้พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 โดย 
-            <a 
-              href="https://ict.buu.ac.th/policy/privacy-notice-as.pdf" 
-              target="_blank" 
-              class="text-red-6 text-weight-bold" 
-              style="text-decoration: underline;"
-            >
-          คลิกที่นี่
-        </a>
-          </q-banner>
-
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-sm-6">
-              <div class="text-subtitle2 text-weight-bold q-mb-xs">เบอร์โทรศัพท์มือถือ <span class="text-red">*</span></div>
-              <q-input 
-                v-model="registerForm.phone" 
-                outlined 
-                dense 
-                placeholder="08x-xxx-xxxx"
-                color="primary"
-                mask="###-###-####"
-                unmasked-value
-                lazy-rules
-                :rules="[
-                  val => !!val || 'กรุณากรอกเบอร์โทรศัพท์',
-                  val => /^0\d{9}$/.test(val) || 'เบอร์โทรต้องมี 10 หลัก และขึ้นต้นด้วย 0'
-                ]"
-              >
-                <template v-slot:append>
-                  <q-icon name="phone" color="grey-5" />
-                </template>
-              </q-input>
-            </div>
-            
-            <div class="col-12 col-sm-6">
-              <div class="text-subtitle2 text-weight-bold q-mb-xs">อีเมล <span class="text-red">*</span></div>
-              <q-input 
-                v-model="registerForm.email" 
-                outlined 
-                dense 
-                type="email"
-                placeholder="example@mail.com"
-                color="primary"
-                lazy-rules
-                :rules="[
-                  val => !!val || 'กรุณากรอกอีเมล',
-                  val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'รูปแบบอีเมลไม่ถูกต้อง'
-                ]"
-              >
-                <template v-slot:append>
-                  <q-icon name="email" color="grey-5" />
-                </template>
-              </q-input>
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="center" class="q-pt-md q-pb-lg">
+        <q-card-actions align="center" class="q-pt-lg q-pb-sm">
           <q-btn 
             unelevated 
-            color="positive" 
-            label="ยืนยัน" 
-            class="q-px-xl q-py-sm text-weight-bold btn-action" 
-            @click="confirmRegistration" 
+            color="orange-9" 
+            label="ยืนยันเป็นตัวสำรอง" 
+            class="text-weight-bold q-px-md" 
+            @click="() => executeRegistration(true)" 
           />
           <q-btn 
-            unelevated 
-            color="grey-2" 
-            text-color="dark" 
+            flat 
+            color="grey-7" 
             label="ยกเลิก" 
-            class="q-px-xl q-py-sm text-weight-bold btn-action q-ml-md" 
+            class="text-weight-bold q-ml-sm" 
             v-close-popup 
           />
         </q-card-actions>
@@ -986,26 +907,6 @@ const addToCart = () => {
 
 .btn-favorite.is-active :deep(.q-icon) {
   animation: heartPop 0.5s ease-in-out forwards;
-}
-
-/* ================= Register Dialog CSS ================= */
-.register-dialog-card {
-  border-radius: 16px;
-}
-.btn-action {
-  border-radius: 8px;
-  font-size: 16px;
-}
-.line-height-tight {
-  line-height: 1.4;
-}
-
-.q-banner :deep(.q-icon) {
-  font-size: 26px !important; /* ปรับตัวเลขได้ตามต้องการ (ค่าเริ่มต้นของ Quasar คือประมาณ 40px) */
-}
-
-.q-banner :deep(.q-banner__avatar) {
-  align-self: center !important; 
 }
 
 /* ================= Responsive ================= */
