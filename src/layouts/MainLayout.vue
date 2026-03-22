@@ -93,11 +93,11 @@
                 class="nav-dropdown"
               >
                 <q-list style="min-width: 220px">
-                  <q-item clickable v-close-popup class="dropdown-item" to="/profile">
+                  <q-item clickable v-close-popup class="dropdown-item" to="/my-courses">
                     <q-item-section avatar>
                       <q-icon name="account_circle" size="sm" />
                     </q-item-section>
-                    <q-item-section class="text-weight-medium">โปรไฟล์ของฉัน</q-item-section>
+                    <q-item-section class="text-weight-medium">ข้อมูลส่วนตัว</q-item-section>
                   </q-item>
 
                   <q-separator inset class="q-my-xs" />
@@ -233,7 +233,7 @@
               <q-item
                 clickable
                 v-ripple
-                to="/profile"
+                to="/my-courses"
                 class="mobile-profile-card q-mb-sm q-pa-md"
                 @click="menuOpen = false"
               >
