@@ -105,6 +105,33 @@ const routes: RouteRecordRaw[] = [
       },
       // --------------------------------------------------------------------------------
       {
+        path: 'certificates',
+        component: RouterView,
+        children: [
+          {
+            path: '',
+            component: () => import('pages/admin/CertificateManagementPage.vue'),
+            meta: {
+              title: 'จัดการวุฒิบัตร',
+              breadcrumbs: [{ label: 'จัดการวุฒิบัตร' }],
+            },
+          },
+          {
+            path: ':courseId',
+            name: 'certificate-issuance',
+            component: () => import('pages/admin/CertificateIssuanceManagementPage.vue'),
+            meta: {
+              title: 'จัดการการออกวุฒิบัตร',
+              breadcrumbs: [
+                { label: 'จัดการวุฒิบัตร', to: '/admin/certificates' },
+                { label: 'จัดการการออกวุฒิบัตร' },
+              ],
+            },
+          },
+        ],
+      },
+      // --------------------------------------------------------------------------------
+      {
         path: 'members',
         component: () => import('pages/admin/MemberManagementPage.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'ข้อมูลสมาชิก' },
