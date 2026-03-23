@@ -165,23 +165,29 @@ const printCertificateRegister = (certificate: CertificateIssuance) => {
 
           <template v-slot:body-cell-manage_certificate="props">
             <q-td :props="props">
-              <div class="row justify-center">
-                <q-btn
-                  @click="editCertificateIssuance(props.row._raw)"
-                  unelevated
-                  size="sm"
-                  :color="props.row._raw.managedAt ? 'grey-3' : 'light-blue-1'"
-                  text-color="dark"
-                  :icon="props.row._raw.managedAt ? 'check_circle' : 'edit'"
-                  style="border-radius: 6px; padding: 6px 10px"
-                  :disable="!!props.row._raw.managedAt"
-                >
-                  <q-tooltip v-if="!props.row._raw.managedAt">จัดการการออกวุฒิบัตร</q-tooltip>
-                  <q-tooltip v-else
-                    >จัดการการออกวุฒิบัตรแล้ว {{ props.row._raw.managedAt }}
-                    {{ props.row._raw.managedTime }} โดย {{ props.row._raw.managedBy }}</q-tooltip
+              <div class="row justify-center items-center">
+                <template v-if="props.row._raw.managedAt">
+                  <span
+                    class="text-caption text-grey-8"
+                    style="font-size: 12px; line-height: 1.4; white-space: normal; max-width: 250px"
                   >
-                </q-btn>
+                    ออกวุฒิบัตรเรียบร้อย ณ วันที่ {{ props.row._raw.managedAt }} เวลา
+                    {{ props.row._raw.managedTime }} โดย {{ props.row._raw.managedBy }}
+                  </span>
+                </template>
+                <template v-else>
+                  <q-btn
+                    @click="editCertificateIssuance(props.row._raw)"
+                    unelevated
+                    size="sm"
+                    color="light-blue-1"
+                    text-color="dark"
+                    icon="edit"
+                    style="border-radius: 6px; padding: 6px 10px"
+                  >
+                    <q-tooltip>จัดการการออกวุฒิบัตร</q-tooltip>
+                  </q-btn>
+                </template>
               </div>
             </q-td>
           </template>
