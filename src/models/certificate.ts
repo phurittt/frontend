@@ -30,10 +30,12 @@ export interface CertificateIssuance {
   id?: number;
   courseId: number;
   courseName: string;
+  project?: string;
   year: string;
   duration: string;
   regisOpenDate: string;
   regisCloseDate: string;
+  trainingDate?: string;
   manager: string;
   registrationFee: number;
   totalSeats: number;

@@ -133,6 +133,14 @@ const routes: RouteRecordRaw[] = [
       },
       // --------------------------------------------------------------------------------
       {
+        path: 'print',
+        component: () => import('pages/admin/PrintCertificatePage.vue'),
+        meta: {
+          title: 'พิมพ์วุฒิบัตร',
+          breadcrumbs: [{ label: 'พิมพ์วุฒิบัตร' }],
+        },
+      },
+      {
         path: 'reports',
         component: () => import('pages/admin/ReportDashboardPage.vue'),
         meta: { parent: 'รายงานและเว็บไซต์', title: 'รายงาน' },

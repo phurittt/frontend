@@ -112,7 +112,7 @@ const printParticipants = (certificate: CertificateIssuance) => {
 
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h6 q-mb-md text-weight-bold">จัดการวุฒิบัตร</div>
+    <div class="text-h6 q-mb-md text-weight-bold">พิมพ์วุฒิบัตร</div>
 
     <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px">
       <q-card-section>
