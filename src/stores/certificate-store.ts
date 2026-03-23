@@ -148,7 +148,7 @@ export const useCertificateStore = defineStore('certificate', {
               duration: '24 ก.พ. 2569 ถึง 25 ก.พ. 2569',
               regisOpenDate: '10 ก.พ. 2569',
               regisCloseDate: '20 ก.พ. 2569',
-              trainingDate: '24-25 ก.พ. 2569',
+              trainingDate: '24-25 มี.ค. 2569',
               manager: 'นายอนุสูร ธรรมนิตย์',
               registrationFee: 1200,
               totalSeats: 50,

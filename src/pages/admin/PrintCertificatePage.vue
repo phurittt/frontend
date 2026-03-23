@@ -11,6 +11,36 @@ const router = useRouter();
 const certificateStore = useCertificateStore();
 const search = ref('');
 const filterStatus = ref<'all' | 'managed' | 'unmanaged'>('all');
+const filterTime = ref<'all' | 'year' | 'month' | 'week'>('all');
+
+function parseThaiDate(dateStr?: string): Date | null {
+  if (!dateStr || dateStr === '-') return null;
+  const months = [
+    'ม.ค.',
+    'ก.พ.',
+    'มี.ค.',
+    'เม.ย.',
+    'พ.ค.',
+    'มิ.ย.',
+    'ก.ค.',
+    'ส.ค.',
+    'ก.ย.',
+    'ต.ค.',
+    'พ.ย.',
+    'ธ.ค.',
+  ];
+
+  const monthIdx = months.findIndex((m) => dateStr.includes(m));
+  if (monthIdx === -1) return null;
+
+  const yearMatch = dateStr.match(/25\d{2}/);
+  const year = yearMatch ? parseInt(yearMatch[0]) - 543 : new Date().getFullYear();
+
+  const dayMatch = dateStr.match(/\d+/);
+  const day = dayMatch ? parseInt(dayMatch[0]) : 1;
+
+  return new Date(year, monthIdx, day);
+}
 
 // ตัวแปรสำหรับ Dialog ดูรายละเอียด
 const viewDialog = ref(false);
@@ -54,6 +84,35 @@ const rows = computed(() => {
     certs = certs.filter((c) => !!c.managedAt);
   } else if (filterStatus.value === 'unmanaged') {
     certs = certs.filter((c) => !c.managedAt);
+  }
+
+  if (filterTime.value !== 'all') {
+    const now = new Date();
+    certs = certs.filter((c) => {
+      const date = parseThaiDate(c.trainingDate);
+      if (!date) return false;
+
+      if (filterTime.value === 'year') {
+        return date.getFullYear() === now.getFullYear();
+      }
+      if (filterTime.value === 'month') {
+        return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+      }
+      if (filterTime.value === 'week') {
+        const day = now.getDay() || 7;
+        const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1);
+        const sunday = new Date(
+          monday.getFullYear(),
+          monday.getMonth(),
+          monday.getDate() + 6,
+          23,
+          59,
+          59,
+        );
+        return date >= monday && date <= sunday;
+      }
+      return true;
+    });
   }
 
   return certs.map((cert, idx) => ({
@@ -136,6 +195,56 @@ const printParticipants = (certificate: CertificateIssuance) => {
                   active-class="text-primary text-weight-bold"
                 >
                   <q-item-section>ยังไม่ออกวุฒิบัตร</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+
+          <q-btn
+            outline
+            color="grey-4"
+            text-color="grey-8"
+            icon="calendar_month"
+            padding="6px 16px"
+            label="เวลาอบรม"
+          >
+            <q-menu>
+              <q-list style="min-width: 150px">
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="filterTime = 'all'"
+                  :active="filterTime === 'all'"
+                  active-class="text-primary text-weight-bold"
+                >
+                  <q-item-section>ทั้งหมด</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="filterTime = 'year'"
+                  :active="filterTime === 'year'"
+                  active-class="text-primary text-weight-bold"
+                >
+                  <q-item-section>รายปี (ปีนี้)</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="filterTime = 'month'"
+                  :active="filterTime === 'month'"
+                  active-class="text-primary text-weight-bold"
+                >
+                  <q-item-section>รายเดือน (เดือนนี้)</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="filterTime = 'week'"
+                  :active="filterTime === 'week'"
+                  active-class="text-primary text-weight-bold"
+                >
+                  <q-item-section>รายสัปดาห์ (สัปดาห์นี้)</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
