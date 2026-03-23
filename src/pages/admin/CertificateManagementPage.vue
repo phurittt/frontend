@@ -10,6 +10,7 @@ const $q = useQuasar();
 const router = useRouter();
 const certificateStore = useCertificateStore();
 const search = ref('');
+const filterStatus = ref<'all' | 'managed' | 'unmanaged'>('all');
 
 // ตัวแปรสำหรับ Dialog ดูรายละเอียด
 const viewDialog = ref(false);
@@ -43,7 +44,15 @@ const columns: QTableColumn[] = [
 ];
 
 const rows = computed(() => {
-  return certificateStore.certificates.map((cert, idx) => ({
+  let certs = certificateStore.certificates;
+
+  if (filterStatus.value === 'managed') {
+    certs = certs.filter((c) => !!c.managedAt);
+  } else if (filterStatus.value === 'unmanaged') {
+    certs = certs.filter((c) => !c.managedAt);
+  }
+
+  return certs.map((cert, idx) => ({
     rawId: cert.id,
     index: idx + 1,
     year: cert.year || '-',
@@ -101,9 +110,40 @@ const printCertificateRegister = (certificate: CertificateIssuance) => {
             <template v-slot:append><q-icon name="search" color="grey-7" /></template>
           </q-input>
 
-          <q-btn outline color="grey-4" text-color="grey-8" icon="tune" padding="6px 12px"
-            ><q-tooltip>ตัวกรอง</q-tooltip></q-btn
-          >
+          <q-btn outline color="grey-4" text-color="grey-8" icon="tune" padding="6px 12px">
+            <q-tooltip>ตัวกรอง</q-tooltip>
+            <q-menu>
+              <q-list style="min-width: 180px">
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="filterStatus = 'all'"
+                  :active="filterStatus === 'all'"
+                  active-class="text-primary text-weight-bold"
+                >
+                  <q-item-section>ทั้งหมด</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="filterStatus = 'managed'"
+                  :active="filterStatus === 'managed'"
+                  active-class="text-primary text-weight-bold"
+                >
+                  <q-item-section>ออกวุฒิบัตรแล้ว</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="filterStatus = 'unmanaged'"
+                  :active="filterStatus === 'unmanaged'"
+                  active-class="text-primary text-weight-bold"
+                >
+                  <q-item-section>ยังไม่ออกวุฒิบัตร</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
         </div>
 
         <q-table
