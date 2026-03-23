@@ -37,18 +37,14 @@ const columns: QTableColumn[] = [
     field: 'print_participants',
     align: 'center',
   },
-  {
-    name: 'manage_certificate',
-    label: 'จัดการการออกวุฒิบัตร',
-    field: 'manage_certificate',
-    align: 'center',
-  },
-  {
-    name: 'register_certificate',
-    label: 'ทะเบียนคุมวุฒิบัตร',
-    field: 'register_certificate',
-    align: 'center',
-  },
+];
+
+const participantColumns: QTableColumn[] = [
+  { name: 'id', label: 'ลำดับ', field: (row) => row.id, align: 'center' },
+  { name: 'participantName', label: 'ชื่อ-นามสกุล', field: 'participantName', align: 'left' },
+  { name: 'department', label: 'หน่วยงาน', field: 'department', align: 'left' },
+  { name: 'registrationType', label: 'ประเภทบุคลากร', field: 'registrationType', align: 'center' },
+  { name: 'passStatus', label: 'สถานะ', field: 'passStatus', align: 'center' },
 ];
 
 const rows = computed(() => {
@@ -79,25 +75,6 @@ const rows = computed(() => {
 const viewItem = (certificate: CertificateIssuance) => {
   selectedCertificate.value = certificate;
   viewDialog.value = true;
-};
-
-// ฟังก์ชันแก้ไขการออกวุฒิบัตร
-const editCertificateIssuance = (certificate: CertificateIssuance) => {
-  certificateStore.setCertificateData(certificate);
-  router.push({
-    name: 'certificate-issuance',
-    params: { courseId: certificate.courseId },
-  });
-};
-
-// ฟังก์ชันพิมพ์ทะเบียนคุมวุฒิบัตร
-const printCertificateRegister = (certificate: CertificateIssuance) => {
-  $q.notify({
-    type: 'info',
-    message: 'กำลังเตรียมพิมพ์ทะเบียนคุมวุฒิบัตรสำหรับ ' + certificate.courseName,
-    position: 'top',
-  });
-  // TODO: ใช้งานจริง เพิ่มฟังก์ชั่นพิมพ์
 };
 
 // ฟังก์ชันพิมพ์รายชื่อผู้ลงทะเบียนอบรม
@@ -188,23 +165,6 @@ const printParticipants = (certificate: CertificateIssuance) => {
             </q-td>
           </template>
 
-          <template v-slot:body-cell-register_certificate="props">
-            <q-td :props="props">
-              <div class="row justify-center">
-                <q-btn
-                  @click="printCertificateRegister(props.row._raw)"
-                  unelevated
-                  size="sm"
-                  color="light-blue-1"
-                  text-color="dark"
-                  icon="print"
-                  style="border-radius: 6px; padding: 6px 10px"
-                  ><q-tooltip>พิมพ์ทะเบียนคุมวุฒิบัตร</q-tooltip></q-btn
-                >
-              </div>
-            </q-td>
-          </template>
-
           <template v-slot:body-cell-view_info="props">
             <q-td :props="props">
               <div class="row justify-center">
@@ -238,79 +198,44 @@ const printParticipants = (certificate: CertificateIssuance) => {
               </div>
             </q-td>
           </template>
-
-          <template v-slot:body-cell-manage_certificate="props">
-            <q-td :props="props">
-              <div class="row justify-center items-center">
-                <template v-if="props.row._raw.managedAt">
-                  <span
-                    class="text-caption text-grey-8"
-                    style="font-size: 12px; line-height: 1.4; white-space: normal; max-width: 250px"
-                  >
-                    ออกวุฒิบัตรเรียบร้อย ณ วันที่ {{ props.row._raw.managedAt }} เวลา
-                    {{ props.row._raw.managedTime }} โดย {{ props.row._raw.managedBy }}
-                  </span>
-                </template>
-                <template v-else>
-                  <q-btn
-                    @click="editCertificateIssuance(props.row._raw)"
-                    unelevated
-                    size="sm"
-                    color="light-blue-1"
-                    text-color="dark"
-                    icon="edit"
-                    style="border-radius: 6px; padding: 6px 10px"
-                  >
-                    <q-tooltip>จัดการการออกวุฒิบัตร</q-tooltip>
-                  </q-btn>
-                </template>
-              </div>
-            </q-td>
-          </template>
         </q-table>
       </q-card-section>
     </q-card>
 
     <q-dialog v-model="viewDialog">
-      <q-card style="min-width: 600px; border-radius: 8px">
+      <q-card style="min-width: 800px; border-radius: 8px">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-weight-bold">ข้อมูลการออกวุฒิบัตร</div>
+          <div class="text-h6 text-weight-bold">รายชื่อผู้ลงทะเบียนอบรม</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
         <q-card-section class="q-pt-md" v-if="selectedCertificate">
-          <div class="row q-mb-md">
-            <div class="col-5 text-grey-7 text-weight-bold">ชื่อหลักสูตร:</div>
-            <div class="col-7">{{ selectedCertificate.courseName }}</div>
+          <div class="text-subtitle1 text-weight-bold q-mb-md text-primary">
+            หลักสูตร: {{ selectedCertificate.courseName }}
           </div>
-          <div class="row q-mb-md">
-            <div class="col-5 text-grey-7 text-weight-bold">ปีงบประมาณ:</div>
-            <div class="col-7">{{ selectedCertificate.year }}</div>
-          </div>
-          <div class="row q-mb-md">
-            <div class="col-5 text-grey-7 text-weight-bold">ผู้รับผิดชอบ:</div>
-            <div class="col-7">{{ selectedCertificate.manager }}</div>
-          </div>
-          <div class="row q-mb-md">
-            <div class="col-5 text-grey-7 text-weight-bold">จำนวนผู้ลงทะเบียน:</div>
-            <div class="col-7">
-              {{ selectedCertificate.participantSummary.attended }} คน มา
-              {{ selectedCertificate.participantSummary.attended }} ไม่มา
-              {{ selectedCertificate.participantSummary.notAttended }} ยกเลิก
-              {{ selectedCertificate.participantSummary.cancelled }}
-            </div>
-          </div>
-          <div class="row q-mb-md">
-            <div class="col-5 text-grey-7 text-weight-bold">สถานะการสร้างไฟล์:</div>
-            <div class="col-7">
-              {{
-                selectedCertificate.certificateStatus.status === 'create'
-                  ? 'สร้างไฟล์'
-                  : 'ไม่สร้างไฟล์'
-              }}
-            </div>
-          </div>
+          <q-table
+            flat
+            bordered
+            :rows="selectedCertificate.participants"
+            :columns="participantColumns"
+            row-key="id"
+            :rows-per-page-options="[10, 20, 50]"
+            table-header-class="bg-grey-1 text-weight-bold"
+          >
+            <template v-slot:body-cell-passStatus="props">
+              <q-td :props="props">
+                <q-chip
+                  :color="props.value === 'passed' ? 'green-2' : 'red-2'"
+                  :text-color="props.value === 'passed' ? 'green-9' : 'red-9'"
+                  size="sm"
+                  class="text-weight-bold"
+                >
+                  {{ props.value === 'passed' ? 'ผ่าน' : 'ไม่ผ่าน' }}
+                </q-chip>
+              </q-td>
+            </template>
+          </q-table>
         </q-card-section>
       </q-card>
     </q-dialog>

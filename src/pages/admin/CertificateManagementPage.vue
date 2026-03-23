@@ -30,13 +30,6 @@ const columns: QTableColumn[] = [
   { name: 'regis_close', label: 'ปิดลงทะเบียน', field: 'regis_close', align: 'center' },
   { name: 'training_date', label: 'อบรมวันที่', field: 'training_date', align: 'center' },
   { name: 'manager', label: 'ผู้รับผิดชอบ', field: 'manager', align: 'left' },
-  { name: 'view_info', label: 'รายชื่อผู้ลงทะเบียน', field: 'view_info', align: 'center' },
-  {
-    name: 'print_participants',
-    label: 'พิมพ์รายชื่อผู้ลงทะเบียนอบรม',
-    field: 'print_participants',
-    align: 'center',
-  },
   {
     name: 'manage_certificate',
     label: 'จัดการการออกวุฒิบัตร',
@@ -49,6 +42,7 @@ const columns: QTableColumn[] = [
     field: 'register_certificate',
     align: 'center',
   },
+  { name: 'view_info', label: 'ข้อมูลการออกวุฒิบัตร', field: 'view_info', align: 'center' },
 ];
 
 const rows = computed(() => {
@@ -216,24 +210,7 @@ const printParticipants = (certificate: CertificateIssuance) => {
                   text-color="dark"
                   icon="search"
                   style="border-radius: 6px; padding: 6px 10px"
-                  ><q-tooltip>ดูรายชื่อผู้ลงทะเบียน</q-tooltip></q-btn
-                >
-              </div>
-            </q-td>
-          </template>
-
-          <template v-slot:body-cell-print_participants="props">
-            <q-td :props="props">
-              <div class="row justify-center">
-                <q-btn
-                  @click="printParticipants(props.row._raw)"
-                  unelevated
-                  size="sm"
-                  color="purple-2"
-                  text-color="dark"
-                  icon="print"
-                  style="border-radius: 6px; padding: 6px 10px"
-                  ><q-tooltip>พิมพ์รายชื่อผู้ลงทะเบียนอบรม</q-tooltip></q-btn
+                  ><q-tooltip>ดูรายละเอียดข้อมูลการออกวุฒิบัตร</q-tooltip></q-btn
                 >
               </div>
             </q-td>
