@@ -69,21 +69,21 @@ export function generateCertificate(data: CertificateData): Promise<string> {
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 2;
       ctx.fillStyle = '#1a237e';
-      ctx.font = "bold 70px 'Times New Roman', 'Georgia', serif";
-      ctx.fillText('CERTIFICATE', W / 2, 148);
+      ctx.font = "bold 42px 'Sarabun', 'Times New Roman', serif";
+      ctx.fillText('สำนักคอมพิวเตอร์ มหาวิทยาลัยบูรพา', W / 2, 148);
       clearShadow(ctx);
 
       ctx.fillStyle = '#B8860B';
-      ctx.font = "bold 28px 'Times New Roman', 'Georgia', serif";
-      ctx.fillText('O F   A C H I E V E M E N T', W / 2, 194);
+      ctx.font = "bold 28px 'Sarabun', 'Times New Roman', serif";
+      ctx.fillText('วุฒิบัตร', W / 2, 194);
 
       // ─── Divider ───────────────────────────────────────────────────────────────
       drawDivider(ctx, W, 222);
 
       // ─── "This certificate is proudly presented to" ────────────────────────────
       ctx.fillStyle = '#777';
-      ctx.font = "italic 20px 'Times New Roman', 'Georgia', serif";
-      ctx.fillText('This certificate is proudly presented to', W / 2, 261);
+      ctx.font = "20px 'Sarabun', 'Times New Roman', serif";
+      ctx.fillText('วุฒิบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า', W / 2, 261);
 
       // ─── Participant Name ──────────────────────────────────────────────────────
       ctx.shadowColor = 'rgba(26,35,126,0.14)';
@@ -104,8 +104,8 @@ export function generateCertificate(data: CertificateData): Promise<string> {
 
       // ─── "in recognition..." ───────────────────────────────────────────────────
       ctx.fillStyle = '#777';
-      ctx.font = "italic 20px 'Times New Roman', 'Georgia', serif";
-      ctx.fillText('in recognition of the successful completion of the course', W / 2, 385);
+      ctx.font = "20px 'Sarabun', 'Times New Roman', serif";
+      ctx.fillText('ได้สำเร็จการอบรม', W / 2, 385);
 
       // ─── Course Title ──────────────────────────────────────────────────────────
       ctx.fillStyle = '#1a237e';
@@ -116,33 +116,14 @@ export function generateCertificate(data: CertificateData): Promise<string> {
       const bodyTop = endCourseY + 38;
 
       ctx.fillStyle = '#555';
-      ctx.font = "italic 16px 'Times New Roman', 'Georgia', serif";
-      const p1End = wrapCenter(
+      ctx.font = "18px 'Sarabun', 'Times New Roman', serif";
+      const p3End = wrapCenter(
         ctx,
-        'Your dedication, commitment, and outstanding performance throughout the program are truly commendable.',
+        'ขอให้ประสบความสุขสวัสดิ์ เจริญก้าวหน้า และรักษาคุณความดีตลอดไป',
         W / 2,
         bodyTop,
         W - 200,
-        24,
-      );
-      const p2End = wrapCenter(
-        ctx,
-        'Your efforts have demonstrated a strong pursuit of knowledge and professional growth.',
-        W / 2,
-        p1End + 26,
-        W - 200,
-        24,
-      );
-
-      ctx.fillStyle = '#666';
-      ctx.font = "italic 15px 'Times New Roman', 'Georgia', serif";
-      const p3End = wrapCenter(
-        ctx,
-        'We congratulate you on this achievement and wish you continued success in all your future endeavors.',
-        W / 2,
-        p2End + 26,
-        W - 200,
-        22,
+        28,
       );
 
       // ─── Bottom Divider ────────────────────────────────────────────────────────
@@ -155,15 +136,12 @@ export function generateCertificate(data: CertificateData): Promise<string> {
       // Left — Date + Duration
       ctx.textAlign = 'left';
       ctx.fillStyle = '#555';
-      ctx.font = "16px 'Times New Roman', serif";
+      ctx.font = "16px 'Sarabun', 'Times New Roman', serif";
       ctx.fillText(
-        `Date: ${data.dateIssued || new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+        `มอบให้ ณ วันที่ ${data.dateIssued || new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}`,
         90,
         botY,
       );
-      ctx.fillStyle = '#888';
-      ctx.font = "14px 'Times New Roman', serif";
-      ctx.fillText(`Duration: ${data.duration}`, 90, botY + 28);
 
       // Right — Signature
       const sigX = W - 230;
@@ -176,8 +154,8 @@ export function generateCertificate(data: CertificateData): Promise<string> {
 
       ctx.textAlign = 'center';
       ctx.fillStyle = '#1a237e';
-      ctx.font = "bold 17px 'Times New Roman', serif";
-      ctx.fillText('Mr. Saman Thumjai', sigX, botY + 14);
+      ctx.font = "bold 17px 'Sarabun', 'Times New Roman', serif";
+      ctx.fillText('สมาน ทุ่มใจ', sigX, botY + 14);
       ctx.fillStyle = '#888';
       ctx.font = "15px 'Times New Roman', serif";
       ctx.fillText('Director', sigX, botY + 36);

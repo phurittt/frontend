@@ -31,7 +31,6 @@ const columns: QTableColumn[] = [
   { name: 'manager', label: 'ผู้รับผิดชอบ', field: 'manager', align: 'left' },
   { name: 'course_count', label: 'จำนวนหลักสูตร', field: 'course_count', align: 'center' },
   { name: 'ask_food', label: 'สอบถามเรื่องอาหาร', field: 'ask_food', align: 'center' },
-  { name: 'status', label: 'สถานะการเปิดอบรม', field: 'status', align: 'center' },
   { name: 'show_on_web', label: 'การแสดงผลบนหน้าเว็บ', field: 'show_on_web', align: 'center' },
   { name: 'actions', label: 'การจัดการ', field: 'actions', align: 'center' },
 ];
@@ -52,7 +51,6 @@ const rows = computed(() => {
     manager: p.projectData.manager?.label || '-',
     course_count: p.courses.length,
     ask_food: p.projectData.askFood,
-    status: p.projectData.isOpen,
     show_on_web: p.projectData.isVisible,
     _raw: p,
   }));
@@ -200,18 +198,6 @@ const goToAddPage = () => {
                 dense
                 color="amber-8"
                 :label="props.row.ask_food ? 'สอบถาม' : 'ไม่สอบถาม'"
-              />
-            </q-td>
-          </template>
-
-          <template v-slot:body-cell-status="props">
-            <q-td :props="props" class="text-center">
-              <q-toggle
-                :model-value="props.row.status"
-                @update:model-value="(val) => toggleField(props.row.rawId, 'status', val)"
-                dense
-                color="positive"
-                :label="props.row.status ? 'เปิด' : 'ปิด'"
               />
             </q-td>
           </template>
