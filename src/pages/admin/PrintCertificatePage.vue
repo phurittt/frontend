@@ -2,102 +2,78 @@
 import { ref, computed, onMounted } from 'vue';
 import type { QTableColumn } from 'quasar';
 import { useQuasar } from 'quasar';
-import { useRouter } from 'vue-router';
 import { useCertificateStore } from 'src/stores/certificate-store';
-import type { CertificateIssuance } from 'src/models/certificate';
+import type { CertificateParticipant, ProjectCertificateSummary } from 'src/models/certificate';
 
 const $q = useQuasar();
-const router = useRouter();
 const certificateStore = useCertificateStore();
 const search = ref('');
 const filterStatus = ref<'all' | 'managed' | 'unmanaged'>('all');
 const filterTime = ref<'all' | 'year' | 'month' | 'week'>('all');
 
-function parseThaiDate(dateStr?: string): Date | null {
-  if (!dateStr || dateStr === '-') return null;
-  const months = [
-    'ม.ค.',
-    'ก.พ.',
-    'มี.ค.',
-    'เม.ย.',
-    'พ.ค.',
-    'มิ.ย.',
-    'ก.ค.',
-    'ส.ค.',
-    'ก.ย.',
-    'ต.ค.',
-    'พ.ย.',
-    'ธ.ค.',
-  ];
-
-  const monthIdx = months.findIndex((m) => dateStr.includes(m));
-  if (monthIdx === -1) return null;
-
-  const yearMatch = dateStr.match(/25\d{2}/);
-  const year = yearMatch ? parseInt(yearMatch[0]) - 543 : new Date().getFullYear();
-
-  const dayMatch = dateStr.match(/\d+/);
-  const day = dayMatch ? parseInt(dayMatch[0]) : 1;
-
-  return new Date(year, monthIdx, day);
-}
-
-// ตัวแปรสำหรับ Dialog ดูรายละเอียด
 const viewDialog = ref(false);
-const selectedCertificate = ref<CertificateIssuance | null>(null);
+const selectedSummary = ref<ProjectCertificateSummary | null>(null);
+const participants = ref<CertificateParticipant[]>([]);
+const isLoadingParticipants = ref(false);
 
 onMounted(() => {
-  certificateStore.fetchCertificates();
+  certificateStore.fetchSummaries();
 });
 
 const columns: QTableColumn[] = [
-  { name: 'id', label: 'ลำดับ', field: 'index', align: 'center', sortable: true },
+  { name: 'index', label: 'ลำดับ', field: 'index', align: 'center', sortable: true },
   { name: 'year', label: 'ปีงบประมาณ', field: 'year', align: 'center', sortable: true },
   { name: 'courseName', label: 'ชื่อหลักสูตร', field: 'courseName', align: 'left' },
-  { name: 'project', label: 'โครงการ', field: 'project', align: 'left' },
+  { name: 'projectName', label: 'โครงการ', field: 'projectName', align: 'left' },
   { name: 'duration', label: 'ระยะเวลา', field: 'duration', align: 'left' },
-  { name: 'regis_open', label: 'เปิดลงทะเบียน', field: 'regis_open', align: 'center' },
-  { name: 'regis_close', label: 'ปิดลงทะเบียน', field: 'regis_close', align: 'center' },
-  { name: 'training_date', label: 'อบรมวันที่', field: 'training_date', align: 'center' },
   { name: 'manager', label: 'ผู้รับผิดชอบ', field: 'manager', align: 'left' },
   { name: 'view_info', label: 'รายชื่อผู้ลงทะเบียน', field: 'view_info', align: 'center' },
   {
     name: 'print_participants',
-    label: 'พิมพ์รายชื่อผู้ลงทะเบียนอบรม',
+    label: 'พิมพ์รายชื่อ',
     field: 'print_participants',
     align: 'center',
   },
 ];
 
 const participantColumns: QTableColumn[] = [
-  { name: 'id', label: 'ลำดับ', field: (row) => row.id, align: 'center' },
+  { name: 'index', label: 'ลำดับ', field: 'index', align: 'center' },
   { name: 'participantName', label: 'ชื่อ-นามสกุล', field: 'participantName', align: 'left' },
   { name: 'department', label: 'หน่วยงาน', field: 'department', align: 'left' },
   { name: 'registrationType', label: 'ประเภทบุคลากร', field: 'registrationType', align: 'center' },
   { name: 'passStatus', label: 'สถานะ', field: 'passStatus', align: 'center' },
+  { name: 'certificateCode', label: 'รหัสวุฒิบัตร', field: 'certificateCode', align: 'center' },
 ];
 
+function formatDate(d: Date | string | null | undefined): string {
+  if (!d) return '-';
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 const rows = computed(() => {
-  let certs = certificateStore.certificates;
+  let items = certificateStore.summaries;
 
   if (filterStatus.value === 'managed') {
-    certs = certs.filter((c) => !!c.managedAt);
+    items = items.filter((s) => !!s.managedAt);
   } else if (filterStatus.value === 'unmanaged') {
-    certs = certs.filter((c) => !c.managedAt);
+    items = items.filter((s) => !s.managedAt);
   }
 
   if (filterTime.value !== 'all') {
     const now = new Date();
-    certs = certs.filter((c) => {
-      const date = parseThaiDate(c.trainingDate);
-      if (!date) return false;
-
-      if (filterTime.value === 'year') {
-        return date.getFullYear() === now.getFullYear();
-      }
-      if (filterTime.value === 'month') {
+    items = items.filter((s) => {
+      const date = s.trainingStartDate ? new Date(s.trainingStartDate) : null;
+      if (!date || isNaN(date.getTime())) return false;
+      if (filterTime.value === 'year') return date.getFullYear() === now.getFullYear();
+      if (filterTime.value === 'month')
         return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
-      }
       if (filterTime.value === 'week') {
         const day = now.getDay() || 7;
         const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1);
@@ -115,34 +91,38 @@ const rows = computed(() => {
     });
   }
 
-  return certs.map((cert, idx) => ({
-    rawId: cert.id,
-    index: idx + 1,
-    year: cert.year || '-',
-    courseName: cert.courseName || 'ไม่ได้ระบุชื่อหลักสูตร',
-    project: cert.project || '-',
-    duration: cert.duration || '-',
-    regis_open: cert.regisOpenDate || '-',
-    regis_close: cert.regisCloseDate || '-',
-    training_date: cert.trainingDate || '-',
-    manager: cert.manager || '-',
-    _raw: cert,
-  }));
+  if (search.value) {
+    const q = search.value.toLowerCase();
+    items = items.filter(
+      (s) => s.courseName.toLowerCase().includes(q) || s.projectName.toLowerCase().includes(q),
+    );
+  }
+
+  return items.map((s, idx) => ({ ...s, index: idx + 1 }));
 });
 
-// ฟังก์ชันดูรายละเอียด
-const viewItem = (certificate: CertificateIssuance) => {
-  selectedCertificate.value = certificate;
+const viewItem = async (summary: ProjectCertificateSummary) => {
+  selectedSummary.value = summary;
+  participants.value = [];
   viewDialog.value = true;
+  isLoadingParticipants.value = true;
+  try {
+    const issuance = await certificateStore.fetchProjectIssuance(summary.projectId);
+    participants.value = issuance.participants.map((p, i) => ({ ...p, index: i + 1 }));
+  } catch {
+    $q.notify({ type: 'negative', message: 'ไม่สามารถโหลดรายชื่อได้', position: 'top' });
+  } finally {
+    isLoadingParticipants.value = false;
+  }
 };
 
-// ฟังก์ชันพิมพ์รายชื่อผู้ลงทะเบียนอบรม
-const printParticipants = (certificate: CertificateIssuance) => {
+const printParticipants = (summary: ProjectCertificateSummary) => {
   $q.notify({
     type: 'info',
-    message: 'กำลังเตรียมพิมพ์รายชื่อผู้ลงทะเบียนอบรมสำหรับ ' + certificate.courseName,
+    message: 'กำลังเตรียมพิมพ์รายชื่อผู้ลงทะเบียนอบรมสำหรับ ' + summary.courseName,
     position: 'top',
   });
+  // TODO: HTML print / export PDF
 };
 </script>
 
@@ -157,7 +137,7 @@ const printParticipants = (certificate: CertificateIssuance) => {
             outlined
             dense
             v-model="search"
-            placeholder="ค้นหาหลักสูตร..."
+            placeholder="ค้นหาหลักสูตร / โครงการ..."
             rounded
             bg-color="grey-1"
             style="width: 320px"
@@ -170,31 +150,19 @@ const printParticipants = (certificate: CertificateIssuance) => {
             <q-menu>
               <q-list style="min-width: 180px">
                 <q-item
+                  v-for="opt in [
+                    { label: 'ทั้งหมด', value: 'all' },
+                    { label: 'ออกวุฒิบัตรแล้ว', value: 'managed' },
+                    { label: 'ยังไม่ออกวุฒิบัตร', value: 'unmanaged' },
+                  ]"
+                  :key="opt.value"
                   clickable
                   v-close-popup
-                  @click="filterStatus = 'all'"
-                  :active="filterStatus === 'all'"
+                  @click="filterStatus = opt.value as any"
+                  :active="filterStatus === opt.value"
                   active-class="text-primary text-weight-bold"
                 >
-                  <q-item-section>ทั้งหมด</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="filterStatus = 'managed'"
-                  :active="filterStatus === 'managed'"
-                  active-class="text-primary text-weight-bold"
-                >
-                  <q-item-section>ออกวุฒิบัตรแล้ว</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="filterStatus = 'unmanaged'"
-                  :active="filterStatus === 'unmanaged'"
-                  active-class="text-primary text-weight-bold"
-                >
-                  <q-item-section>ยังไม่ออกวุฒิบัตร</q-item-section>
+                  <q-item-section>{{ opt.label }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -211,40 +179,20 @@ const printParticipants = (certificate: CertificateIssuance) => {
             <q-menu>
               <q-list style="min-width: 150px">
                 <q-item
+                  v-for="opt in [
+                    { label: 'ทั้งหมด', value: 'all' },
+                    { label: 'รายปี (ปีนี้)', value: 'year' },
+                    { label: 'รายเดือน (เดือนนี้)', value: 'month' },
+                    { label: 'รายสัปดาห์ (สัปดาห์นี้)', value: 'week' },
+                  ]"
+                  :key="opt.value"
                   clickable
                   v-close-popup
-                  @click="filterTime = 'all'"
-                  :active="filterTime === 'all'"
+                  @click="filterTime = opt.value as any"
+                  :active="filterTime === opt.value"
                   active-class="text-primary text-weight-bold"
                 >
-                  <q-item-section>ทั้งหมด</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="filterTime = 'year'"
-                  :active="filterTime === 'year'"
-                  active-class="text-primary text-weight-bold"
-                >
-                  <q-item-section>รายปี (ปีนี้)</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="filterTime = 'month'"
-                  :active="filterTime === 'month'"
-                  active-class="text-primary text-weight-bold"
-                >
-                  <q-item-section>รายเดือน (เดือนนี้)</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-close-popup
-                  @click="filterTime = 'week'"
-                  :active="filterTime === 'week'"
-                  active-class="text-primary text-weight-bold"
-                >
-                  <q-item-section>รายสัปดาห์ (สัปดาห์นี้)</q-item-section>
+                  <q-item-section>{{ opt.label }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -256,20 +204,14 @@ const printParticipants = (certificate: CertificateIssuance) => {
           bordered
           :rows="rows"
           :columns="columns"
-          row-key="rawId"
+          row-key="projectId"
           separator="cell"
-          :filter="search"
           :rows-per-page-options="[10, 20, 50]"
           table-header-class="bg-grey-1 text-weight-bold text-dark"
+          :loading="certificateStore.isLoading"
         >
           <template v-slot:body-cell-courseName="props">
-            <q-td :props="props" style="max-width: 280px; white-space: normal; line-height: 1.4">{{
-              props.value
-            }}</q-td>
-          </template>
-
-          <template v-slot:body-cell-duration="props">
-            <q-td :props="props" style="white-space: normal; font-size: 12px">
+            <q-td :props="props" style="max-width: 280px; white-space: normal; line-height: 1.4">
               {{ props.value }}
             </q-td>
           </template>
@@ -278,15 +220,16 @@ const printParticipants = (certificate: CertificateIssuance) => {
             <q-td :props="props">
               <div class="row justify-center">
                 <q-btn
-                  @click="viewItem(props.row._raw)"
+                  @click="viewItem(props.row)"
                   unelevated
                   size="sm"
                   color="light-green-3"
                   text-color="dark"
-                  icon="search"
+                  icon="people"
                   style="border-radius: 6px; padding: 6px 10px"
-                  ><q-tooltip>ดูรายชื่อผู้ลงทะเบียน</q-tooltip></q-btn
                 >
+                  <q-tooltip>ดูรายชื่อผู้ลงทะเบียน</q-tooltip>
+                </q-btn>
               </div>
             </q-td>
           </template>
@@ -295,53 +238,97 @@ const printParticipants = (certificate: CertificateIssuance) => {
             <q-td :props="props">
               <div class="row justify-center">
                 <q-btn
-                  @click="printParticipants(props.row._raw)"
+                  @click="printParticipants(props.row)"
                   unelevated
                   size="sm"
                   color="purple-2"
                   text-color="dark"
                   icon="print"
                   style="border-radius: 6px; padding: 6px 10px"
-                  ><q-tooltip>พิมพ์รายชื่อผู้ลงทะเบียนอบรม</q-tooltip></q-btn
                 >
+                  <q-tooltip>พิมพ์รายชื่อผู้ลงทะเบียนอบรม</q-tooltip>
+                </q-btn>
               </div>
             </q-td>
+          </template>
+
+          <template v-slot:no-data>
+            <div class="full-width row flex-center q-pa-lg text-grey-6">
+              <q-icon name="folder_open" size="2em" class="q-mr-sm" />
+              ไม่พบข้อมูล
+            </div>
           </template>
         </q-table>
       </q-card-section>
     </q-card>
 
+    <!-- Participant List Dialog -->
     <q-dialog v-model="viewDialog">
-      <q-card style="min-width: 800px; border-radius: 8px">
+      <q-card style="min-width: min(900px, 95vw); border-radius: 8px">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6 text-weight-bold">รายชื่อผู้ลงทะเบียนอบรม</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section class="q-pt-md" v-if="selectedCertificate">
+        <q-card-section class="q-pt-md" v-if="selectedSummary">
           <div class="text-subtitle1 text-weight-bold q-mb-md text-primary">
-            หลักสูตร: {{ selectedCertificate.courseName }}
+            {{ selectedSummary.courseName }}
           </div>
+          <div class="text-caption text-grey-6 q-mb-md">
+            โครงการ: {{ selectedSummary.projectName }} | ผู้รับผิดชอบ: {{ selectedSummary.manager }}
+          </div>
+
+          <div v-if="isLoadingParticipants" class="text-center q-pa-lg">
+            <q-spinner-dots color="primary" size="40px" />
+          </div>
+
           <q-table
+            v-else
             flat
             bordered
-            :rows="selectedCertificate.participants"
+            :rows="participants"
             :columns="participantColumns"
-            row-key="id"
-            :rows-per-page-options="[10, 20, 50]"
+            row-key="registrantId"
+            :rows-per-page-options="[10, 20, 50, 0]"
             table-header-class="bg-grey-1 text-weight-bold"
           >
             <template v-slot:body-cell-passStatus="props">
               <q-td :props="props">
                 <q-chip
-                  :color="props.value === 'passed' ? 'green-2' : 'red-2'"
-                  :text-color="props.value === 'passed' ? 'green-9' : 'red-9'"
+                  :color="
+                    props.value === 'passed'
+                      ? 'green-2'
+                      : props.value === 'not-passed'
+                        ? 'red-2'
+                        : 'grey-3'
+                  "
+                  :text-color="
+                    props.value === 'passed'
+                      ? 'green-9'
+                      : props.value === 'not-passed'
+                        ? 'red-9'
+                        : 'grey-8'
+                  "
                   size="sm"
                   class="text-weight-bold"
                 >
-                  {{ props.value === 'passed' ? 'ผ่าน' : 'ไม่ผ่าน' }}
+                  {{
+                    props.value === 'passed'
+                      ? 'ผ่าน'
+                      : props.value === 'not-passed'
+                        ? 'ไม่ผ่าน'
+                        : 'รอประเมิน'
+                  }}
                 </q-chip>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-certificateCode="props">
+              <q-td :props="props" class="text-center">
+                <span v-if="props.value" class="text-primary text-caption text-weight-bold">
+                  {{ props.value }}
+                </span>
+                <span v-else class="text-grey-4">-</span>
               </q-td>
             </template>
           </q-table>
@@ -357,7 +344,6 @@ const printParticipants = (certificate: CertificateIssuance) => {
   color: #555;
   text-align: center !important;
 }
-
 :deep(.q-table td) {
   font-size: 13px;
   color: #333;

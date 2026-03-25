@@ -45,6 +45,12 @@ export default defineConfig((ctx) => {
         // extendTsConfig (tsConfig) {}
       },
 
+      // Bake API_URL into the bundle at build time.
+      // Set API_URL env var in Render (or any CI) before running `quasar build`.
+      env: {
+        API_URL: process.env.API_URL || 'http://localhost:3000',
+      },
+
       vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,

@@ -8,17 +8,19 @@ import type { Project } from 'src/models/project';
 
 const $q = useQuasar();
 const router = useRouter();
-const projectStore = useProjectStore();
-const search = ref('');
+const projectStore = useProjectStore(); // เรียกใช้ Store สำหรับจัดการข้อมูลโครงการ
+const search = ref(''); // ตัวแปรสำหรับผูกกับช่องค้นหา
 
-// ตัวแปรสำหรับ Dialog ดูรายละเอียด
+// ตัวแปรสำหรับควบคุมการแสดงผล Dialog รายละเอียดโครงการ
 const viewDialog = ref(false);
 const selectedProject = ref<Project | null>(null);
 
+// ดึงข้อมูลโครงการทั้งหมดเมื่อ Component ถูกโหลด (Mount)
 onMounted(() => {
   projectStore.fetchProjects();
 });
 
+// กำหนดโครงสร้างคอลัมน์ของตาราง (QTable)
 const columns: QTableColumn[] = [
   { name: 'id', label: 'ลำดับ', field: 'index', align: 'center' },
   { name: 'year', label: 'ปีงบประมาณ', field: 'year', align: 'center', sortable: true },
@@ -34,6 +36,10 @@ const columns: QTableColumn[] = [
   { name: 'actions', label: 'การจัดการ', field: 'actions', align: 'center' },
 ];
 
+/**
+ * แปลงข้อมูลจาก Store (projectStore.projects)
+ * ให้อยู่ในรูปแบบที่ตาราง (QTable) สามารถแสดงผลได้อย่างสวยงาม
+ */
 const rows = computed(() => {
   return projectStore.projects.map((p, idx) => ({
     rawId: p.id,
@@ -45,20 +51,40 @@ const rows = computed(() => {
     regis_close: `${p.projectData.regisCloseDate || '-'} ${p.projectData.timeTo || ''}`,
     manager: p.projectData.manager?.label || '-',
     course_count: p.courses.length,
-    ask_food: p.projectData.askFood ? 'สอบถาม' : 'ไม่สอบถาม',
-    status: p.projectData.isOpen ? 'เปิด' : 'ปิด',
-    show_on_web: p.projectData.isOpen,
-    _raw: p, // ซ่อนข้อมูลดิบไว้ใช้ตอนกด View
+    ask_food: p.projectData.askFood,
+    status: p.projectData.isOpen,
+    show_on_web: p.projectData.isVisible,
+    _raw: p,
   }));
 });
 
-// ฟังก์ชันดูรายละเอียด
+const toggleField = async (
+  id: number | undefined,
+  field: 'requireFoodSurvey' | 'status' | 'isVisible',
+  value: boolean,
+) => {
+  if (!id) return;
+  try {
+    await projectStore.patchProject(id, { [field]: value });
+  } catch {
+    $q.notify({ type: 'negative', message: 'อัปเดตไม่สำเร็จ' });
+  }
+};
+
+/**
+ * แสดงรายละเอียดโครงการในรูปแบบ Dialog
+ * @param project ข้อมูลโครงการที่ต้องการดู
+ */
 const viewItem = (project: Project) => {
   selectedProject.value = project;
   viewDialog.value = true;
 };
 
-// ฟังก์ชันแก้ไข
+/**
+ * ย้ายหน้าไปยังการแก้ไขโครงการ
+ * @param project ข้อมูลโครงการ
+ * @param id ID ของโครงการ
+ */
 const editItem = (project: Project, id: number) => {
   projectStore.setEditProject(project);
 
@@ -68,7 +94,10 @@ const editItem = (project: Project, id: number) => {
   });
 };
 
-// ฟังก์ชันลบ
+/**
+ * ลบโครงการออกจากระบบ พร้อมการยืนยัน (Confirmation)
+ * @param id ID ของโครงการที่ต้องการลบ
+ */
 const deleteItem = (id: number) => {
   $q.dialog({
     title: 'ยืนยันการลบ',
@@ -81,7 +110,9 @@ const deleteItem = (id: number) => {
   });
 };
 
-// เมื่อกดปุ่มเพิ่มใหม่ ให้เคลียร์ฟอร์มเก่าก่อนไป
+/**
+ * เคลียร์ฟอร์ม (Reset) และย้ายหน้าไปยังโครงการหน้าเพิ่มโครงการใหม่
+ */
 const goToAddPage = () => {
   projectStore.resetForm();
   router.push('/admin/projects/add');
@@ -159,9 +190,41 @@ const goToAddPage = () => {
             </q-td>
           </template>
 
+          <template v-slot:body-cell-ask_food="props">
+            <q-td :props="props" class="text-center">
+              <q-toggle
+                :model-value="props.row.ask_food"
+                @update:model-value="
+                  (val) => toggleField(props.row.rawId, 'requireFoodSurvey', val)
+                "
+                dense
+                color="amber-8"
+                :label="props.row.ask_food ? 'สอบถาม' : 'ไม่สอบถาม'"
+              />
+            </q-td>
+          </template>
+
+          <template v-slot:body-cell-status="props">
+            <q-td :props="props" class="text-center">
+              <q-toggle
+                :model-value="props.row.status"
+                @update:model-value="(val) => toggleField(props.row.rawId, 'status', val)"
+                dense
+                color="positive"
+                :label="props.row.status ? 'เปิด' : 'ปิด'"
+              />
+            </q-td>
+          </template>
+
           <template v-slot:body-cell-show_on_web="props">
-            <q-td :props="props">
-              <q-checkbox v-model="props.row.show_on_web" dense color="primary" disable />
+            <q-td :props="props" class="text-center">
+              <q-toggle
+                :model-value="props.row.show_on_web"
+                @update:model-value="(val) => toggleField(props.row.rawId, 'isVisible', val)"
+                dense
+                color="blue-6"
+                :label="props.row.show_on_web ? 'แสดง' : 'ซ่อน'"
+              />
             </q-td>
           </template>
 

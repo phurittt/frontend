@@ -1,5 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia';
 import type { Course } from 'src/models/course';
+import { api } from 'src/boot/axios';
+import { useUserStore } from './user-store';
 
 export interface EnrolledCourse {
   id: number;
@@ -12,8 +14,100 @@ export interface EnrolledCourse {
   image: string;
   canCancel: boolean;
   canConfirm: boolean;
+  isWaitingList: boolean;
   isOnline: boolean;
 }
+
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+function formatTrainingDate(start: string | null, end: string | null): string {
+  if (!start) return '-';
+  const opts: Intl.DateTimeFormatOptions = {
+    timeZone: 'UTC',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  };
+  const startStr = new Date(start).toLocaleDateString('th-TH', opts);
+  if (!end) return startStr;
+  // Compare calendar day in UTC (matches the stored value as entered)
+  const dayFmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  if (dayFmt.format(new Date(start)) === dayFmt.format(new Date(end))) return startStr;
+  return `${startStr} – ${new Date(end).toLocaleDateString('th-TH', opts)}`;
+}
+
+function formatTrainingTime(start: string | null, end: string | null): string {
+  if (!start) return '-';
+  const opts: Intl.DateTimeFormatOptions = {
+    timeZone: 'UTC',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  };
+  const s = new Date(start).toLocaleTimeString('th-TH', opts);
+  if (!end) return `${s} น.`;
+  const e = new Date(end).toLocaleTimeString('th-TH', opts);
+  return `${s} - ${e} น.`;
+}
+
+function splitLines(text: string | null | undefined): string[] {
+  return text
+    ? text
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean)
+    : [];
+}
+
+function mapProject(p: any, registeredSeats: number, waitingListCount = 0): Course {
+  const loc: string = p.location || '';
+  const isOnline =
+    loc.includes('ออนไลน์') ||
+    loc.toLowerCase().includes('zoom') ||
+    loc.toLowerCase().includes('online');
+
+  const lec = p.lecturers?.[0];
+  const instructorName = lec
+    ? `${lec.firstName} ${lec.lastName}`
+    : p.manager
+      ? `${p.manager.firstName} ${p.manager.lastName}`
+      : '-';
+
+  return {
+    id: p.id,
+    title: p.course?.title || p.name || 'ไม่ระบุชื่อ',
+    description: p.course?.objective || loc || '-',
+    image: p.coverImage || undefined,
+    date: formatTrainingDate(p.trainingStartDate, p.trainingEndDate),
+    time: formatTrainingTime(p.trainingStartDate, p.trainingEndDate),
+    duration: p.course?.duration_hours ? `${p.course.duration_hours} ชั่วโมง` : '-',
+    location: loc || '-',
+    format: isOnline ? 'ออนไลน์ (Zoom)' : 'ออฟไลน์ (On-site)',
+    price: Number(p.registrationFee) || 0,
+    totalSeats: p.capacity || 0,
+    registeredSeats,
+    waitingListCount,
+    reserveCapacity: p.reserveCapacity || 0,
+    registrationStartDate: p.registrationStartDate || undefined,
+    registrationEndDate: p.registrationEndDate || undefined,
+    isOpen: !!p.status && !!p.isVisible,
+    instructor: {
+      name: instructorName,
+      role: 'วิทยากร',
+      avatar: 'https://cdn.quasar.dev/img/avatar5.jpg',
+    },
+    objectives: splitLines(p.course?.objective),
+    courseOutline: splitLines(p.course?.content),
+    prerequisite: splitLines(p.course?.required_knowledge),
+  };
+}
+
+// ─── store ───────────────────────────────────────────────────────────────────
 
 export const useCourseStore = defineStore('course', {
   state: () => ({
@@ -33,7 +127,9 @@ export const useCourseStore = defineStore('course', {
     },
     featuredCourse: (state) => state.courses[0],
 
-    openCourses: (state) => state.courses.filter((c) => c.totalSeats > c.registeredSeats),
+    // หลักสูตรที่เปิดรับสมัครและยังมีที่นั่งว่าง
+    openCourses: (state) =>
+      state.courses.filter((c) => c.isOpen && c.totalSeats > c.registeredSeats),
     freeCourses: (state) => state.courses.filter((c) => c.price === 0),
 
     isFavorite: (state) => (courseId: number) => state.favoriteIds.includes(courseId),
@@ -42,143 +138,147 @@ export const useCourseStore = defineStore('course', {
 
   actions: {
     async fetchCourses() {
-      if (this.courses.length > 0) return;
-
       this.isLoading = true;
       try {
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        const [projectsRes, regRes] = await Promise.all([
+          api.get('/projects'),
+          api.get('/registrations'),
+        ]);
+        const projects: any[] = projectsRes.data || [];
+        const registrations: any[] = regRes.data || [];
 
-        this.courses = [
-          {
-            id: 1,
-            title:
-              'AI Marketing: stepping into the Professional Digital Marketing ยกระดับสู่มืออาชีพการตลาดดิจิทัล',
-            description:
-              'รู้จักเทรนด์ AI เครื่องมือการตลาดดิจิทัลยุคใหม่ และการใช้ AI ในการวิเคราะห์ข้อมูลแม่นยำ โดนเป้าหมาย',
-            image: 'https://cdn.quasar.dev/img/parallax2.jpg',
-            date: '24 ก.พ. 2569',
-            time: '08:30-16:30 น.',
-            duration: '6 ชั่วโมง',
-            location: 'ห้องประชุม 201 ชั้น 2 อาคารสำนักหอสมุด',
-            format: 'ออฟไลน์ (On-site)',
-            instructor: {
-              name: 'ดร. สมชาย ใจดี',
-              role: 'วิทยากรหลัก',
-              avatar: 'https://cdn.quasar.dev/img/avatar5.jpg',
-            },
-            price: 0,
-            totalSeats: 70,
-            registeredSeats: 70,
-            courseOutline: [
-              'รู้จักเทรนด์ AI เครื่องมือการตลาดดิจิทัลยุคใหม่',
-              'AI ในการวิเคราะห์ข้อมูล แม่นยำ โดนเป้าหมาย ด้วย Google Analytics',
-            ],
-            objectives: [
-              'เพื่อให้ผู้เข้าอบรมมีความรู้และความเข้าใจ เกี่ยวกับบทบาทและเครื่องมือ AI',
-            ],
-            prerequisite: ['มีความรู้ด้านการใช้คอมพิวเตอร์เบื้องต้น'],
-          },
-          {
-            id: 2,
-            title: 'การพัฒนาเว็บไซต์ด้วย Vue.js',
-            description: 'เรียนรู้การสร้างเว็บแอปพลิเคชันสมัยใหม่ด้วย Vue.js และ Quasar Framework',
-            image: 'https://cdn.quasar.dev/img/parallax1.jpg',
-            date: '23 ธ.ค. 2567',
-            time: '09:00-16:00 น.',
-            duration: '6 ชั่วโมง',
-            location: 'ออนไลน์ผ่าน Zoom',
-            format: 'ออนไลน์ (Online)',
-            instructor: {
-              name: 'อ. สมหญิง พัฒนา',
-              role: 'Senior Developer',
-              avatar: 'https://cdn.quasar.dev/img/avatar2.jpg',
-            },
-            price: 1500,
-            totalSeats: 30,
-            registeredSeats: 15,
-            courseOutline: ['Vue 3 Basics', 'Composition API', 'Quasar Components'],
-            objectives: ['สร้างเว็บได้', 'เข้าใจ Component'],
-            prerequisite: ['HTML/CSS/JS พื้นฐาน'],
-          },
-        ];
+        // นับจำนวนผู้ลงทะเบียน: confirmed (ไม่ใช่คิวสำรอง) และ waitingList แยกกัน
+        const regCounts: Record<number, number> = {};
+        const waitingCounts: Record<number, number> = {};
+        registrations.forEach((r: any) => {
+          if (r.attendanceStatus !== 'cancelled') {
+            if (r.isWaitingList) {
+              waitingCounts[r.projectId] = (waitingCounts[r.projectId] || 0) + 1;
+            } else {
+              regCounts[r.projectId] = (regCounts[r.projectId] || 0) + 1;
+            }
+          }
+        });
+
+        // แสดงเฉพาะโครงการที่ isVisible = true
+        this.courses = projects
+          .filter((p) => p.isVisible)
+          .map((p) => mapProject(p, regCounts[p.id] ?? 0, waitingCounts[p.id] ?? 0));
+      } catch (error) {
+        console.error('Failed to fetch courses/projects:', error);
       } finally {
         this.isLoading = false;
       }
     },
 
     async fetchCourseById(id: number) {
-      const existingCourse = this.courses.find((c) => c.id === id);
-      if (existingCourse) return existingCourse;
+      const existing = this.courses.find((c) => c.id === id);
+      if (existing) return existing;
 
       this.isLoading = true;
       try {
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        const [projectRes, regRes] = await Promise.all([
+          api.get(`/projects/${id}`),
+          api.get(`/registrations/project/${id}`),
+        ]);
+        const p = projectRes.data;
+        if (!p) throw new Error('Not found');
+
+        const regs = regRes.data as any[];
+        const registeredSeats = regs.filter(
+          (r) => r.attendanceStatus !== 'cancelled' && !r.isWaitingList,
+        ).length;
+        const waitingListCount = regs.filter(
+          (r) => r.attendanceStatus !== 'cancelled' && r.isWaitingList,
+        ).length;
+
+        const course = mapProject(p, registeredSeats, waitingListCount);
+        this.courses.push(course);
+        return course;
+      } catch (error) {
+        console.error('Failed to fetch course detail:', error);
+        return null;
       } finally {
         this.isLoading = false;
       }
     },
 
-    async registerCourse(courseId: number, isWaitingList: boolean) {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    async fetchEnrolledCourses() {
+      const userStore = useUserStore();
+      const userId = userStore.profile?.id;
+      if (!userId) return;
 
-      const course = this.courses.find((c) => c.id === courseId);
-      if (!course) throw new Error('ไม่พบข้อมูลหลักสูตร');
+      try {
+        const response = await api.get(`/registrations/user/${userId}`);
+        this.enrolledCourses = response.data.map((r: any) => {
+          const p = r.project;
+          const price = Number(p?.registrationFee) || 0;
 
-      const alreadyEnrolled = this.enrolledCourses.find((c) => c.courseId === courseId);
-      if (alreadyEnrolled) throw new Error('ท่านลงทะเบียนหลักสูตรนี้ไปแล้ว');
+          let statusText = 'รอยืนยันการเข้าร่วม';
+          let statusCode: 'registered' | 'waiting' | 'confirmed' | 'cancelled' = 'registered';
 
-      const newEnrollment: EnrolledCourse = {
-        id: Date.now(),
-        courseId: course.id,
-        title: course.title,
-        date: course.date,
-        time: course.time,
-        status: isWaitingList ? 'รอคิวสำรอง' : 'รอเข้าอบรม',
-        statusCode: isWaitingList ? 'waiting' : 'registered',
-        image: course.image || '',
-        canCancel: true,
-        canConfirm: !isWaitingList,
-        isOnline: course.format.includes('ออนไลน์'),
+          if (r.attendanceStatus === 'cancelled') {
+            statusText = 'ยกเลิกแล้ว';
+            statusCode = 'cancelled';
+          } else if (r.attendanceStatus === 'attended') {
+            statusText = 'ยืนยันการเข้าร่วมแล้ว';
+            statusCode = 'confirmed';
+          } else if (r.isWaitingList) {
+            statusText = 'อยู่ในคิวสำรอง';
+            statusCode = 'waiting';
+          } else if (r.paymentStatus === 'unpaid' && price > 0) {
+            statusText = 'รอการชำระเงิน';
+            statusCode = 'registered';
+          }
+
+          const isPending = r.attendanceStatus === 'pending' && !r.isWaitingList;
+
+          return {
+            id: r.id,
+            courseId: p?.id || 0,
+            title: p?.name || 'ไม่ระบุชื่อ',
+            date: formatTrainingDate(p?.trainingStartDate, p?.trainingEndDate),
+            time: formatTrainingTime(p?.trainingStartDate, p?.trainingEndDate),
+            status: statusText,
+            statusCode: statusCode,
+            image: p?.coverImage || 'https://cdn.quasar.dev/img/parallax2.jpg',
+            canCancel: isPending,
+            canConfirm: isPending,
+            isWaitingList: !!r.isWaitingList,
+            isOnline: (p?.location || '').includes('ออนไลน์'),
+          };
+        });
+      } catch (error) {
+        console.error('Failed to fetch enrolled courses:', error);
+      }
+    },
+
+    async registerCourse(courseId: number, _isWaitingList: boolean) {
+      const userStore = useUserStore();
+      const userId = userStore.profile?.id;
+
+      if (!userId) {
+        throw new Error('กรุณาเข้าสู่ระบบก่อนลงทะเบียน');
+      }
+
+      const payload = {
+        userId: userId,
+        projectId: courseId,
+        participantType: 'บุคคลทั่วไป',
       };
 
-      this.enrolledCourses.push(newEnrollment);
-
-      if (!isWaitingList) {
-        course.registeredSeats += 1;
-      }
+      await api.post('/registrations', payload);
+      await this.fetchEnrolledCourses();
     },
 
     async cancelEnrollment(enrollmentId: number) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const idx = this.enrolledCourses.findIndex((e) => e.id === enrollmentId);
-
-      if (idx !== -1) {
-        const enrollment = this.enrolledCourses[idx];
-        if (enrollment) {
-          enrollment.statusCode = 'cancelled';
-          enrollment.status = 'ยกเลิกการลงทะเบียนแล้ว';
-          enrollment.canCancel = false;
-          enrollment.canConfirm = false;
-
-          const course = this.courses.find((c) => c.id === enrollment.courseId);
-          if (course && course.registeredSeats > 0) course.registeredSeats -= 1;
-        }
-      }
+      await api.post(`/registrations/${enrollmentId}/cancel`);
+      await this.fetchEnrolledCourses();
     },
 
     async confirmEnrollmentAttendance(enrollmentId: number) {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      const idx = this.enrolledCourses.findIndex((e) => e.id === enrollmentId);
-
-      if (idx !== -1) {
-        const enrollment = this.enrolledCourses[idx];
-        if (enrollment) {
-          enrollment.statusCode = 'confirmed';
-          enrollment.status = 'ยืนยันเข้าร่วมแล้ว';
-          enrollment.canCancel = false;
-          enrollment.canConfirm = false;
-        }
-      }
+      await api.post(`/registrations/${enrollmentId}/confirm`);
+      await this.fetchEnrolledCourses();
     },
 
     toggleFavorite(courseId: number) {

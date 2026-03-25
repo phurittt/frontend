@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { api } from 'src/boot/axios';
 import { useProjectStore } from './project-store';
 import { useRegistrantStore } from './registrant-store';
 import { useMasterCourseStore } from './masterCourse-store';
@@ -9,6 +10,7 @@ import type {
   LecturerReportItem,
   FinanceReportItem,
 } from '../models/report';
+import { AttendanceStatus } from '../models/registrant';
 
 export const useReportStore = defineStore('report', {
   state: () => ({
@@ -18,6 +20,8 @@ export const useReportStore = defineStore('report', {
       type: '',
       search: '',
     } as ReportFilter,
+    rawProjects: [] as any[],
+    allFinanceRecords: [] as any[],
   }),
 
   getters: {
@@ -44,11 +48,15 @@ export const useReportStore = defineStore('report', {
     summaryReportData(): SummaryReportItem[] {
       const registrantStore = useRegistrantStore();
       return this.filteredProjects.map((project, index) => {
-        const projectRegs = registrantStore.rawRegistrants.filter(
+        const projectRegs = registrantStore.allRegistrations.filter(
           (r) => r.projectId === project.id,
         );
-        const registeredCount = projectRegs.filter((r) => r.status !== 'ยกเลิก').length;
-        const attendedCount = projectRegs.filter((r) => r.status === 'ชำระเงินเรียบร้อย').length;
+        const registeredCount = projectRegs.filter(
+          (r) => r.attendanceStatus !== AttendanceStatus.CANCELLED,
+        ).length;
+        const attendedCount = projectRegs.filter(
+          (r) => r.attendanceStatus === AttendanceStatus.ATTENDED,
+        ).length;
         const isOnline =
           project.projectData.location.includes('ออนไลน์') ||
           project.projectData.location.includes('Zoom');
@@ -89,15 +97,15 @@ export const useReportStore = defineStore('report', {
               id: `${project.id}-${actualLecturer.id}`,
               index: indexCounter++,
 
-              lecturerName: actualLecturer.fullName,
+              lecturerName: `${actualLecturer.firstName} ${actualLecturer.lastName}`,
               lecturerType:
-                actualLecturer.organization.includes('สำนักคอมพิวเตอร์') ||
-                actualLecturer.organization.includes('บูรพา')
+                actualLecturer.department.includes('สำนักคอมพิวเตอร์') ||
+                actualLecturer.department.includes('บูรพา')
                   ? 'ภายใน'
                   : 'ภายนอก',
 
               projectName: project.projectData.projectName,
-              courseName: mCourse?.name || 'ไม่ระบุ',
+              courseName: mCourse?.title || 'ไม่ระบุ',
               teachingDate: `${project.projectData.dateFrom}`,
             });
           }
@@ -106,34 +114,51 @@ export const useReportStore = defineStore('report', {
       return report;
     },
 
-    // 4. ข้อมูล Tab การเงิน (เชื่อม Project ↔️ Registrant)
+    // 4. ข้อมูล Tab การเงิน (เชื่อม Project ↔️ Registrant ↔️ Finance)
     financeReportData(): FinanceReportItem[] {
       const registrantStore = useRegistrantStore();
 
       return this.filteredProjects.map((project, index) => {
-        // นับคนเข้าอบรมจริง
-        const attendedCount = registrantStore.rawRegistrants.filter(
-          (r) => r.projectId === project.id && r.status === 'ชำระเงินเรียบร้อย',
+        const rawProject = this.rawProjects.find((p: any) => p.id === project.id);
+
+        // นับผู้ที่ต้องชำระค่าลงทะเบียน (attended + missed, ไม่รวม waiting list)
+        const paidCount = registrantStore.allRegistrations.filter(
+          (r) =>
+            r.projectId === project.id &&
+            !r.isWaitingList &&
+            (r.attendanceStatus === AttendanceStatus.ATTENDED ||
+              r.attendanceStatus === AttendanceStatus.MISSED),
         ).length;
+
+        const registrationFee = Number(rawProject?.registrationFee || 0);
+        const lecturerRemuneration = Number(rawProject?.lecturerRemuneration || 0);
+
+        // รายการการเงินที่บันทึกแบบ manual
+        const projectFinances = this.allFinanceRecords.filter(
+          (f: any) => f.projectId === project.id,
+        );
+        const manualIncome = projectFinances
+          .filter((f: any) => f.type === 'income')
+          .reduce((s: number, f: any) => s + Number(f.amount), 0);
+        const manualExpense = projectFinances
+          .filter((f: any) => f.type === 'expense')
+          .reduce((s: number, f: any) => s + Number(f.amount), 0);
+
+        const income = paidCount * registrationFee + manualIncome;
+        const expense = lecturerRemuneration + manualExpense;
 
         const isOnline =
           project.projectData.location.includes('ออนไลน์') ||
           project.projectData.location.includes('Zoom');
-
-        // จำลองรายรับ (คนละ 1,500 บาท) *ใช้จริงดึงจากค่าลงทะเบียนของ Project ได้
-        const income = attendedCount * 1500;
-
-        // จำลองรายจ่ายคงที่ต่อโครงการ
-        const expense = isOnline ? 2000 : 15000;
 
         return {
           id: project.id || 0,
           index: index + 1,
           projectName: project.projectData.projectName,
           format: isOnline ? 'ออนไลน์' : 'อบรมในที่ตั้ง',
-          totalAttendees: attendedCount,
-          income: income,
-          expense: expense,
+          totalAttendees: paidCount,
+          income,
+          expense,
           profit: income - expense,
         };
       });
@@ -150,12 +175,16 @@ export const useReportStore = defineStore('report', {
         const lecturerStore = useLecturerStore();
 
         // โหลดข้อมูลดิบทุกส่วนมารอไว้
-        await Promise.all([
+        const [rawProjRes, financeRes] = await Promise.all([
+          api.get('/projects'),
+          api.get('/finances'),
           projectStore.fetchProjects(),
-          registrantStore.fetchRegistrants(),
+          registrantStore.fetchAll(),
           masterCourseStore.fetchCourses(),
-          lecturerStore.fetchLecturers(), // โหลดวิทยากรเพิ่ม
+          lecturerStore.fetchLecturers(),
         ]);
+        this.rawProjects = rawProjRes.data;
+        this.allFinanceRecords = financeRes.data;
       } finally {
         this.isLoading = false;
       }

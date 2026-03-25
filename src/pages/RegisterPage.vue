@@ -223,7 +223,7 @@
                             >ชื่อ (ไทย) <span class="text-negative">*</span></label
                           >
                           <q-input
-                            v-model="form.firstNameTh"
+                            v-model="form.firstName"
                             outlined
                             dense
                             bottom-slots
@@ -235,7 +235,7 @@
                             >นามสกุล (ไทย) <span class="text-negative">*</span></label
                           >
                           <q-input
-                            v-model="form.lastNameTh"
+                            v-model="form.lastName"
                             outlined
                             dense
                             bottom-slots
@@ -366,7 +366,7 @@
                         >ชื่อหน่วยงาน</label
                       >
                       <q-input
-                        v-model="form.organization"
+                        v-model="form.department"
                         outlined
                         dense
                         bottom-slots
@@ -397,7 +397,7 @@
                         >ชื่อ/ที่อยู่ ที่ใช้สำหรับออกใบเสร็จ</label
                       >
                       <q-input
-                        v-model="form.billingAddress"
+                        v-model="form.address"
                         type="textarea"
                         rows="3"
                         outlined
@@ -425,7 +425,7 @@
                       <label class="block text-caption text-md-subtitle2 text-grey-5 q-mb-xs"
                         >รหัสไปรษณีย์</label
                       >
-                      <q-input v-model="form.postalCode" mask="#####" outlined dense bottom-slots />
+                      <q-input v-model="form.zipcode" mask="#####" outlined dense bottom-slots />
                     </div>
                   </q-form>
                 </div>
@@ -508,24 +508,25 @@ const titleOptions = ['นาย', 'นาง', 'นางสาว'];
 const provinceOptions = ['กรุงเทพมหานคร', 'ชลบุรี', 'ระยอง', 'จันทบุรี', 'ตราด', 'สมุทรปราการ'];
 
 const form = reactive<RegisterDto>({
-  username: 'ABCD',
-  password: '12345678',
-  verifyPassword: '12345678',
+  username: '',
+  password: '',
+  verifyPassword: '',
   profilePic: null,
-  title: 'นาย',
-  firstNameTh: 'เอบี',
-  lastNameTh: 'ซีดี',
+  firstName: '',
+  lastName: '',
+  department: '',
+  address: '',
+  province: '',
+  zipcode: '',
+  phone: '',
+  email: '',
+  // --- UI-only fields (ยังไม่ส่ง backend) ---
+  title: '',
   rankTh: '',
   firstNameEn: '',
   lastNameEn: '',
   rankEn: '',
-  email: 'AB@C.D',
-  phone: '0987654321',
-  organization: '',
   position: '',
-  billingAddress: '',
-  province: 'ชลบุรี',
-  postalCode: '',
 });
 
 const triggerErrorAnimation = () => {

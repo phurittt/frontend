@@ -40,7 +40,7 @@ const confirmDelete = () => {
         <div class="text-body1 text-grey-6 q-px-sm" style="line-height: 1.5">
           คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลของ<br />
           <span class="text-dark text-weight-bold"
-            >"{{ user?.firstNameTh }} {{ user?.lastNameTh }}"</span
+            >"{{ user?.firstName }} {{ user?.lastName }}"</span
           ><br />
           การกระทำนี้ไม่สามารถย้อนกลับได้
         </div>

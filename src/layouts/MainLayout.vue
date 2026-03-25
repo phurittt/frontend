@@ -78,7 +78,10 @@
               <div class="row items-center q-gutter-x-sm">
                 <q-avatar size="32px" class="profile-avatar">
                   <img
-                    :src="userStore.profile?.avatar || 'https://cdn.quasar.dev/img/boy-avatar.png'"
+                    :src="
+                      userStore.profile?.profilePicture ||
+                      'https://cdn.quasar.dev/img/boy-avatar.png'
+                    "
                   />
                 </q-avatar>
                 <div class="gt-xs text-weight-medium text-body2 profile-name q-pr-xs">
@@ -241,7 +244,8 @@
                   <q-avatar size="54px" class="mobile-profile-avatar shadow-3">
                     <img
                       :src="
-                        userStore.profile?.avatar || 'https://cdn.quasar.dev/img/boy-avatar.png'
+                        userStore.profile?.profilePicture ||
+                        'https://cdn.quasar.dev/img/boy-avatar.png'
                       "
                     />
                   </q-avatar>

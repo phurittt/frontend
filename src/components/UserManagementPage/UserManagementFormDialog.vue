@@ -2,12 +2,18 @@
 import { ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/user-store';
-import type { UserProfile } from 'src/models/user';
-import { TITLE_OPTIONS, USER_ROLE_OPTIONS } from 'src/models/user';
+import type { User, UserRole } from 'src/models/user';
+
+const TITLE_OPTIONS = ['นาย', 'นาง', 'นางสาว', 'ดร.', 'ศ.'];
+const USER_ROLE_OPTIONS = [
+  { label: 'ผู้ดูแลระบบ (Admin)', value: 'admin' },
+  { label: 'เจ้าหน้าที่ (Staff)', value: 'staff' },
+  { label: 'ผู้เข้าอบรม (Participant)', value: 'participant' },
+];
 
 const props = defineProps<{
   modelValue: boolean;
-  userToEdit: UserProfile | null;
+  userToEdit: User | null;
 }>();
 
 const emit = defineEmits<{
@@ -17,20 +23,18 @@ const emit = defineEmits<{
 const $q = useQuasar();
 const userStore = useUserStore();
 
-const defaultForm = (): Omit<UserProfile, 'id'> => ({
+const defaultForm = (): Partial<User> => ({
   username: '',
   email: '',
-  title: 'นาย',
-  firstNameTh: '',
-  lastNameTh: '',
+  firstName: '',
+  lastName: '',
   phone: '',
-  province: 'กรุงเทพมหานคร',
-  organization: '',
-  avatar: '',
-  role: 'staff',
+  province: '',
+  department: '',
+  role: 'staff' as UserRole,
 });
 
-const formData = ref<Partial<UserProfile>>(defaultForm());
+const formData = ref<Partial<User>>(defaultForm());
 const isEditMode = ref(false);
 
 watch(
@@ -51,12 +55,12 @@ const closeDialog = () => {
   emit('update:modelValue', false);
 };
 
-const onSubmit = () => {
+const onSubmit = async () => {
   const isUpdate = isEditMode.value && formData.value.id;
   if (isUpdate) {
-    userStore.updateUser(formData.value as UserProfile);
+    await userStore.updateUser(formData.value.id as number, formData.value);
   } else {
-    userStore.addUser(formData.value as Omit<UserProfile, 'id'>);
+    await userStore.addUser(formData.value as any);
   }
 
   $q.notify({
@@ -78,7 +82,7 @@ const onDelete = () => {
       ok: { unelevated: true, color: 'negative', label: 'ลบข้อมูล', noCaps: true, rounded: true },
       class: 'custom-dialog',
     }).onOk(() => {
-      userStore.deleteUser(formData.value.id as string);
+      userStore.deleteUser(formData.value.id as number);
       $q.notify({ type: 'info', icon: 'delete', message: 'ลบผู้ใช้งานแล้ว', position: 'top' });
       closeDialog();
     });
@@ -154,19 +158,11 @@ const onDelete = () => {
                 >
               </div>
               <div class="row q-col-gutter-md">
-                <q-select
-                  class="col-12 col-sm-3"
-                  outlined
-                  dense
-                  v-model="formData.title"
-                  :options="TITLE_OPTIONS"
-                  label="คำนำหน้า"
-                />
                 <q-input
-                  class="col-12 col-sm-4"
+                  class="col-12 col-sm-5"
                   outlined
                   dense
-                  v-model="formData.firstNameTh"
+                  v-model="formData.firstName"
                   label="ชื่อจริง"
                   :rules="[(val) => !!val || '']"
                   hide-bottom-space
@@ -175,7 +171,7 @@ const onDelete = () => {
                   class="col-12 col-sm-5"
                   outlined
                   dense
-                  v-model="formData.lastNameTh"
+                  v-model="formData.lastName"
                   label="นามสกุล"
                   :rules="[(val) => !!val || '']"
                   hide-bottom-space
@@ -184,7 +180,7 @@ const onDelete = () => {
                   class="col-12"
                   outlined
                   dense
-                  v-model="formData.organization"
+                  v-model="formData.department"
                   label="สังกัด / หน่วยงาน"
                   hide-bottom-space
                 />

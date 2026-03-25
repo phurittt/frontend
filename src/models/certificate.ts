@@ -1,5 +1,3 @@
-// src/models/certificate.ts
-
 export interface CertificateIssuanceStatus {
   status: 'create' | 'no-create';
   issuedAt?: string;
@@ -8,12 +6,12 @@ export interface CertificateIssuanceStatus {
 }
 
 export interface CertificateImage {
-  data: string; // Base64 encoded image
+  data: string; // Base64 encoded
   fileName: string;
 }
 
 export interface CertificateParticipant {
-  id: number;
+  id: number | null;
   registrantId: number;
   participantName: string;
   department: string;
@@ -21,36 +19,61 @@ export interface CertificateParticipant {
   email: string;
   registrationDate: string;
   registrationType: string;
-  passStatus: 'passed' | 'not-passed';
+  attendanceStatus?: string;
+  passStatus: 'passed' | 'not-passed' | 'pending';
   remarks?: string;
   issuedCount: number;
+  certificateCode?: string | null;
 }
 
 export interface CertificateIssuance {
-  id?: number;
+  projectId: number;
   courseId: number;
   courseName: string;
-  project?: string;
+  projectName?: string;
   year: string;
   duration: string;
-  regisOpenDate: string;
-  regisCloseDate: string;
-  trainingDate?: string;
+  regisOpenDate: string | Date | null;
+  regisCloseDate: string | Date | null;
+  trainingStartDate?: string | Date | null;
+  trainingEndDate?: string | Date | null;
   manager: string;
   registrationFee: number;
   totalSeats: number;
   seatReserve: number;
+  totalRegistrations?: number;
   participants: CertificateParticipant[];
   participantSummary: {
     attended: number;
     notAttended: number;
     cancelled: number;
   };
-  certificateStatus: CertificateIssuanceStatus;
-  certificateImage?: CertificateImage;
-  managedAt?: string;
-  managedTime?: string;
-  managedBy?: string;
+  createFile: boolean;
+  templateImage?: string | null; // Base64 template
+  managedAt?: string | Date | null;
+  managedBy?: string | null;
+  hasTemplate?: boolean;
 }
 
-export type CreateCertificateIssuanceDto = Omit<CertificateIssuance, 'id'>;
+export interface ProjectCertificateSummary {
+  projectId: number;
+  courseId: number;
+  courseName: string;
+  projectName: string;
+  year: string;
+  duration: string;
+  regisOpenDate: Date | null;
+  regisCloseDate: Date | null;
+  trainingStartDate: Date | null;
+  trainingEndDate: Date | null;
+  manager: string;
+  registrationFee: number;
+  totalSeats: number;
+  seatReserve: number;
+  totalRegistrations: number;
+  participantSummary: { attended: number; notAttended: number; cancelled: number };
+  managedAt: Date | null;
+  managedBy: string | null;
+  createFile: boolean;
+  hasTemplate: boolean;
+}

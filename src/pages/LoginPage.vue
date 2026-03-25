@@ -3,6 +3,8 @@ import { onUnmounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { type QInput } from 'quasar';
 import { useAuthStore } from 'src/stores/auth-store';
+import { useUserStore } from 'src/stores/user-store';
+import { useQuasar } from 'quasar';
 import { useTokenClient } from 'vue3-google-signin';
 
 interface LoginInstruction {
@@ -31,6 +33,8 @@ const instructions: LoginInstruction[] = [
 
 const router = useRouter();
 const authStore = useAuthStore();
+const userStore = useUserStore();
+const $q = useQuasar();
 
 // Form Data
 const username = ref('');
@@ -86,10 +90,44 @@ const handleLogin = async () => {
 
   signinLoading.value = true;
   try {
-    await authStore.login(username.value);
+    await authStore.login(username.value, password.value);
     router.push('/');
   } catch (error) {
     console.error('Login failed:', error);
+  } finally {
+    signinLoading.value = false;
+  }
+};
+
+const handleAdminLogin = async () => {
+  if (signinLoading.value) return;
+
+  const isUsernameValid = await usernameRef.value?.validate();
+  const isPasswordValid = await passwordRef.value?.validate();
+
+  if (!isUsernameValid || !isPasswordValid) {
+    shakeTrigger.value = true;
+    setTimeout(() => {
+      shakeTrigger.value = false;
+    }, 400);
+    return;
+  }
+
+  signinLoading.value = true;
+  try {
+    await authStore.login(username.value, password.value);
+    if (userStore.profile?.role === 'admin') {
+      router.push('/admin');
+    } else {
+      $q.notify({
+        type: 'warning',
+        message: 'บัญชีนี้ไม่มีสิทธิ์ Admin',
+        position: 'top',
+      });
+      authStore.logout();
+    }
+  } catch (error) {
+    console.error('Admin Login failed:', error);
   } finally {
     signinLoading.value = false;
   }
@@ -259,6 +297,20 @@ onUnmounted(() => {
                   >ลืมรหัสผ่าน?</router-link
                 >
               </div>
+
+              <q-btn
+                flat
+                dense
+                no-caps
+                size="sm"
+                color="grey-5"
+                icon="admin_panel_settings"
+                label="เข้าสู่ระบบแอดมิน"
+                class="full-width q-mt-sm"
+                style="font-size: 11px; opacity: 0.6"
+                :loading="signinLoading"
+                @click="handleAdminLogin"
+              />
             </q-card-section>
 
             <q-card-section class="q-px-xl q-pb-xl">

@@ -26,14 +26,14 @@ const historyColumns = [
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'ชำระเงินเรียบร้อย':
+    case 'เข้าร่วมแล้ว':
       return { bg: 'light-green-2', text: 'green-9' };
-    case 'รอตรวจสอบ':
+    case 'รอยืนยัน':
       return { bg: 'orange-2', text: 'orange-9' };
-    case 'รอชำระเงิน':
-      return { bg: 'grey-3', text: 'grey-8' };
-    case 'ยกเลิก':
+    case 'ขาด':
       return { bg: 'red-2', text: 'red-9' };
+    case 'ยกเลิก':
+      return { bg: 'grey-3', text: 'grey-8' };
     default:
       return { bg: 'grey-2', text: 'grey-8' };
   }
@@ -69,7 +69,7 @@ const getStatusColor = (status: string) => {
             <div class="text-caption text-grey-6 text-weight-medium">
               ของ
               <span class="text-blue-8 text-weight-bold"
-                >{{ user?.firstNameTh }} {{ user?.lastNameTh }}</span
+                >{{ user?.firstName }} {{ user?.lastName }}</span
               >
             </div>
           </div>

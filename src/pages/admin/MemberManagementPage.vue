@@ -5,7 +5,8 @@ import { useUserStore } from 'src/stores/user-store';
 import { useRegistrantStore } from 'src/stores/registrant-store';
 import { useProjectStore } from 'src/stores/project-store';
 import { useMasterCourseStore } from 'src/stores/masterCourse-store';
-import type { UserProfile, UserRole } from 'src/models/user';
+import type { User, UserRole } from 'src/models/user';
+import { ATTENDANCE_STATUS_LABEL } from 'src/models/registrant';
 
 import CustomTableComponent from 'components/CustomTableComponent.vue';
 import type { TableColumn } from 'components/CustomTableComponent.vue';
@@ -28,7 +29,7 @@ const filterRoles = ref({ student: true });
 
 onMounted(() => {
   userStore.fetchUsers();
-  registrantStore.fetchRegistrants();
+  registrantStore.fetchAll();
   projectStore.fetchProjects();
   masterCourseStore.fetchCourses();
 });
@@ -40,11 +41,11 @@ const filteredUsersList = computed(() => {
   const keyword = search.value.toLowerCase().trim();
 
   return userStore.usersList.filter((user) => {
-    const isStudent = user.role === 'student';
-    if (!isStudent) return false;
+    const isParticipant = user.role === 'participant';
+    if (!isParticipant) return false;
 
-    const rolePass = filterRoles.value[user.role as keyof typeof filterRoles.value];
-    const fullName = `${user.firstNameTh} ${user.lastNameTh}`.toLowerCase();
+    const rolePass = true;
+    const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
     const paddedId = String(user.id).padStart(9, '0');
     const rawId = String(user.id);
 
@@ -59,10 +60,12 @@ const filteredUsersList = computed(() => {
   });
 });
 
-const studentCount = computed(() => userStore.usersList.filter((u) => u.role === 'student').length);
+const studentCount = computed(
+  () => userStore.usersList.filter((u) => u.role === 'participant').length,
+);
 
 const roleTheme: Record<string, { bg: string; text: string; label: string }> = {
-  student: { bg: 'teal-1', text: 'teal-9', label: 'ผู้เข้าอบรม' },
+  participant: { bg: 'teal-1', text: 'teal-9', label: 'ผู้เข้าอบรม' },
 };
 const getRoleTheme = (role: string) =>
   roleTheme[role as UserRole] || { bg: 'grey-2', text: 'grey-9', label: 'ไม่ระบุ' };
@@ -71,7 +74,7 @@ const columns: TableColumn[] = [
   {
     name: 'fullname',
     label: 'ข้อมูลสมาชิก',
-    field: 'firstNameTh',
+    field: (row: User) => `${row.firstName} ${row.lastName}`,
     align: 'left',
     style: 'width: 30%',
   },
@@ -112,11 +115,16 @@ const formatDate = (dateString?: string) => {
   if (!dateString) return { date: '-', time: '-' };
   const d = new Date(dateString);
   const optionsDate: Intl.DateTimeFormatOptions = {
+    timeZone: 'Asia/Bangkok',
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   };
-  const optionsTime: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+  const optionsTime: Intl.DateTimeFormatOptions = {
+    timeZone: 'Asia/Bangkok',
+    hour: '2-digit',
+    minute: '2-digit',
+  };
 
   return {
     date: d.toLocaleDateString('th-TH', optionsDate),
@@ -130,35 +138,36 @@ const formatDate = (dateString?: string) => {
 
 // 1. Form Add/Edit
 const isDialogOpen = ref(false);
-const selectedUser = ref<UserProfile | null>(null);
+const selectedUser = ref<User | null>(null);
 
 const openAddDialog = () => {
   selectedUser.value = null;
   isDialogOpen.value = true;
 };
 
-const editMember = (row: UserProfile) => {
+const editMember = (row: User) => {
   selectedUser.value = row;
   isDialogOpen.value = true;
 };
 
 // 2. History Dialog
 const isHistoryOpen = ref(false);
-const historyUser = ref<UserProfile | null>(null);
+const historyUser = ref<User | null>(null);
 const historyRows = ref<any[]>([]);
 
-const viewHistory = (user: UserProfile) => {
+const viewHistory = (user: User) => {
   historyUser.value = user;
-  const userRegs = registrantStore.rawRegistrants.filter((r) => r.userId === user.id);
+  const userRegs = registrantStore.allRegistrations.filter((r) => Number(r.userId) === user.id);
   historyRows.value = userRegs.map((reg, index) => {
     const project = projectStore.projects.find((p) => p.id === reg.projectId);
-    const mCourse = masterCourseStore.courses.find((c) => c.id === reg.courseId);
     return {
       index: index + 1,
-      projectName: project?.projectData.projectName || 'ไม่ระบุ',
-      courseName: mCourse?.name || 'ไม่ระบุ',
-      registerDate: reg.registerDate,
-      status: reg.status,
+      projectName: project?.projectData.projectName || reg.project?.name || 'ไม่ระบุ',
+      courseName: reg.project?.course?.title || 'ไม่ระบุ',
+      registerDate: reg.registrationDate
+        ? new Date(reg.registrationDate).toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' })
+        : '-',
+      status: ATTENDANCE_STATUS_LABEL[reg.attendanceStatus] ?? reg.attendanceStatus,
     };
   });
   isHistoryOpen.value = true;
@@ -166,9 +175,9 @@ const viewHistory = (user: UserProfile) => {
 
 // 3. Delete Dialog
 const isDeleteOpen = ref(false);
-const userToDelete = ref<UserProfile | null>(null);
+const userToDelete = ref<User | null>(null);
 
-const promptDelete = (user: UserProfile) => {
+const promptDelete = (user: User) => {
   userToDelete.value = user;
   isDeleteOpen.value = true;
 };
@@ -261,12 +270,12 @@ const executeDelete = () => {
                 :class="`bg-${getRoleTheme(row.role).bg} text-${getRoleTheme(row.role).text}`"
                 class="bento-avatar q-mr-md"
               >
-                <img v-if="row.avatar" :src="row.avatar" />
-                <span v-else class="text-weight-bolder">{{ row.firstNameTh.charAt(0) }}</span>
+                <img v-if="row.profilePicture" :src="row.profilePicture" />
+                <span v-else class="text-weight-bolder">{{ row.firstName.charAt(0) }}</span>
               </q-avatar>
               <div class="column justify-center">
                 <span class="text-weight-bold text-dark text-subtitle2 line-height-tight"
-                  >{{ row.title }}{{ row.firstNameTh }} {{ row.lastNameTh }}</span
+                  >{{ row.firstName }} {{ row.lastName }}</span
                 >
                 <span class="text-caption text-grey-5 q-mt-xs">{{
                   row.email || 'ไม่มีข้อมูลอีเมล'

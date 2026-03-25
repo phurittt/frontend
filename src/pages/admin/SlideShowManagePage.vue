@@ -42,7 +42,7 @@ const projectOptions = computed(() => {
       const mCourse = masterCourseStore.courses.find((c) => c.id === Number(pc.course?.value));
       if (mCourse && project.id) {
         options.push({
-          label: `[${project.projectData.projectName}] - ${mCourse.name}`,
+          label: `[${project.projectData.projectName}] - ${mCourse.title}`,
           value: { projectId: project.id, courseId: mCourse.id },
         });
       }

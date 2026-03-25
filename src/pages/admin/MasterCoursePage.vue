@@ -3,42 +3,48 @@ import { ref, onMounted, computed } from 'vue';
 import type { QTableColumn } from 'quasar';
 import { useQuasar } from 'quasar';
 import { useMasterCourseStore } from 'src/stores/masterCourse-store';
+import { useCourseCategoryStore } from 'src/stores/courseCategory-store';
 import type { MasterCourse } from 'src/models/masterCourse';
 
 const $q = useQuasar();
 const courseStore = useMasterCourseStore();
+const categoryStore = useCourseCategoryStore();
 const search = ref('');
 
 const showDialog = ref(false);
 const isEdit = ref(false);
 const editId = ref<number | null>(null);
 
-const categoryOptions = [
-  'Microsoft Office',
-  'Google Apps',
-  'Web Application & Web Design',
-  'Programming',
-  'Data Analytics',
-  'Network',
-];
+const categoryOptions = computed(() =>
+  categoryStore.categories.map((c) => ({
+    label: c.name,
+    value: c.id,
+  })),
+);
 
 const defaultForm = () => ({
-  name: '',
-  category: '',
-  objectives: '',
+  title: '',
+  course_type_id: null as number | null,
+  objective: '',
   content: '',
-  prerequisites: '',
-  duration: '',
-  show_on_web: true,
+  required_knowledge: '',
+  duration_hours: 6,
+  is_visible: true,
 });
 
 const form = ref(defaultForm());
 
 const columns: QTableColumn[] = [
   { name: 'id', label: 'ลำดับ', field: 'id', align: 'center', sortable: true },
-  { name: 'name', label: 'ชื่อหลักสูตร', field: 'name', align: 'left', sortable: true },
-  { name: 'category', label: 'ประเภทหลักสูตร', field: 'category', align: 'left', sortable: true },
-  { name: 'show_on_web', label: 'การแสดงผลบนหน้าเว็บ', field: 'show_on_web', align: 'center' },
+  { name: 'title', label: 'ชื่อหลักสูตร', field: 'title', align: 'left', sortable: true },
+  {
+    name: 'category',
+    label: 'ประเภทหลักสูตร',
+    field: (row: MasterCourse) => row.courseType?.name || '-',
+    align: 'left',
+    sortable: true,
+  },
+  { name: 'is_visible', label: 'การแสดงผลบนหน้าเว็บ', field: 'is_visible', align: 'center' },
   { name: 'actions', label: 'การจัดการ', field: 'actions', align: 'center' },
 ];
 
@@ -54,17 +60,32 @@ function openAddDialog() {
 function editItem(item: MasterCourse) {
   isEdit.value = true;
   editId.value = item.id;
-  form.value = { ...item };
+  form.value = {
+    title: item.title,
+    course_type_id: item.course_type_id,
+    objective: item.objective,
+    content: item.content,
+    required_knowledge: item.required_knowledge,
+    duration_hours: item.duration_hours,
+    is_visible: !!item.is_visible,
+  };
   showDialog.value = true;
 }
 
-function saveData() {
+async function saveData() {
   try {
+    if (!form.value.course_type_id) {
+      $q.notify({ type: 'warning', message: 'กรุณาเลือกประเภทหลักสูตร' });
+      return;
+    }
+
+    const payload = { ...form.value } as any;
+
     if (isEdit.value && editId.value) {
-      courseStore.updateCourse(editId.value, form.value);
+      await courseStore.updateCourse(editId.value, payload);
       $q.notify({ type: 'positive', message: 'อัปเดตหลักสูตรสำเร็จ' });
     } else {
-      courseStore.createCourse(form.value);
+      await courseStore.createCourse(payload);
       $q.notify({ type: 'positive', message: 'เพิ่มหลักสูตรใหม่สำเร็จ' });
     }
     showDialog.value = false;
@@ -79,14 +100,15 @@ function deleteItem(id: number) {
     message: 'คุณต้องการลบหลักสูตรนี้ใช่หรือไม่?',
     cancel: true,
     persistent: true,
-  }).onOk(() => {
-    courseStore.deleteCourse(id);
+  }).onOk(async () => {
+    await courseStore.deleteCourse(id);
     $q.notify({ type: 'info', message: 'ลบหลักสูตรสำเร็จ' });
   });
 }
 
 onMounted(() => {
   courseStore.fetchCourses();
+  categoryStore.fetchCategories();
 });
 </script>
 
@@ -132,7 +154,7 @@ onMounted(() => {
           :loading="courseStore.loading"
           table-header-class="bg-grey-1 text-weight-bold text-dark"
         >
-          <template v-slot:body-cell-show_on_web="props">
+          <template v-slot:body-cell-is_visible="props">
             <q-td :props="props">
               <q-chip
                 :color="props.value ? 'light-green-13' : 'deep-orange-4'"
@@ -188,32 +210,38 @@ onMounted(() => {
             <div class="row q-col-gutter-lg">
               <div class="col-12 col-md-6 column q-gutter-y-md">
                 <div>
-                  <label class="text-caption text-weight-bold text-grey-7">ประเภทหลักสูตร</label>
+                  <label class="text-caption text-weight-bold text-grey-7"
+                    >ประเภทหลักสูตร <span class="text-negative">*</span></label
+                  >
                   <q-select
-                    v-model="form.category"
+                    v-model="form.course_type_id"
                     :options="categoryOptions"
                     outlined
                     dense
+                    emit-value
+                    map-options
                     :rules="[(val) => !!val || 'กรุณาเลือกประเภท']"
                   />
                 </div>
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7">วัตถุประสงค์</label>
-                  <q-input v-model="form.objectives" type="textarea" outlined rows="5" />
+                  <q-input v-model="form.objective" type="textarea" outlined rows="5" />
                 </div>
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7"
                     >ความรู้พื้นฐานผู้เข้าอบรม</label
                   >
-                  <q-input v-model="form.prerequisites" type="textarea" outlined rows="3" />
+                  <q-input v-model="form.required_knowledge" type="textarea" outlined rows="3" />
                 </div>
               </div>
 
               <div class="col-12 col-md-6 column q-gutter-y-md">
                 <div>
-                  <label class="text-caption text-weight-bold text-grey-7">ชื่อหลักสูตร</label>
+                  <label class="text-caption text-weight-bold text-grey-7"
+                    >ชื่อหลักสูตร <span class="text-negative">*</span></label
+                  >
                   <q-input
-                    v-model="form.name"
+                    v-model="form.title"
                     outlined
                     dense
                     :rules="[(val) => !!val || 'กรุณากรอกชื่อหลักสูตร']"
@@ -224,8 +252,16 @@ onMounted(() => {
                   <q-input v-model="form.content" type="textarea" outlined rows="5" />
                 </div>
                 <div>
-                  <label class="text-caption text-weight-bold text-grey-7">ระยะเวลาที่ใช้</label>
-                  <q-input v-model="form.duration" outlined dense placeholder="เช่น 6 ชั่วโมง" />
+                  <label class="text-caption text-weight-bold text-grey-7"
+                    >ระยะเวลาที่ใช้ (ชั่วโมง)</label
+                  >
+                  <q-input
+                    v-model.number="form.duration_hours"
+                    type="number"
+                    outlined
+                    dense
+                    placeholder="เช่น 6"
+                  />
                 </div>
               </div>
             </div>
@@ -236,11 +272,11 @@ onMounted(() => {
                   <div class="text-weight-bold text-dark">สถานะการแสดงผลบนหน้าเว็บ</div>
                   <div class="text-caption text-grey-6">แสดงหลักสูตรนี้ให้ผู้เข้าอบรมได้เห็น</div>
                 </div>
-                <q-toggle v-model="form.show_on_web" color="green" size="lg" />
+                <q-toggle v-model="form.is_visible" color="green" size="lg" />
               </div>
             </q-card>
 
-            <div class="row q-gutter-sm q-mt-xl">
+            <div class="row justify-end q-gutter-sm q-mt-xl">
               <q-btn
                 unelevated
                 label="ยกเลิก"

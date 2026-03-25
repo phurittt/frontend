@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from 'src/stores/auth-store';
+import { useUserStore } from 'src/stores/user-store';
 
 // เปลี่ยนค่าเริ่มต้นเป็น true เพื่อให้แสดงเสมอ
 const leftDrawerOpen = ref(true);
@@ -8,12 +10,40 @@ const profileMenu = ref(false);
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
+const userStore = useUserStore();
+
+onMounted(async () => {
+  if (authStore.token && !userStore.profile) {
+    await authStore.initSession();
+  }
+});
+
+const profileName = computed(() => {
+  const p = userStore.profile;
+  if (p?.firstName || p?.lastName) {
+    return `${p.firstName || ''} ${p.lastName || ''}`.trim();
+  }
+  return p?.username || 'ผู้ดูแลระบบ';
+});
+
+const profileRole = computed(() => {
+  const role = userStore.profile?.role;
+  if (role === 'admin') return 'Administrator';
+  if (role === 'staff') return 'Staff';
+  return 'Participant';
+});
+
+const profileAvatar = computed(() => {
+  return userStore.profile?.profilePicture || 'https://cdn.quasar.dev/img/boy-avatar.png';
+});
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
 
 function handleLogout() {
+  authStore.logout();
   router.push('/login');
 }
 
@@ -107,15 +137,15 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
         <q-btn flat no-caps class="profile-pill" :ripple="false">
           <div class="row items-center no-wrap q-gutter-x-xs q-px-xs">
             <div class="column items-end gt-xs q-pr-xs">
-              <span class="text-weight-bold text-body2 line-height-tight text-dark"
-                >เหนือภพ อวกาศ</span
-              >
-              <span class="text-caption text-primary line-height-tight font-weight-600"
-                >Administrator</span
-              >
+              <span class="text-weight-bold text-body2 line-height-tight text-dark">{{
+                profileName
+              }}</span>
+              <span class="text-caption text-primary line-height-tight font-weight-600">{{
+                profileRole
+              }}</span>
             </div>
             <q-avatar size="36px" class="profile-avatar">
-              <img src="https://cdn.quasar.dev/img/linux-avatar.png" />
+              <img :src="profileAvatar" />
             </q-avatar>
             <q-icon
               name="eva-chevron-down"
@@ -134,7 +164,7 @@ const getMenuIcon = (item: { icon: string; to: string }) => {
             class="nav-dropdown"
           >
             <q-list style="min-width: 220px">
-              <q-item clickable v-close-popup class="dropdown-item" to="/profile">
+              <q-item clickable v-close-popup class="dropdown-item" to="/admin/profile">
                 <q-item-section avatar style="min-width: 36px">
                   <q-icon name="manage_accounts" class="dropdown-icon" size="20px" />
                 </q-item-section>

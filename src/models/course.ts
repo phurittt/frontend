@@ -6,27 +6,36 @@ export interface Instructor {
 
 export interface Course {
   id: number;
-  title: string; // ชื่อหลักสูตร
-  description: string; // คำอธิบายย่อ (สำหรับหน้าการ์ด)
-  image?: string; // รูปปกหลักสูตร
+  title: string; // ชื่อหลักสูตร (จาก course.title หรือ project.name)
+  description: string; // คำอธิบายย่อ (จาก course.objective)
+  image?: string; // รูปปกโครงการ (จาก project.coverImage)
 
   // --- ข้อมูลเวลาและสถานที่ ---
-  date: string; // วันที่อบรม (เช่น 24 ก.พ. 69)
-  time: string; // เวลา (เช่น 08:30 - 16:30 น.)
-  duration: string; // ระยะเวลา (เช่น 6 ชั่วโมง)
-  location: string; // สถานที่จัด
-  format: string; // รูปแบบการเรียน (เช่น ออฟไลน์ (On-site), ออนไลน์ (Zoom))
+  date: string; // วันที่อบรม (จาก trainingStartDate)
+  time: string; // เวลา (จาก trainingStartDate - trainingEndDate)
+  duration: string; // ระยะเวลา (จาก course.duration_hours)
+  location: string; // สถานที่จัด (จาก project.location)
+  format: string; // รูปแบบการเรียน (ออฟไลน์ / ออนไลน์)
 
   // --- ข้อมูลการลงทะเบียน ---
-  price: number; // ราคา (0 = FREE)
-  totalSeats: number; // จำนวนที่เปิดรับ
-  registeredSeats: number; // จำนวนที่ลงทะเบียนแล้ว
+  price: number; // ราคา (จาก registrationFee, 0 = FREE)
+  totalSeats: number; // จำนวนที่เปิดรับ (จาก capacity)
+  registeredSeats: number; // จำนวนที่ลงทะเบียนแล้ว (ไม่รวมคิวสำรอง ไม่รวมที่ยกเลิก)
+  waitingListCount: number; // จำนวนคนในคิวสำรองปัจจุบัน
+  reserveCapacity: number; // จำนวนที่นั่งสำรองสูงสุด (จาก project.reserveCapacity)
+
+  // --- ช่วงเวลารับลงทะเบียน ---
+  registrationStartDate?: string; // วันเวลาเปิดรับลงทะเบียน
+  registrationEndDate?: string; // วันเวลาปิดรับลงทะเบียน
+
+  // --- สถานะ ---
+  isOpen: boolean; // true = status && isVisible (เปิดรับสมัครและแสดงบนเว็บ)
 
   // --- ข้อมูลวิทยากร ---
-  instructor: Instructor; // โครงสร้างข้อมูลวิทยากร
+  instructor: Instructor;
 
-  // --- เนื้อหาละเอียด (Array เพราะต้องวน Loop แสดงเป็นข้อๆ) ---
-  courseOutline: string[]; // เนื้อหาของหลักสูตร
-  objectives: string[]; // วัตถุประสงค์
-  prerequisite: string[]; // พื้นฐานความรู้ของผู้เข้าอบรม
+  // --- เนื้อหาละเอียด ---
+  courseOutline: string[]; // เนื้อหา (จาก course.content แยก newline)
+  objectives: string[]; // วัตถุประสงค์ (จาก course.objective แยก newline)
+  prerequisite: string[]; // พื้นฐานความรู้ (จาก course.required_knowledge แยก newline)
 }

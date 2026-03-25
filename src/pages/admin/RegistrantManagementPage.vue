@@ -1,166 +1,264 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useQuasar } from 'quasar';
+import { useQuasar, type QTableColumn } from 'quasar';
 import { useRegistrantStore } from 'src/stores/registrant-store';
-import { useMasterCourseStore } from 'src/stores/masterCourse-store';
-import { useUserStore } from 'src/stores/user-store'; // 1. เพิ่มการ Import
-import type { RegistrantStatus, CreateRegistrantDto } from 'src/models/registrant';
+import { useUserStore } from 'src/stores/user-store';
+import {
+  PaymentStatus,
+  AttendanceStatus,
+  ParticipantType,
+  PAYMENT_STATUS_LABEL,
+  ATTENDANCE_STATUS_LABEL,
+  PAYMENT_STATUS_COLOR,
+  ATTENDANCE_STATUS_COLOR,
+  type CreateRegistrationDto,
+  type UpdateRegistrationDto,
+} from 'src/models/registrant';
 
 const $q = useQuasar();
 const route = useRoute();
 const router = useRouter();
 const registrantStore = useRegistrantStore();
-const courseStore = useMasterCourseStore();
-const userStore = useUserStore(); // 2. ประกาศตัวแปร
+const userStore = useUserStore();
 
 const search = ref('');
-const activeTab = ref('ทั้งหมด');
-const courseId = Number(route.params.courseId);
+const activeTab = ref<PaymentStatus | 'all'>('all');
+const projectId = Number(route.params.projectId);
 
 onMounted(() => {
-  userStore.fetchUsers(); // 3. สั่งโหลด User ก่อนเสมอ
-  registrantStore.fetchRegistrants();
-  courseStore.fetchCourses();
+  userStore.fetchUsers();
+  registrantStore.fetchByProject(projectId);
 });
 
-// ค้นหาชื่อหลักสูตรเพื่อนำมาแสดงบนหัวข้อ
-const currentCourseName = computed(() => {
-  const course = courseStore.courses.find((c) => c.id === courseId);
-  return course ? course.name : 'กำลังโหลด...';
-});
+// Project name comes from the first registration's project relation
+const projectName = computed(
+  () => registrantStore.projectRegistrations[0]?.project?.name ?? `โครงการ #${projectId}`,
+);
+const courseName = computed(
+  () => registrantStore.projectRegistrations[0]?.project?.course?.title ?? '',
+);
 
-// ดึงเฉพาะผู้ลงทะเบียนที่ตรงกับ courseId นี้เท่านั้น !!
-const courseRegistrants = computed(() => {
-  return registrantStore.registrants.filter((r) => r.courseId === courseId);
-});
-
-// ระบบคำนวณและกรองข้อมูลสำหรับ Tabs
+// Tab counts
 const counts = computed(() => {
-  const all = courseRegistrants.value;
+  const all = registrantStore.projectRegistrations;
   return {
-    ทั้งหมด: all.length,
-    รอชำระเงิน: all.filter((r) => r.status === 'รอชำระเงิน').length,
-    รอตรวจสอบ: all.filter((r) => r.status === 'รอตรวจสอบ').length,
-    ชำระเงินเรียบร้อย: all.filter((r) => r.status === 'ชำระเงินเรียบร้อย').length,
-    ยกเลิก: all.filter((r) => r.status === 'ยกเลิก').length,
+    all: all.length,
+    [PaymentStatus.UNPAID]: all.filter((r) => r.paymentStatus === PaymentStatus.UNPAID).length,
+    [PaymentStatus.PAID]: all.filter((r) => r.paymentStatus === PaymentStatus.PAID).length,
+    [PaymentStatus.FREE]: all.filter((r) => r.paymentStatus === PaymentStatus.FREE).length,
   };
 });
 
+// Filtered rows by tab + search
 const filteredRows = computed(() => {
-  let rows = courseRegistrants.value;
-  if (activeTab.value !== 'ทั้งหมด') {
-    rows = rows.filter((r) => r.status === activeTab.value);
+  let rows = registrantStore.projectRegistrations;
+
+  if (activeTab.value !== 'all') {
+    rows = rows.filter((r) => r.paymentStatus === activeTab.value);
   }
-  return rows;
+
+  if (search.value.trim()) {
+    const kw = search.value.toLowerCase();
+    rows = rows.filter((r) => {
+      const fullName = `${r.user?.firstName ?? ''} ${r.user?.lastName ?? ''}`.toLowerCase();
+      return (
+        fullName.includes(kw) ||
+        (r.user?.phone ?? '').includes(kw) ||
+        (r.user?.email ?? '').toLowerCase().includes(kw)
+      );
+    });
+  }
+
+  return rows.map((r, i) => ({
+    ...r,
+    index: i + 1,
+    fullName: r.user ? `${r.user.firstName} ${r.user.lastName}` : `User #${r.userId}`,
+    courseTitle: r.project?.course?.title || r.project?.name || '-',
+    department: r.user?.department ?? '-',
+    phone: r.user?.phone ?? '-',
+    registrationDateDisplay: r.registrationDate
+      ? new Date(r.registrationDate).toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' })
+      : '-',
+  }));
 });
 
-// (ส่วนตารางและคอลัมน์เหมือนเดิม)
-const columns = [
-  { name: 'id', label: 'ลำดับ', field: 'index', align: 'center' as const },
+// Table columns
+const columns: QTableColumn[] = [
+  { name: 'index', label: 'ลำดับ', field: 'index', align: 'center' },
+  { name: 'fullName', label: 'ชื่อ-นามสกุล', field: 'fullName', align: 'left', sortable: true },
+  { name: 'courseTitle', label: 'หลักสูตร', field: 'courseTitle', align: 'left', sortable: true },
+  { name: 'department', label: 'ส่วนงาน', field: 'department', align: 'left' },
+  { name: 'phone', label: 'เบอร์โทร', field: 'phone', align: 'center' },
+  { name: 'participantType', label: 'ประเภท', field: 'participantType', align: 'center' },
   {
-    name: 'fullName',
-    label: 'ชื่อ-นามสกุล',
-    field: 'fullName',
-    align: 'left' as const,
+    name: 'registrationDateDisplay',
+    label: 'วันที่ลงทะเบียน',
+    field: 'registrationDateDisplay',
+    align: 'center',
     sortable: true,
   },
-  { name: 'department', label: 'ส่วนงาน', field: 'department', align: 'left' as const },
-  { name: 'phone', label: 'เบอร์โทรศัพท์', field: 'phone', align: 'center' as const },
-  { name: 'type', label: 'ประเภท', field: 'type', align: 'center' as const },
+  { name: 'paymentStatus', label: 'สถานะการชำระเงิน', field: 'paymentStatus', align: 'center' },
   {
-    name: 'registerDate',
-    label: 'วันที่สมัคร',
-    field: 'registerDate',
-    align: 'center' as const,
-    sortable: true,
+    name: 'attendanceStatus',
+    label: 'สถานะการเข้าร่วม',
+    field: 'attendanceStatus',
+    align: 'center',
   },
-  { name: 'status', label: 'สถานะ', field: 'status', align: 'center' as const },
-  { name: 'actions', label: 'จัดการ', field: 'actions', align: 'center' as const },
+  { name: 'actions', label: 'จัดการ', field: 'actions', align: 'center' },
 ];
 
-const getStatusColor = (status: RegistrantStatus) => {
-  switch (status) {
-    case 'ชำระเงินเรียบร้อย':
-      return { bg: 'light-green-2', text: 'green-9' };
-    case 'รอตรวจสอบ':
-      return { bg: 'orange-2', text: 'orange-9' };
-    case 'รอชำระเงิน':
-      return { bg: 'grey-3', text: 'grey-8' };
-    case 'ยกเลิก':
-      return { bg: 'red-2', text: 'red-9' };
-    default:
-      return { bg: 'grey-2', text: 'grey-8' };
-  }
+// ========================
+// Add Registration Dialog
+// ========================
+const showAddDialog = ref(false);
+
+// Only participants and existing users can be registered
+const allUserOptions = computed(() =>
+  userStore.usersList.map((u) => ({
+    label: `${u.firstName} ${u.lastName} (${u.username})`,
+    value: u.id,
+  })),
+);
+
+const userOptions = ref<{ label: string; value: number }[]>([]);
+
+const filterUsers = (val: string, update: (fn: () => void) => void) => {
+  update(() => {
+    if (!val.trim()) {
+      userOptions.value = allUserOptions.value;
+    } else {
+      const kw = val.toLowerCase();
+      userOptions.value = allUserOptions.value.filter((o) => o.label.toLowerCase().includes(kw));
+    }
+  });
 };
 
-// ================= Dialog เพิ่มผู้ลงทะเบียน =================
-const showAddDialog = ref(false);
-const titleOptions = ['นาย', 'นาง', 'นางสาว', 'ดร.', 'ศ.'];
-const defaultForm = (): CreateRegistrantDto => ({
-  projectId: 0, // เพิ่มบรรทัดนี้ (ค่าเริ่มต้น)
-  courseId: courseId,
-  userId: null, // เพิ่มบรรทัดนี้ (ค่าเริ่มต้นเมื่อแอดมินคีย์มือ)
-  type: 'บุคคลทั่วไป',
-  title: 'นาย',
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  department: '',
+const participantTypeOptions = Object.values(ParticipantType);
+
+interface AddForm {
+  selectedUser: { label: string; value: number } | null;
+  participantType: ParticipantType;
+  paymentStatus: PaymentStatus;
+  foodRequirement: string;
+}
+
+const defaultAddForm = (): AddForm => ({
+  selectedUser: null,
+  participantType: ParticipantType.GENERAL,
+  paymentStatus: PaymentStatus.UNPAID,
+  foodRequirement: '',
 });
-const addForm = ref<CreateRegistrantDto>(defaultForm());
+
+const addForm = ref<AddForm>(defaultAddForm());
 
 const openAddDialog = () => {
-  addForm.value = defaultForm();
+  addForm.value = defaultAddForm();
+  userOptions.value = allUserOptions.value;
   showAddDialog.value = true;
 };
 
-const onSaveRegistrant = () => {
-  registrantStore.addRegistrant(addForm.value);
-  $q.notify({ type: 'positive', message: 'เพิ่มผู้ลงทะเบียนสำเร็จ' });
-  showAddDialog.value = false;
-};
+const onSaveRegistrant = async () => {
+  if (!addForm.value.selectedUser) {
+    $q.notify({ type: 'warning', message: 'กรุณาเลือกผู้ใช้งาน' });
+    return;
+  }
+  const dto: CreateRegistrationDto = {
+    userId: addForm.value.selectedUser.value,
+    projectId,
+    participantType: addForm.value.participantType,
+    paymentStatus: addForm.value.paymentStatus,
+    ...(addForm.value.foodRequirement && { foodRequirement: addForm.value.foodRequirement }),
+  };
 
-// ================= Dialog แก้ไขสถานะ =================
-const showStatusDialog = ref(false);
-const editStatusId = ref<number | null>(null);
-const editStatusValue = ref<RegistrantStatus>('รอชำระเงิน');
-const statusOptions: RegistrantStatus[] = [
-  'ชำระเงินเรียบร้อย',
-  'รอตรวจสอบ',
-  'รอชำระเงิน',
-  'ยกเลิก',
-];
-
-const openStatusDialog = (id: number, currentStatus: RegistrantStatus) => {
-  editStatusId.value = id;
-  editStatusValue.value = currentStatus;
-  showStatusDialog.value = true;
-};
-
-const onSaveStatus = () => {
-  if (editStatusId.value) {
-    registrantStore.updateStatus(editStatusId.value, editStatusValue.value);
-    $q.notify({ type: 'positive', message: 'อัปเดตสถานะสำเร็จ' });
-    showStatusDialog.value = false;
+  try {
+    await registrantStore.create(dto);
+    $q.notify({ type: 'positive', message: 'เพิ่มผู้ลงทะเบียนสำเร็จ' });
+    showAddDialog.value = false;
+  } catch (err: any) {
+    const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
+    $q.notify({ type: 'negative', message: `เพิ่มไม่สำเร็จ: ${msg}` });
   }
 };
 
+// ========================
+// Edit Status Dialog
+// ========================
+const showEditDialog = ref(false);
+const editingId = ref<number | null>(null);
+
+interface EditForm {
+  paymentStatus: PaymentStatus;
+  attendanceStatus: AttendanceStatus;
+  foodRequirement: string;
+}
+
+const editForm = ref<EditForm>({
+  paymentStatus: PaymentStatus.UNPAID,
+  attendanceStatus: AttendanceStatus.PENDING,
+  foodRequirement: '',
+});
+
+const paymentStatusOptions = Object.values(PaymentStatus).map((v) => ({
+  label: PAYMENT_STATUS_LABEL[v],
+  value: v,
+}));
+
+const attendanceStatusOptions = Object.values(AttendanceStatus).map((v) => ({
+  label: ATTENDANCE_STATUS_LABEL[v],
+  value: v,
+}));
+
+const openEditDialog = (row: any) => {
+  editingId.value = row.id;
+  editForm.value = {
+    paymentStatus: row.paymentStatus,
+    attendanceStatus: row.attendanceStatus,
+    foodRequirement: row.foodRequirement ?? '',
+  };
+  showEditDialog.value = true;
+};
+
+const onSaveEdit = async () => {
+  if (!editingId.value) return;
+  const dto: UpdateRegistrationDto = {
+    paymentStatus: editForm.value.paymentStatus,
+    attendanceStatus: editForm.value.attendanceStatus,
+    ...(editForm.value.foodRequirement && { foodRequirement: editForm.value.foodRequirement }),
+  };
+
+  try {
+    await registrantStore.update(editingId.value, dto);
+    $q.notify({ type: 'positive', message: 'อัปเดตสถานะสำเร็จ' });
+    showEditDialog.value = false;
+  } catch (err: any) {
+    const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
+    $q.notify({ type: 'negative', message: `อัปเดตไม่สำเร็จ: ${msg}` });
+  }
+};
+
+// ========================
+// Delete
+// ========================
 const onDelete = (id: number) => {
   $q.dialog({
     title: 'ยืนยันการลบ',
     message: 'คุณต้องการลบข้อมูลนี้ใช่หรือไม่?',
     cancel: true,
-  }).onOk(() => {
-    registrantStore.deleteRegistrant(id);
-    $q.notify({ type: 'info', message: 'ลบข้อมูลสำเร็จ' });
+  }).onOk(async () => {
+    try {
+      await registrantStore.remove(id);
+      $q.notify({ type: 'info', message: 'ลบข้อมูลสำเร็จ' });
+    } catch {
+      $q.notify({ type: 'negative', message: 'ลบไม่สำเร็จ' });
+    }
   });
 };
 </script>
 
 <template>
   <q-page class="q-pa-md bg-grey-1">
+    <!-- Header -->
     <div class="row items-center justify-between q-mb-md">
       <div>
         <div class="row items-center q-gutter-x-sm">
@@ -173,10 +271,14 @@ const onDelete = (id: number) => {
           />
           <div class="text-h6 text-weight-bold">ผู้ลงทะเบียนอบรม</div>
         </div>
-        <div class="text-primary text-weight-bold q-mt-xs q-ml-xl">{{ currentCourseName }}</div>
+        <div class="q-ml-xl q-mt-xs">
+          <span class="text-primary text-weight-bold">{{ projectName }}</span>
+          <span v-if="courseName" class="text-grey-6 q-ml-sm text-caption">— {{ courseName }}</span>
+        </div>
       </div>
     </div>
 
+    <!-- Payment Status Tabs -->
     <q-tabs
       v-model="activeTab"
       dense
@@ -187,16 +289,22 @@ const onDelete = (id: number) => {
       narrow-indicator
       style="border-radius: 8px 8px 0 0"
     >
-      <q-tab name="ทั้งหมด" :label="`ทั้งหมด (${counts['ทั้งหมด']})`" />
-      <q-tab name="รอชำระเงิน" :label="`รอชำระเงิน (${counts['รอชำระเงิน']})`" />
-      <q-tab name="รอตรวจสอบ" :label="`รอตรวจสอบ (${counts['รอตรวจสอบ']})`" />
+      <q-tab name="all" :label="`ทั้งหมด (${counts.all})`" />
       <q-tab
-        name="ชำระเงินเรียบร้อย"
-        :label="`ชำระเงินเรียบร้อย (${counts['ชำระเงินเรียบร้อย']})`"
+        :name="PaymentStatus.UNPAID"
+        :label="`${PAYMENT_STATUS_LABEL[PaymentStatus.UNPAID]} (${counts[PaymentStatus.UNPAID]})`"
       />
-      <q-tab name="ยกเลิก" :label="`ยกเลิก (${counts['ยกเลิก']})`" />
+      <q-tab
+        :name="PaymentStatus.PAID"
+        :label="`${PAYMENT_STATUS_LABEL[PaymentStatus.PAID]} (${counts[PaymentStatus.PAID]})`"
+      />
+      <q-tab
+        :name="PaymentStatus.FREE"
+        :label="`${PAYMENT_STATUS_LABEL[PaymentStatus.FREE]} (${counts[PaymentStatus.FREE]})`"
+      />
     </q-tabs>
 
+    <!-- Table Card -->
     <q-card
       flat
       bordered
@@ -204,114 +312,87 @@ const onDelete = (id: number) => {
       style="border-radius: 0 0 8px 8px; border-top: none"
     >
       <q-card-section>
+        <!-- Toolbar -->
         <div class="row items-center q-mb-md q-gutter-x-sm justify-between">
-          <div class="row q-gutter-sm">
-            <q-input
-              outlined
-              dense
-              v-model="search"
-              placeholder="ค้นหาชื่อ, เบอร์โทร..."
-              rounded
-              bg-color="grey-1"
-              style="width: 280px"
-            >
-              <template v-slot:append><q-icon name="search" color="grey-7" /></template>
-            </q-input>
-            <q-btn outline color="grey-4" text-color="grey-8" icon="tune" padding="6px 12px"
-              ><q-tooltip>ตัวกรอง</q-tooltip></q-btn
-            >
-          </div>
+          <q-input
+            outlined
+            dense
+            v-model="search"
+            placeholder="ค้นหาชื่อ, เบอร์โทร, อีเมล..."
+            rounded
+            bg-color="grey-1"
+            style="width: 300px"
+          >
+            <template v-slot:append><q-icon name="search" color="grey-7" /></template>
+          </q-input>
 
-          <div class="row q-gutter-sm">
-            <q-btn
-              outline
-              color="green"
-              icon="description"
-              label="Excel"
-              no-caps
-              size="sm"
-              class="q-px-sm"
-            />
-            <q-btn
-              outline
-              color="grey-8"
-              icon="print"
-              label="พิมพ์"
-              no-caps
-              size="sm"
-              class="q-px-sm"
-            />
-            <q-btn
-              unelevated
-              color="light-blue-6"
-              icon="qr_code_scanner"
-              label="เช็คชื่อเข้าอบรม"
-              text-color="white"
-              no-caps
-              size="sm"
-              class="q-px-sm"
-            />
-            <q-btn
-              unelevated
-              color="grey-9"
-              icon="add"
-              label="เพิ่มผู้ลงทะเบียน"
-              text-color="white"
-              no-caps
-              size="sm"
-              class="q-px-sm"
-              @click="openAddDialog"
-            />
-          </div>
+          <q-btn
+            unelevated
+            color="grey-9"
+            icon="add"
+            label="เพิ่มผู้ลงทะเบียน"
+            text-color="white"
+            no-caps
+            size="sm"
+            class="q-px-sm"
+            @click="openAddDialog"
+          />
         </div>
 
+        <!-- Main Table -->
         <q-table
           flat
           :rows="filteredRows"
           :columns="columns"
           row-key="id"
           separator="horizontal"
-          :filter="search"
+          :loading="registrantStore.loading"
           table-header-class="bg-grey-1 text-weight-bold text-dark"
+          no-data-label="ยังไม่มีผู้ลงทะเบียน"
         >
-          <template v-slot:body-cell-id="props"
-            ><q-td :props="props">{{ props.rowIndex + 1 }}</q-td></template
-          >
-
-          <template v-slot:body-cell-status="props">
+          <!-- paymentStatus chip -->
+          <template v-slot:body-cell-paymentStatus="props">
             <q-td :props="props">
               <q-chip
-                :color="getStatusColor(props.value).bg"
-                :text-color="getStatusColor(props.value).text"
+                :color="PAYMENT_STATUS_COLOR[props.value as PaymentStatus]?.bg"
+                :text-color="PAYMENT_STATUS_COLOR[props.value as PaymentStatus]?.text"
                 size="sm"
                 class="text-weight-bold q-px-sm"
               >
-                {{ props.value }}
+                {{ PAYMENT_STATUS_LABEL[props.value as PaymentStatus] ?? props.value }}
               </q-chip>
             </q-td>
           </template>
 
+          <!-- attendanceStatus chip -->
+          <template v-slot:body-cell-attendanceStatus="props">
+            <q-td :props="props">
+              <q-chip
+                :color="ATTENDANCE_STATUS_COLOR[props.value as AttendanceStatus]?.bg"
+                :text-color="ATTENDANCE_STATUS_COLOR[props.value as AttendanceStatus]?.text"
+                size="sm"
+                class="text-weight-bold q-px-sm"
+              >
+                {{ ATTENDANCE_STATUS_LABEL[props.value as AttendanceStatus] ?? props.value }}
+              </q-chip>
+            </q-td>
+          </template>
+
+          <!-- actions -->
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <div class="row justify-center q-gutter-x-sm no-wrap">
                 <q-btn
-                  unelevated
-                  size="sm"
-                  color="light-green-3"
-                  text-color="dark"
-                  icon="search"
-                  style="border-radius: 6px; padding: 6px 10px"
-                />
-                <q-btn
-                  @click="openStatusDialog(props.row.id, props.row.status)"
+                  @click="openEditDialog(props.row)"
                   unelevated
                   size="sm"
                   color="light-blue-1"
                   text-color="dark"
                   icon="edit"
                   style="border-radius: 6px; padding: 6px 10px"
-                  ><q-tooltip>เปลี่ยนสถานะ</q-tooltip></q-btn
                 >
+                  <q-tooltip>แก้ไขสถานะ</q-tooltip>
+                </q-btn>
                 <q-btn
                   @click="onDelete(props.row.id)"
                   unelevated
@@ -320,7 +401,9 @@ const onDelete = (id: number) => {
                   text-color="dark"
                   icon="delete"
                   style="border-radius: 6px; padding: 6px 10px"
-                />
+                >
+                  <q-tooltip>ลบ</q-tooltip>
+                </q-btn>
               </div>
             </q-td>
           </template>
@@ -328,8 +411,11 @@ const onDelete = (id: number) => {
       </q-card-section>
     </q-card>
 
+    <!-- ======================== -->
+    <!-- Dialog: Add Registration -->
+    <!-- ======================== -->
     <q-dialog v-model="showAddDialog" persistent>
-      <q-card style="width: 700px; max-width: 90vw; border-radius: 8px">
+      <q-card style="width: 560px; max-width: 95vw; border-radius: 8px">
         <q-card-section class="row items-center q-pb-none border-bottom q-mb-md">
           <div class="text-h6 text-weight-bold">เพิ่มผู้ลงทะเบียน</div>
           <q-space />
@@ -337,113 +423,63 @@ const onDelete = (id: number) => {
         </q-card-section>
 
         <q-card-section>
-          <q-form @submit.prevent="onSaveRegistrant">
-            <div class="q-mb-md">
-              <div class="text-weight-bold q-mb-xs">
-                ประเภท <span class="text-negative">*</span>
-              </div>
+          <div class="q-mb-md">
+            <div class="text-weight-bold q-mb-xs">
+              ผู้ใช้งาน <span class="text-negative">*</span>
+            </div>
+            <q-select
+              outlined
+              dense
+              v-model="addForm.selectedUser"
+              :options="userOptions"
+              option-label="label"
+              placeholder="ค้นหาชื่อผู้ใช้งาน..."
+              use-input
+              input-debounce="200"
+              clearable
+              @filter="filterUsers"
+            />
+          </div>
+
+          <div class="q-mb-md">
+            <div class="text-weight-bold q-mb-xs">
+              ประเภทผู้เข้าร่วม <span class="text-negative">*</span>
+            </div>
+            <div class="row q-gutter-x-md">
               <q-radio
-                v-model="addForm.type"
-                val="บุคคลทั่วไป"
-                label="บุคคลทั่วไป"
+                v-for="opt in participantTypeOptions"
+                :key="opt"
+                v-model="addForm.participantType"
+                :val="opt"
+                :label="opt"
                 color="primary"
               />
-              <q-radio
-                v-model="addForm.type"
-                val="บุคลากรภายใน"
-                label="บุคลากรภายใน"
-                color="primary"
-              />
-              <q-radio v-model="addForm.type" val="นิสิต" label="นิสิต" color="primary" />
             </div>
+          </div>
 
-            <div class="row q-col-gutter-sm q-mb-md">
-              <div class="col-12 col-md-3">
-                <div class="text-weight-bold q-mb-xs">
-                  คำนำหน้า <span class="text-negative">*</span>
-                </div>
-                <q-select outlined dense v-model="addForm.title" :options="titleOptions" />
-              </div>
-              <div class="col-12 col-md-4">
-                <div class="text-weight-bold q-mb-xs">
-                  ชื่อ <span class="text-negative">*</span>
-                </div>
-                <q-input
-                  outlined
-                  dense
-                  v-model="addForm.firstName"
-                  :rules="[(val) => !!val || '']"
-                  hide-bottom-space
-                />
-              </div>
-              <div class="col-12 col-md-5">
-                <div class="text-weight-bold q-mb-xs">
-                  นามสกุล <span class="text-negative">*</span>
-                </div>
-                <q-input
-                  outlined
-                  dense
-                  v-model="addForm.lastName"
-                  :rules="[(val) => !!val || '']"
-                  hide-bottom-space
-                />
-              </div>
-            </div>
+          <div class="q-mb-md">
+            <div class="text-weight-bold q-mb-xs">สถานะการชำระเงิน</div>
+            <q-select
+              outlined
+              dense
+              v-model="addForm.paymentStatus"
+              :options="paymentStatusOptions"
+              option-label="label"
+              option-value="value"
+              emit-value
+              map-options
+            />
+          </div>
 
-            <div class="row q-col-gutter-sm q-mb-md">
-              <div class="col-12 col-md-6">
-                <div class="text-weight-bold q-mb-xs">
-                  อีเมล <span class="text-negative">*</span>
-                </div>
-                <q-input outlined dense v-model="addForm.email" type="email" />
-              </div>
-              <div class="col-12 col-md-6">
-                <div class="text-weight-bold q-mb-xs">
-                  เบอร์โทรศัพท์ <span class="text-negative">*</span>
-                </div>
-                <q-input outlined dense v-model="addForm.phone" mask="###-###-####" />
-              </div>
-            </div>
-
-            <div class="q-mb-lg">
-              <div class="text-weight-bold q-mb-xs">
-                ส่วนงาน / สังกัด <span class="text-negative">*</span>
-              </div>
-              <q-input outlined dense v-model="addForm.department" />
-            </div>
-
-            <div class="row justify-end q-gutter-sm">
-              <q-btn
-                flat
-                label="ยกเลิก"
-                color="grey-8"
-                v-close-popup
-                style="border: 1px solid #ddd"
-              />
-              <q-btn unelevated label="บันทึกข้อมูล" type="submit" color="blue-6" class="q-px-md" />
-            </div>
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <q-dialog v-model="showStatusDialog">
-      <q-card style="width: 400px; border-radius: 8px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-weight-bold">แก้ไขสถานะ</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section class="q-pt-md">
-          <div class="text-weight-bold q-mb-xs">สถานะ <span class="text-negative">*</span></div>
-          <q-select
-            outlined
-            dense
-            v-model="editStatusValue"
-            :options="statusOptions"
-            class="q-mb-lg"
-          />
+          <div class="q-mb-lg">
+            <div class="text-weight-bold q-mb-xs">ความต้องการอาหาร (ถ้ามี)</div>
+            <q-input
+              outlined
+              dense
+              v-model="addForm.foodRequirement"
+              placeholder="เช่น มังสวิรัติ, ไม่ทานหมู"
+            />
+          </div>
 
           <div class="row justify-end q-gutter-sm">
             <q-btn
@@ -453,7 +489,72 @@ const onDelete = (id: number) => {
               v-close-popup
               style="border: 1px solid #ddd"
             />
-            <q-btn unelevated label="บันทึก" color="blue-6" class="q-px-md" @click="onSaveStatus" />
+            <q-btn
+              unelevated
+              label="บันทึกข้อมูล"
+              color="blue-6"
+              class="q-px-md"
+              @click="onSaveRegistrant"
+            />
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- ======================== -->
+    <!-- Dialog: Edit Status      -->
+    <!-- ======================== -->
+    <q-dialog v-model="showEditDialog">
+      <q-card style="width: 420px; border-radius: 8px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-weight-bold">แก้ไขสถานะ</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section class="q-pt-md">
+          <div class="q-mb-md">
+            <div class="text-weight-bold q-mb-xs">สถานะการชำระเงิน</div>
+            <q-select
+              outlined
+              dense
+              v-model="editForm.paymentStatus"
+              :options="paymentStatusOptions"
+              option-label="label"
+              option-value="value"
+              emit-value
+              map-options
+            />
+          </div>
+
+          <div class="q-mb-md">
+            <div class="text-weight-bold q-mb-xs">สถานะการเข้าร่วม</div>
+            <q-select
+              outlined
+              dense
+              v-model="editForm.attendanceStatus"
+              :options="attendanceStatusOptions"
+              option-label="label"
+              option-value="value"
+              emit-value
+              map-options
+            />
+          </div>
+
+          <div class="q-mb-lg">
+            <div class="text-weight-bold q-mb-xs">ความต้องการอาหาร</div>
+            <q-input outlined dense v-model="editForm.foodRequirement" clearable />
+          </div>
+
+          <div class="row justify-end q-gutter-sm">
+            <q-btn
+              flat
+              label="ยกเลิก"
+              color="grey-8"
+              v-close-popup
+              style="border: 1px solid #ddd"
+            />
+            <q-btn unelevated label="บันทึก" color="blue-6" class="q-px-md" @click="onSaveEdit" />
           </div>
         </q-card-section>
       </q-card>
@@ -467,12 +568,10 @@ const onDelete = (id: number) => {
   color: #555;
   text-align: center !important;
 }
-
 :deep(.q-table td) {
   font-size: 13px;
   color: #333;
 }
-
 .border-bottom {
   border-bottom: 1px solid #ebebeb;
   padding-bottom: 12px;

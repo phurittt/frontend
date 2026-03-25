@@ -3,7 +3,7 @@ import { api } from 'boot/axios';
 import type { ProjectType, CreateProjectTypeDto } from '../models/projectType';
 
 // ตัวแปรสำหรับสลับโหมด (เปลี่ยนเป็น false เมื่อต้องการให้ระบบยิง API จริง)
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 export const useProjectTypeStore = defineStore('projectType', {
   state: () => ({

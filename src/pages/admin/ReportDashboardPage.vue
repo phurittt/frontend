@@ -60,6 +60,13 @@ const summaryRows = computed(() => reportStore.summaryReportData);
 const lecturerRows = computed(() => reportStore.lecturerReportData);
 const financeRows = computed(() => reportStore.financeReportData);
 
+const financeTotals = computed(() => {
+  const rows = financeRows.value;
+  const totalIncome = rows.reduce((s, r) => s + r.income, 0);
+  const totalExpense = rows.reduce((s, r) => s + r.expense, 0);
+  return { totalIncome, totalExpense, balance: totalIncome - totalExpense };
+});
+
 // Format Number (สำหรับโชว์เงินบาท)
 const formatMoney = (val: number) => new Intl.NumberFormat('th-TH').format(val);
 
@@ -258,7 +265,59 @@ const printReport = () => {
           </q-table>
         </q-tab-panel>
 
-        <q-tab-panel name="finance" class="q-pa-none">
+        <q-tab-panel name="finance" class="q-pa-md">
+          <!-- Summary Cards -->
+          <div class="row q-col-gutter-md q-mb-md">
+            <div class="col-12 col-sm-4">
+              <q-card
+                flat
+                class="bg-green-1 q-pa-md text-center"
+                style="border-radius: 10px; border: 1px solid #a5d6a7"
+              >
+                <div class="text-caption text-green-8 text-weight-bold">รายรับรวมทั้งหมด</div>
+                <div class="text-h6 text-weight-bolder text-green-8 q-mt-xs">
+                  {{ formatMoney(financeTotals.totalIncome) }}
+                  <span class="text-caption text-green-7"> บาท</span>
+                </div>
+              </q-card>
+            </div>
+            <div class="col-12 col-sm-4">
+              <q-card
+                flat
+                class="bg-red-1 q-pa-md text-center"
+                style="border-radius: 10px; border: 1px solid #ef9a9a"
+              >
+                <div class="text-caption text-red-8 text-weight-bold">รายจ่ายรวมทั้งหมด</div>
+                <div class="text-h6 text-weight-bolder text-red-8 q-mt-xs">
+                  {{ formatMoney(financeTotals.totalExpense) }}
+                  <span class="text-caption text-red-7"> บาท</span>
+                </div>
+              </q-card>
+            </div>
+            <div class="col-12 col-sm-4">
+              <q-card
+                flat
+                class="q-pa-md text-center"
+                :class="financeTotals.balance >= 0 ? 'bg-blue-1' : 'bg-orange-1'"
+                :style="`border-radius: 10px; border: 1px solid ${financeTotals.balance >= 0 ? '#90caf9' : '#ffcc80'}`"
+              >
+                <div
+                  class="text-caption text-weight-bold"
+                  :class="financeTotals.balance >= 0 ? 'text-blue-8' : 'text-orange-8'"
+                >
+                  ยอดคงเหลือสุทธิ
+                </div>
+                <div
+                  class="text-h6 text-weight-bolder q-mt-xs"
+                  :class="financeTotals.balance >= 0 ? 'text-blue-8' : 'text-orange-8'"
+                >
+                  {{ formatMoney(financeTotals.balance) }}
+                  <span class="text-caption"> บาท</span>
+                </div>
+              </q-card>
+            </div>
+          </div>
+
           <q-table
             flat
             :rows="financeRows"

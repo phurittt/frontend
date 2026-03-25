@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: tmis-frontend
+    runtime: static
+    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist/spa
+    envVars:
+      # Must be set to your deployed backend URL BEFORE the build runs.
+      # e.g. https://tmis-backend.onrender.com
+      - key: API_URL
+        sync: false
+    routes:
+      # Rewrite all paths to index.html so Vue Router (history mode) works.
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -1,19 +1,13 @@
-export interface LecturerExpertise {
-  microsoftOffice: string[];
-  webDesign: string[];
-  programming: string[];
-  dataAnalysis: string[];
-  network: string[];
-}
-
 export interface Lecturer {
   id: number;
-  fullName: string; // ชื่อ - นามสกุล
-  organization: string; // หน่วยงาน
-  nationalId: string; // เลขประจำตัวประชาชน
-  address: string; // ที่อยู่
-  expertise: LecturerExpertise; // ความเชี่ยวชาญ (แยกตามหมวดหมู่)
-  otherExpertise: string; // ความเชี่ยวชาญเพิ่มเติม
+  firstName: string;
+  lastName: string;
+  department: string;
+  expertise: string; // ความเชี่ยวชาญ (เป็น string จาก backend)
+  additionalInfo?: string; // ข้อมูลเพิ่มเติม/ตำแหน่ง
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export type CreateLecturerDto = Omit<Lecturer, 'id'>;
+export type CreateLecturerDto = Omit<Lecturer, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateLecturerDto = Partial<CreateLecturerDto>;

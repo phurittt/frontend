@@ -13,53 +13,35 @@ const showDialog = ref(false);
 const isEdit = ref(false);
 const editId = ref<number | null>(null);
 
-// ตัวเลือกสำหรับ Dropdown หมวดหมู่ต่างๆ (ใส่เพิ่มได้ตามต้องการ)
-const msOfficeOptions = ['Word', 'Excel', 'PowerPoint', 'Access'];
-const webDesignOptions = ['HTML/CSS', 'Vue.js', 'React', 'Figma'];
-const programmingOptions = ['Python', 'Java', 'C++', 'JavaScript', 'Go'];
-const dataAnalysisOptions = ['Power BI', 'Tableau', 'SQL', 'Pandas'];
-const networkOptions = ['Cisco', 'MikroTik', 'Network Security'];
-
 const defaultForm = () => ({
-  fullName: '',
-  organization: '',
-  nationalId: '',
-  address: '',
-  expertise: {
-    microsoftOffice: [] as string[],
-    webDesign: [] as string[],
-    programming: [] as string[],
-    dataAnalysis: [] as string[],
-    network: [] as string[],
-  },
-  otherExpertise: '',
+  firstName: '',
+  lastName: '',
+  department: '',
+  expertise: [] as string[],
+  additionalInfo: '',
 });
 
 const form = ref(defaultForm());
 
 // ฟังก์ชันดึงความเชี่ยวชาญทั้งหมดมารวมเป็น String เดียวเพื่อโชว์ในตาราง
 const getExpertiseString = (row: Lecturer) => {
-  const allExpertise = [
-    ...row.expertise.microsoftOffice,
-    ...row.expertise.webDesign,
-    ...row.expertise.programming,
-    ...row.expertise.dataAnalysis,
-    ...row.expertise.network,
-  ];
-  if (row.otherExpertise) {
-    allExpertise.push(row.otherExpertise);
-  }
-  return allExpertise.join(', ') || '-';
+  return row.expertise || '-';
 };
 
 const columns: QTableColumn[] = [
   { name: 'id', label: 'ลำดับ', field: 'id', align: 'center', sortable: true },
-  { name: 'fullName', label: 'ชื่อวิทยากร', field: 'fullName', align: 'left', sortable: true },
-  { name: 'organization', label: 'หน่วยงาน', field: 'organization', align: 'left', sortable: true },
+  {
+    name: 'fullName',
+    label: 'ชื่อวิทยากร',
+    field: (row: Lecturer) => `${row.firstName} ${row.lastName}`,
+    align: 'left',
+    sortable: true,
+  },
+  { name: 'department', label: 'หน่วยงาน', field: 'department', align: 'left', sortable: true },
   {
     name: 'expertise',
     label: 'ความเชี่ยวชาญ',
-    field: (row) => getExpertiseString(row),
+    field: (row: Lecturer) => getExpertiseString(row),
     align: 'left',
   },
   { name: 'actions', label: 'การจัดการ', field: 'actions', align: 'center' },
@@ -77,18 +59,29 @@ function openAddDialog() {
 function editItem(item: Lecturer) {
   isEdit.value = true;
   editId.value = item.id;
-  // Deep clone เพื่อไม่ให้กระทบ state ตรงๆ เวลายังไม่กดเซฟ
-  form.value = JSON.parse(JSON.stringify(item));
+  // แปลงจาก string เป็น array เพื่อให้ q-select multiple ใช้งานได้
+  form.value = {
+    firstName: item.firstName,
+    lastName: item.lastName,
+    department: item.department,
+    expertise: item.expertise ? item.expertise.split(',').map((s) => s.trim()) : [],
+    additionalInfo: item.additionalInfo || '',
+  };
   showDialog.value = true;
 }
 
 function saveData() {
   try {
+    const payload = {
+      ...form.value,
+      expertise: form.value.expertise.join(', '),
+    };
+
     if (isEdit.value && editId.value) {
-      lecturerStore.updateLecturer(editId.value, form.value);
+      lecturerStore.updateLecturer(editId.value, payload as any);
       $q.notify({ type: 'positive', message: 'อัปเดตข้อมูลวิทยากรสำเร็จ' });
     } else {
-      lecturerStore.createLecturer(form.value);
+      lecturerStore.createLecturer(payload as any);
       $q.notify({ type: 'positive', message: 'เพิ่มวิทยากรใหม่สำเร็จ' });
     }
     showDialog.value = false;
@@ -96,6 +89,25 @@ function saveData() {
     $q.notify({ type: 'negative', message: 'เกิดข้อผิดพลาด' });
   }
 }
+
+const expertiseOptions = [
+  'Microsoft Word',
+  'Microsoft Excel',
+  'Microsoft PowerPoint',
+  'HTML/CSS',
+  'Vue.js',
+  'React',
+  'Node.js',
+  'Python',
+  'SQL',
+  'Data Analysis',
+  'Machine Learning',
+  'AI',
+  'Network Security',
+  'Cloud Computing',
+  'Docker',
+  'Kubernetes',
+];
 
 function deleteItem(id: number) {
   $q.dialog({
@@ -181,7 +193,7 @@ onMounted(() => {
     </q-card>
 
     <q-dialog v-model="showDialog" persistent>
-      <q-card style="width: 900px; max-width: 95vw; border-radius: 8px">
+      <q-card style="width: 700px; max-width: 95vw; border-radius: 8px">
         <q-card-section class="row items-center q-pb-none border-bottom q-mb-md">
           <div class="text-h6 text-weight-bold text-grey-8">
             จัดการข้อมูลวิทยากร /
@@ -199,119 +211,74 @@ onMounted(() => {
               <div class="col-12 col-md-6 column q-gutter-y-md">
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7"
-                    >ชื่อ - นามสกุล <span class="text-negative">*</span></label
+                    >ชื่อจริง <span class="text-negative">*</span></label
                   >
                   <q-input
-                    v-model="form.fullName"
+                    v-model="form.firstName"
                     outlined
                     dense
-                    :rules="[(val) => !!val || 'กรุณากรอกชื่อ-นามสกุล']"
+                    :rules="[(val) => !!val || 'กรุณากรอกชื่อจริง']"
                   />
                 </div>
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7"
-                    >หน่วยงาน <span class="text-negative">*</span></label
+                    >นามสกุล <span class="text-negative">*</span></label
                   >
                   <q-input
-                    v-model="form.organization"
+                    v-model="form.lastName"
                     outlined
                     dense
-                    placeholder="ค้นหาหน่วยงาน"
+                    :rules="[(val) => !!val || 'กรุณากรอกนามสกุล']"
+                  />
+                </div>
+                <div>
+                  <label class="text-caption text-weight-bold text-grey-7"
+                    >หน่วยงาน / สังกัด <span class="text-negative">*</span></label
+                  >
+                  <q-input
+                    v-model="form.department"
+                    outlined
+                    dense
+                    placeholder="โรงเรียน / มหาวิทยาลัย / บริษัท"
                     :rules="[(val) => !!val || 'กรุณากรอกหน่วยงาน']"
                   />
-                </div>
-
-                <div class="text-subtitle2 text-weight-bold text-dark q-mt-md">ความเชี่ยวชาญ</div>
-
-                <div>
-                  <label class="text-caption text-weight-bold text-grey-7">Microsoft Office</label>
-                  <q-select
-                    v-model="form.expertise.microsoftOffice"
-                    :options="msOfficeOptions"
-                    outlined
-                    dense
-                    multiple
-                    use-chips
-                    placeholder="เลือก"
-                  />
-                </div>
-                <div>
-                  <label class="text-caption text-weight-bold text-grey-7"
-                    >Web Application & Web Design</label
-                  >
-                  <q-select
-                    v-model="form.expertise.webDesign"
-                    :options="webDesignOptions"
-                    outlined
-                    dense
-                    multiple
-                    use-chips
-                    placeholder="เลือก"
-                  />
-                </div>
-                <div>
-                  <label class="text-caption text-weight-bold text-grey-7">Programming</label>
-                  <q-select
-                    v-model="form.expertise.programming"
-                    :options="programmingOptions"
-                    outlined
-                    dense
-                    multiple
-                    use-chips
-                    placeholder="เลือก"
-                  />
-                </div>
-                <div>
-                  <label class="text-caption text-weight-bold text-grey-7">Data Analysis</label>
-                  <q-select
-                    v-model="form.expertise.dataAnalysis"
-                    :options="dataAnalysisOptions"
-                    outlined
-                    dense
-                    multiple
-                    use-chips
-                    placeholder="เลือก"
-                  />
-                </div>
-                <div>
-                  <label class="text-caption text-weight-bold text-grey-7">Network</label>
-                  <q-select
-                    v-model="form.expertise.network"
-                    :options="networkOptions"
-                    outlined
-                    dense
-                    multiple
-                    use-chips
-                    placeholder="เลือก"
-                  />
-                </div>
-                <div>
-                  <label class="text-caption text-weight-bold text-grey-7">เพิ่มเติม</label>
-                  <q-input v-model="form.otherExpertise" type="textarea" outlined rows="3" />
                 </div>
               </div>
 
               <div class="col-12 col-md-6 column q-gutter-y-md">
                 <div>
                   <label class="text-caption text-weight-bold text-grey-7"
-                    >เลขประจำตัวประชาชน</label
+                    >ความเชี่ยวชาญ <span class="text-negative">*</span></label
                   >
-                  <q-input
-                    v-model="form.nationalId"
+                  <q-select
+                    v-model="form.expertise"
+                    :options="expertiseOptions"
                     outlined
                     dense
-                    mask="#-####-#####-##-#"
-                    unmasked-value
+                    multiple
+                    use-chips
+                    use-input
+                    new-value-mode="add-unique"
+                    placeholder="เลือกหรือพิมพ์ความเชี่ยวชาญ"
+                    :rules="[(val) => (val && val.length > 0) || 'กรุณาเลือกความเชี่ยวชาญ']"
                   />
                 </div>
                 <div>
-                  <label class="text-caption text-weight-bold text-grey-7">ที่อยู่</label>
-                  <q-input v-model="form.address" type="textarea" outlined rows="5" />
+                  <label class="text-caption text-weight-bold text-grey-7"
+                    >ข้อมูลเพิ่มเติม / ตำแหน่ง</label
+                  >
+                  <q-input
+                    v-model="form.additionalInfo"
+                    type="textarea"
+                    outlined
+                    rows="4"
+                    placeholder="เช่น อาจารย์อาวุโส, ผู้เชี่ยวชาญด้าน..."
+                  />
                 </div>
               </div>
             </div>
 
-            <div class="row q-gutter-sm q-mt-xl">
+            <div class="row justify-end q-gutter-sm q-mt-xl">
               <q-btn
                 unelevated
                 label="ย้อนกลับ"

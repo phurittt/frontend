@@ -91,7 +91,7 @@ const routes: RouteRecordRaw[] = [
             },
           },
           {
-            path: ':courseId',
+            path: ':projectId',
             name: 'registrant-manage',
             component: () => import('pages/admin/RegistrantManagementPage.vue'),
             meta: {
@@ -118,7 +118,7 @@ const routes: RouteRecordRaw[] = [
             },
           },
           {
-            path: ':courseId',
+            path: ':projectId',
             name: 'certificate-issuance',
             component: () => import('pages/admin/CertificateIssuanceManagementPage.vue'),
             meta: {
@@ -144,6 +144,30 @@ const routes: RouteRecordRaw[] = [
         path: 'reports',
         component: () => import('pages/admin/ReportDashboardPage.vue'),
         meta: { parent: 'รายงานและเว็บไซต์', title: 'รายงาน' },
+      },
+      // --------------------------------------------------------------------------------
+      {
+        path: 'finance',
+        component: RouterView,
+        children: [
+          {
+            path: '',
+            component: () => import('pages/admin/FinancePage.vue'),
+            meta: { title: 'รายรับ-รายจ่าย', breadcrumbs: [{ label: 'รายรับ-รายจ่าย' }] },
+          },
+          {
+            path: ':projectId',
+            name: 'finance-detail',
+            component: () => import('pages/admin/FinanceDetailPage.vue'),
+            meta: {
+              title: 'รายละเอียดการเงิน',
+              breadcrumbs: [
+                { label: 'รายรับ-รายจ่าย', to: '/admin/finance' },
+                { label: 'รายละเอียดการเงิน' },
+              ],
+            },
+          },
+        ],
       },
       // --------------------------------------------------------------------------------
       {
@@ -180,6 +204,12 @@ const routes: RouteRecordRaw[] = [
         path: 'slideshow',
         component: () => import('pages/admin/SlideShowManagePage.vue'),
         meta: { parent: 'ตั้งค่าระบบ', title: 'จัดการ Slide Show' },
+      },
+      // --------------------------------------------------------------------------------
+      {
+        path: 'profile',
+        component: () => import('pages/admin/AdminProfilePage.vue'),
+        meta: { title: 'โปรไฟล์ของฉัน', breadcrumbs: [{ label: 'โปรไฟล์ของฉัน' }] },
       },
     ],
   },

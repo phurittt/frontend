@@ -1,13 +1,14 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { useUserStore } from './user-store';
-import type { UserProfile } from 'src/models/user';
+import type { User } from 'src/models/user';
 import type { RegisterDto, AuthResponse } from 'src/models/auth';
+import { api } from 'src/boot/axios';
 import axios from 'axios';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    isLoggedIn: false,
-    token: null as string | null,
+    isLoggedIn: !!localStorage.getItem('token'),
+    token: localStorage.getItem('token'),
   }),
 
   actions: {
@@ -15,10 +16,30 @@ export const useAuthStore = defineStore('auth', {
       try {
         console.log('[Auth] Registering with DTO...', dto);
 
-        // จำลองการยิง API
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // แปลงไฟล์รูปโปรไฟล์เป็น base64 string (ถ้ามี)
+        let profilePictureStr: string | undefined = undefined;
+        if (dto.profilePic) {
+          profilePictureStr = await this.fileToBase64(dto.profilePic);
+        }
 
-        console.log(`[Auth] Registered successfully: ${dto.username}`);
+        const payload = {
+          username: dto.username,
+          password: dto.password,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          department: dto.department || undefined,
+          role: 'participant',
+          address: dto.address || undefined,
+          province: dto.province || undefined,
+          zipcode: dto.zipcode || undefined,
+          phone: dto.phone || undefined,
+          email: dto.email || undefined,
+          profilePicture: profilePictureStr,
+          isActive: true,
+        };
+
+        const response = await api.post('/auth/register', payload);
+        console.log(`[Auth] Registered successfully:`, response.data);
 
         return true;
       } catch (error) {
@@ -27,24 +48,42 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async login(username: string) {
+    fileToBase64(file: File): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    },
+
+    async login(username: string, password?: string) {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        const payload = { username, password: password || '123456' };
+        const response = await api.post<AuthResponse>('/auth/login', payload);
 
         this.isLoggedIn = true;
-        this.token = 'mock-jwt-token';
+        this.token = (response.data as any).access_token || (response.data as any).token;
+        localStorage.setItem('token', this.token as string);
 
-        const userData: UserProfile = {
-          id: 'USR-001',
-          username: username,
-          avatar: 'https://cdn.quasar.dev/img/cat.jpg',
-          role: 'student',
-          email: 'student@mail.com',
-          title: 'นาย',
-          firstNameTh: 'สมคิด',
-          lastNameTh: 'ปิ๊ดปี้ปิ๊ด',
-          phone: '0987654321',
-          province: 'ชลบุรี',
+        const beUser: any = (response.data as any).user;
+
+        const userData: User = {
+          id: beUser.id,
+          username: beUser.username,
+          firstName: beUser.firstName || '',
+          lastName: beUser.lastName || '',
+          department: beUser.department,
+          role: beUser.role || 'participant',
+          address: beUser.address,
+          province: beUser.province,
+          zipcode: beUser.zipcode,
+          phone: beUser.phone,
+          email: beUser.email,
+          profilePicture: beUser.profilePicture,
+          isActive: beUser.isActive ?? true,
+          createdAt: beUser.createdAt || '',
+          updatedAt: beUser.updatedAt || '',
         };
 
         const userStore = useUserStore();
@@ -54,6 +93,39 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         this.logout();
         throw error;
+      }
+    },
+
+    async initSession() {
+      if (this.token) {
+        try {
+          const response = await api.get('/auth/profile');
+          const beUser = response.data;
+
+          const userData: User = {
+            id: beUser.id ?? beUser.sub,
+            username: beUser.username || beUser.email || '',
+            firstName: beUser.firstName || '',
+            lastName: beUser.lastName || '',
+            department: beUser.department,
+            role: beUser.role || 'participant',
+            address: beUser.address,
+            province: beUser.province,
+            zipcode: beUser.zipcode,
+            phone: beUser.phone,
+            email: beUser.email,
+            profilePicture: beUser.profilePicture,
+            isActive: beUser.isActive ?? true,
+            createdAt: beUser.createdAt || '',
+            updatedAt: beUser.updatedAt || '',
+          };
+
+          const userStore = useUserStore();
+          userStore.profile = userData;
+          this.isLoggedIn = true;
+        } catch (e) {
+          this.logout();
+        }
       }
     },
 
@@ -68,17 +140,17 @@ export const useAuthStore = defineStore('auth', {
         this.isLoggedIn = true;
         this.token = accessToken;
 
-        const userData: UserProfile = {
+        const userData: User = {
           id: googleUser.sub,
-          username: googleUser.name,
-          avatar: googleUser.picture,
-          role: 'student',
+          username: googleUser.email || googleUser.name,
+          firstName: googleUser.given_name || '',
+          lastName: googleUser.family_name || '',
+          role: 'participant',
           email: googleUser.email,
-          title: '', // ข้อมูลจาก Google อาจจะไม่ครบ ต้องใส่ค่าเริ่มต้นไว้
-          firstNameTh: googleUser.given_name,
-          lastNameTh: googleUser.family_name,
-          phone: '',
-          province: '',
+          profilePicture: googleUser.picture,
+          isActive: true,
+          createdAt: '',
+          updatedAt: '',
         };
 
         const userStore = useUserStore();
@@ -96,6 +168,7 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.isLoggedIn = false;
       this.token = null;
+      localStorage.removeItem('token');
 
       const userStore = useUserStore();
       userStore.$reset();

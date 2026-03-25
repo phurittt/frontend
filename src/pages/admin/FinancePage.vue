@@ -3,15 +3,12 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProjectStore } from 'src/stores/project-store';
 import { useRegistrantStore } from 'src/stores/registrant-store';
-import { useCertificateStore } from 'src/stores/certificate-store';
-
 import CustomTableComponent from 'components/CustomTableComponent.vue';
 import type { TableColumn } from 'components/CustomTableComponent.vue';
 
 const router = useRouter();
 const projectStore = useProjectStore();
 const registrantStore = useRegistrantStore();
-const certificateStore = useCertificateStore();
 
 const search = ref('');
 const selectedYear = ref('ทั้งหมด');
@@ -28,21 +25,17 @@ watch(
 onMounted(() => {
   projectStore.fetchProjects();
   registrantStore.fetchAll();
-  certificateStore.fetchSummaries();
 });
 
-// Stats
 const totalProjects = computed(() => projectStore.projects.length);
-const totalRegistrants = computed(() => registrantStore.allRegistrations.length);
 
-// Table columns
 const columns: TableColumn[] = [
-  { name: 'name', label: 'ข้อมูลโครงการ', field: 'name', align: 'left', style: 'width: 35%' },
+  { name: 'name', label: 'ชื่อโครงการ', field: 'name', align: 'left', style: 'width: 35%' },
   { name: 'course', label: 'หลักสูตร', field: 'course', align: 'left', style: 'width: 25%' },
   { name: 'year', label: 'ปีงบประมาณ', field: 'year', align: 'center', style: 'width: 15%' },
   {
     name: 'regCount',
-    label: 'จำนวนผู้ลงทะเบียน',
+    label: 'ผู้ลงทะเบียน',
     field: 'regCount',
     align: 'center',
     style: 'width: 15%',
@@ -50,27 +43,20 @@ const columns: TableColumn[] = [
   { name: 'actions', label: '', field: 'actions', align: 'center', style: 'width: 10%' },
 ];
 
-// Build rows: projects that have NOT yet had certificates issued
 const baseRows = computed(() =>
-  projectStore.projects
-    .filter((p) => p.id !== undefined && !certificateStore.getSummaryByProjectId(p.id)?.managedAt)
-    .map((p) => {
-      const regCount = registrantStore.allRegistrations.filter((r) => r.projectId === p.id).length;
-
-      // Find course label from project structure
-      const courseTitle = p.courses?.[0]?.course?.label || '-';
-
-      return {
-        id: p.id,
-        name: p.projectData.projectName || 'ไม่ได้ระบุชื่อ',
-        course: courseTitle,
-        year: p.projectData.year || '-',
-        regCount,
-      };
-    }),
+  projectStore.projects.map((p) => {
+    const regCount = registrantStore.allRegistrations.filter((r) => r.projectId === p.id).length;
+    const courseTitle = p.courses?.[0]?.course?.label || '-';
+    return {
+      id: p.id,
+      name: p.projectData.projectName || 'ไม่ได้ระบุชื่อ',
+      course: courseTitle,
+      year: p.projectData.year || '-',
+      regCount,
+    };
+  }),
 );
 
-// Year filter options derived from actual project data
 const yearOptions = computed(() => {
   const years = new Set(projectStore.projects.map((p) => p.projectData.year).filter(Boolean));
   return ['ทั้งหมด', ...Array.from(years).sort().reverse()];
@@ -78,27 +64,21 @@ const yearOptions = computed(() => {
 
 const filteredRows = computed(() => {
   let result = baseRows.value;
-
   if (selectedYear.value !== 'ทั้งหมด') {
     result = result.filter((r) => r.year === selectedYear.value);
   }
-
   if (search.value.trim()) {
     const kw = search.value.toLowerCase().trim();
     result = result.filter(
-      (r) =>
-        r.name.toLowerCase().includes(kw) ||
-        r.course.toLowerCase().includes(kw) ||
-        String(r.id).includes(kw),
+      (r) => r.name.toLowerCase().includes(kw) || r.course.toLowerCase().includes(kw),
     );
   }
-
   return result;
 });
 
-const goToManage = (projectId: number | undefined) => {
+const goToDetail = (projectId: number | undefined) => {
   if (!projectId) return;
-  router.push({ name: 'registrant-manage', params: { projectId } });
+  router.push({ name: 'finance-detail', params: { projectId } });
 };
 </script>
 
@@ -110,13 +90,12 @@ const goToManage = (projectId: number | undefined) => {
         <q-card flat class="bento-box bg-white full-height q-pa-xl flex column justify-center">
           <div>
             <h1 class="text-h4 text-weight-bolder text-dark q-my-none tracking-tight">
-              Registrant Management
+              Finance Management
             </h1>
             <p class="text-grey-6 q-mt-sm q-mb-none text-body1">
-              ตรวจสอบและจัดการรายชื่อผู้ลงทะเบียนอบรม
+              บันทึกและตรวจสอบรายรับรายจ่ายของแต่ละโครงการ
             </p>
           </div>
-
           <div class="row items-center q-gutter-x-xl q-mt-xl">
             <div class="stat-item">
               <div class="text-h3 text-weight-bolder text-dark line-height-none">
@@ -128,17 +107,6 @@ const goToManage = (projectId: number | undefined) => {
                 โครงการทั้งหมด
               </div>
             </div>
-            <q-separator vertical color="grey-3" style="height: 78px" />
-            <div class="stat-item">
-              <div class="text-h3 text-weight-bolder text-teal-5 line-height-none">
-                {{ totalRegistrants }}
-              </div>
-              <div
-                class="text-caption text-grey-5 text-weight-bold text-uppercase letter-spacing-1 q-mt-sm"
-              >
-                ผู้ลงทะเบียนทั้งหมด
-              </div>
-            </div>
           </div>
         </q-card>
       </div>
@@ -147,29 +115,27 @@ const goToManage = (projectId: number | undefined) => {
       <div class="col-12 col-md-4 fade-up" style="animation-delay: 0.15s">
         <q-card flat class="bento-box bg-white full-height q-pa-xl flex column justify-center">
           <div class="text-h6 text-weight-bold text-dark q-mb-md">ค้นหาและกรองข้อมูล</div>
-
           <div class="column q-gutter-y-md">
             <div>
-              <label class="block text-caption text-weight-medium text-grey-6 q-mb-sm">
-                ค้นหาโครงการ
-              </label>
+              <label class="block text-caption text-weight-medium text-grey-6 q-mb-sm"
+                >ค้นหาโครงการ</label
+              >
               <q-input
                 outlined
                 dense
                 v-model="search"
-                placeholder="ชื่อโครงการ, รหัส (ID)..."
+                placeholder="ชื่อโครงการ, หลักสูตร..."
                 class="bento-input"
               >
-                <template v-slot:prepend>
-                  <q-icon name="search" color="grey-5" size="sm" />
-                </template>
+                <template v-slot:prepend
+                  ><q-icon name="search" color="grey-5" size="sm"
+                /></template>
               </q-input>
             </div>
-
             <div>
-              <label class="block text-caption text-weight-medium text-grey-6 q-mb-sm">
-                ปีงบประมาณ
-              </label>
+              <label class="block text-caption text-weight-medium text-grey-6 q-mb-sm"
+                >ปีงบประมาณ</label
+              >
               <q-select
                 outlined
                 dense
@@ -192,9 +158,9 @@ const goToManage = (projectId: number | undefined) => {
         >
           <template #body-cell-name="{ row }">
             <div class="column justify-center q-py-xs">
-              <span class="text-weight-bold text-dark text-subtitle2 line-height-tight">
-                {{ row.name }}
-              </span>
+              <span class="text-weight-bold text-dark text-subtitle2 line-height-tight">{{
+                row.name
+              }}</span>
               <span class="text-caption text-grey-5 q-mt-xs">Project ID: {{ row.id }}</span>
             </div>
           </template>
@@ -204,9 +170,9 @@ const goToManage = (projectId: number | undefined) => {
           </template>
 
           <template #body-cell-year="{ value }">
-            <q-chip :ripple="false" size="13px" class="text-weight-medium bento-chip" square flat>
-              {{ value }}
-            </q-chip>
+            <q-chip :ripple="false" size="13px" class="text-weight-medium bento-chip" square flat>{{
+              value
+            }}</q-chip>
           </template>
 
           <template #body-cell-regCount="{ value }">
@@ -219,10 +185,11 @@ const goToManage = (projectId: number | undefined) => {
               unelevated
               color="dark"
               text-color="white"
-              label="ดูรายชื่อ"
+              label="รายรับรายจ่าย"
               no-caps
               class="btn-primary"
-              @click="goToManage(row.id)"
+              icon="account_balance_wallet"
+              @click="goToDetail(row.id)"
             />
           </template>
         </CustomTableComponent>
@@ -240,6 +207,9 @@ const goToManage = (projectId: number | undefined) => {
 }
 .line-height-tight {
   line-height: 1.2;
+}
+.line-height-none {
+  line-height: 1;
 }
 
 .bento-box {
@@ -265,18 +235,8 @@ const goToManage = (projectId: number | undefined) => {
   :deep(.q-field__control) {
     border-radius: 12px;
     background: #f8fafc;
-    border: 1px solid transparent;
-    transition: all 0.3s ease;
     &::before {
       border-color: #cbd5e1;
-    }
-    &:hover {
-      background: #f1f5f9;
-    }
-    &:focus-within {
-      background: #ffffff;
-      border-color: #cbd5e1;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
     }
   }
 }

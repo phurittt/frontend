@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import type { QTableColumn } from 'quasar';
 import { useQuasar } from 'quasar';
 import { useCourseCategoryStore } from 'src/stores/courseCategory-store';
+import type { CreateCourseCategoryDto } from 'src/models/courseCategory';
 
 const $q = useQuasar();
 const categoryStore = useCourseCategoryStore();
@@ -57,11 +58,17 @@ function editItem(item: any) {
 
 async function saveData() {
   try {
+    const payload: CreateCourseCategoryDto = {
+      code: form.value.code,
+      name: form.value.name,
+      description: form.value.description,
+    };
+
     if (isEdit.value && editId.value) {
-      await categoryStore.updateCategory(editId.value, form.value);
+      await categoryStore.updateCategory(editId.value, payload);
       $q.notify({ type: 'positive', message: 'แก้ไขข้อมูลสำเร็จ' });
     } else {
-      await categoryStore.createCategory(form.value);
+      await categoryStore.createCategory(payload);
       $q.notify({ type: 'positive', message: 'เพิ่มประเภทหลักสูตรสำเร็จ' });
     }
     showDialog.value = false;

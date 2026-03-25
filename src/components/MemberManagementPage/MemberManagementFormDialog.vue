@@ -2,11 +2,11 @@
 import { ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/user-store';
-import type { UserProfile } from 'src/models/user';
+import type { User } from 'src/models/user';
 
 const props = defineProps<{
   modelValue: boolean;
-  userToEdit: UserProfile | null;
+  userToEdit: User | null;
 }>();
 
 const emit = defineEmits<{
@@ -20,20 +20,18 @@ const userStore = useUserStore();
 const TITLE_OPTIONS = ['นาย', 'นาง', 'นางสาว', 'ดร.', 'ศ.'];
 const ROLE_OPTIONS = [{ label: 'ผู้เข้าอบรม (Student)', value: 'student' }];
 
-const defaultForm = (): Omit<UserProfile, 'id'> => ({
+const defaultForm = (): Partial<User> => ({
   username: '',
   email: '',
-  title: 'นาย',
-  firstNameTh: '',
-  lastNameTh: '',
+  firstName: '',
+  lastName: '',
   phone: '',
   province: '',
-  organization: '',
-  avatar: '',
-  role: 'student', // บังคับเป็น student
+  department: '',
+  role: 'participant',
 });
 
-const formData = ref<Partial<UserProfile>>(defaultForm());
+const formData = ref<Partial<User>>(defaultForm());
 const isEditMode = ref(false);
 
 watch(
@@ -54,12 +52,12 @@ const closeDialog = () => {
   emit('update:modelValue', false);
 };
 
-const onSubmit = () => {
+const onSubmit = async () => {
   const isUpdate = isEditMode.value && formData.value.id;
   if (isUpdate) {
-    userStore.updateUser(formData.value as UserProfile);
+    await userStore.updateUser(formData.value.id as number, formData.value);
   } else {
-    userStore.addUser(formData.value as Omit<UserProfile, 'id'>);
+    await userStore.addUser(formData.value as any);
   }
 
   $q.notify({
@@ -141,19 +139,11 @@ const onSubmit = () => {
                 >
               </div>
               <div class="row q-col-gutter-md">
-                <q-select
-                  class="col-12 col-sm-3"
-                  outlined
-                  dense
-                  v-model="formData.title"
-                  :options="TITLE_OPTIONS"
-                  label="คำนำหน้า"
-                />
                 <q-input
-                  class="col-12 col-sm-4"
+                  class="col-12 col-sm-5"
                   outlined
                   dense
-                  v-model="formData.firstNameTh"
+                  v-model="formData.firstName"
                   label="ชื่อจริง"
                   :rules="[(val) => !!val || '']"
                   hide-bottom-space
@@ -162,7 +152,7 @@ const onSubmit = () => {
                   class="col-12 col-sm-5"
                   outlined
                   dense
-                  v-model="formData.lastNameTh"
+                  v-model="formData.lastName"
                   label="นามสกุล"
                   :rules="[(val) => !!val || '']"
                   hide-bottom-space
@@ -171,7 +161,7 @@ const onSubmit = () => {
                   class="col-12 col-sm-6"
                   outlined
                   dense
-                  v-model="formData.organization"
+                  v-model="formData.department"
                   label="หน่วยงาน / สังกัด"
                   hide-bottom-space
                 />

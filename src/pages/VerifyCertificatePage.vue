@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
+import { useCertificateStore } from 'src/stores/certificate-store';
 
 const $q = useQuasar();
+const certificateStore = useCertificateStore();
 const certCode = ref('');
+const isVerifying = ref(false);
+const verifyResult = ref<any>(null);
+const verifyError = ref('');
 
 const showImageMenu = ref(false);
 let hideTimer: any = null;
@@ -19,8 +24,8 @@ const onMouseLeave = () => {
   }, 200);
 };
 
-const verifyCode = () => {
-  if (!certCode.value) {
+const verifyCode = async () => {
+  if (!certCode.value.trim()) {
     $q.notify({
       message: 'กรุณากรอกรหัส Code ก่อนทำการตรวจสอบ',
       color: 'warning',
@@ -29,14 +34,16 @@ const verifyCode = () => {
     });
     return;
   }
-
-  $q.notify({
-    message: 'กำลังตรวจสอบข้อมูล...',
-    color: 'info',
-    icon: 'search',
-    position: 'top',
-    timeout: 1500,
-  });
+  isVerifying.value = true;
+  verifyResult.value = null;
+  verifyError.value = '';
+  try {
+    verifyResult.value = await certificateStore.verifyCertificate(certCode.value.trim());
+  } catch {
+    verifyError.value = 'ไม่พบวุฒิบัตรที่มีรหัสนี้ หรือรหัสไม่ถูกต้อง';
+  } finally {
+    isVerifying.value = false;
+  }
 };
 </script>
 
@@ -97,10 +104,87 @@ const verifyCode = () => {
             label="ตรวจสอบ"
             icon="check_circle_outline"
             class="full-width text-weight-bold text-subtitle1 verify-btn"
+            :loading="isVerifying"
             @click="verifyCode"
           />
         </div>
       </div>
+
+      <!-- Success Result -->
+      <transition name="fade">
+        <q-card
+          v-if="verifyResult"
+          flat
+          bordered
+          class="q-mt-xl text-left"
+          style="border-radius: 16px; border-color: #4caf50"
+        >
+          <q-card-section>
+            <div class="row items-center q-mb-md">
+              <q-avatar color="green-1" text-color="green-8" size="48px">
+                <q-icon name="verified" size="28px" />
+              </q-avatar>
+              <div class="q-ml-md">
+                <div class="text-h6 text-green-8 text-weight-bold">วุฒิบัตรถูกต้อง</div>
+                <div class="text-caption text-grey-6">ระบบยืนยันว่าวุฒิบัตรนี้ออกโดยระบบ TMIS</div>
+              </div>
+            </div>
+            <q-separator class="q-mb-md" />
+            <div class="row q-col-gutter-md">
+              <div class="col-12 col-sm-6">
+                <div class="text-caption text-grey-6">ชื่อ-นามสกุล</div>
+                <div class="text-body1 text-weight-bold">{{ verifyResult.participantName }}</div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="text-caption text-grey-6">รหัสวุฒิบัตร</div>
+                <div class="text-body1 text-weight-bold text-primary">
+                  {{ verifyResult.certificateCode }}
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="text-caption text-grey-6">หลักสูตร</div>
+                <div class="text-body1 text-weight-bold">{{ verifyResult.courseName }}</div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="text-caption text-grey-6">โครงการ</div>
+                <div class="text-body1">{{ verifyResult.projectName }}</div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="text-caption text-grey-6">ระยะเวลา</div>
+                <div class="text-body1">{{ verifyResult.duration }}</div>
+              </div>
+              <div class="col-12 col-sm-6" v-if="verifyResult.issueDate">
+                <div class="text-caption text-grey-6">วันที่ออกวุฒิบัตร</div>
+                <div class="text-body1">
+                  {{
+                    new Date(verifyResult.issueDate).toLocaleDateString('th-TH', {
+                      timeZone: 'Asia/Bangkok',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })
+                  }}
+                </div>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </transition>
+
+      <!-- Error Result -->
+      <transition name="fade">
+        <q-banner
+          v-if="verifyError"
+          class="q-mt-xl text-white bg-negative"
+          style="border-radius: 12px"
+          rounded
+        >
+          <template v-slot:avatar>
+            <q-icon name="cancel" color="white" />
+          </template>
+          {{ verifyError }}
+        </q-banner>
+      </transition>
     </q-card>
   </div>
 </template>
@@ -154,5 +238,17 @@ const verifyCode = () => {
   .verify-card {
     padding: 32px 20px !important;
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

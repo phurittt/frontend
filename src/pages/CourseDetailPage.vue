@@ -42,8 +42,7 @@ const isFavorite = computed(() => {
 const showWaitingListDialog = ref(false);
 
 const handleRegisterClick = () => {
-  const isFull = course.value?.totalSeats === course.value?.registeredSeats;
-
+  const isFull = (course.value?.registeredSeats ?? 0) >= (course.value?.totalSeats ?? 0);
   if (isFull) {
     showWaitingListDialog.value = true;
   } else {
@@ -103,8 +102,13 @@ const buttonLabel = computed(() => {
 
   if (isEnrolled.value) return 'ท่านลงทะเบียนหลักสูตรนี้แล้ว';
 
-  if (course.value?.totalSeats === course.value?.registeredSeats) {
-    return 'ลงทะเบียนสำรอง (Waiting List)';
+  if (!isRegistrationOpen.value) return registrationWindowMessage.value ?? '';
+
+  if ((course.value?.registeredSeats ?? 0) >= (course.value?.totalSeats ?? 0)) {
+    const wFull =
+      (course.value?.waitingListCount ?? 0) >= (course.value?.reserveCapacity ?? 0) &&
+      (course.value?.reserveCapacity ?? 0) > 0;
+    return wFull ? 'ที่นั่งและคิวสำรองเต็มแล้ว' : 'ลงทะเบียนสำรอง (Waiting List)';
   }
 
   return 'ลงทะเบียนอบรม';
@@ -122,7 +126,17 @@ const handleMainButtonClick = () => {
     return;
   }
 
-  if (isEnrolled.value) return;
+  if (isEnrolled.value || hasCancelled.value) return;
+
+  if (!isRegistrationOpen.value) {
+    $q.notify({
+      message: registrationWindowMessage.value ?? 'ไม่สามารถลงทะเบียนได้ในขณะนี้',
+      color: 'warning',
+      icon: 'schedule',
+      position: 'top',
+    });
+    return;
+  }
 
   handleRegisterClick();
 };
@@ -164,6 +178,27 @@ const hasCancelled = computed(() => {
   return store.enrolledCourses.some(
     (e) => e.courseId === course.value?.id && e.statusCode === 'cancelled',
   );
+});
+
+// ─── Registration window ──────────────────────────────────────────────────────
+
+type RegStatus = 'open' | 'not_started' | 'ended';
+
+const registrationStatus = computed((): RegStatus => {
+  const c = course.value;
+  if (!c) return 'open';
+  const now = new Date();
+  if (c.registrationStartDate && now < new Date(c.registrationStartDate)) return 'not_started';
+  if (c.registrationEndDate && now > new Date(c.registrationEndDate)) return 'ended';
+  return 'open';
+});
+
+const isRegistrationOpen = computed(() => registrationStatus.value === 'open');
+
+const registrationWindowMessage = computed(() => {
+  if (registrationStatus.value === 'not_started') return 'ยังไม่ถึงเวลาเปิดรับลงทะเบียน';
+  if (registrationStatus.value === 'ended') return 'หมดเวลารับลงทะเบียนแล้ว';
+  return null;
 });
 </script>
 
@@ -470,21 +505,66 @@ const hasCancelled = computed(() => {
                     :value="course.registeredSeats / course.totalSeats"
                     color="primary"
                     track-color="pink-1"
-                    class="q-mb-xl shadow-1"
+                    class="q-mb-sm shadow-1"
                   />
 
+                  <!-- Waiting List Count -->
+                  <div
+                    v-if="course.reserveCapacity > 0"
+                    class="flex items-center justify-between q-mb-lg"
+                    style="font-size: 12px"
+                  >
+                    <span class="text-grey-6 flex items-center">
+                      <q-icon name="hourglass_empty" size="14px" class="q-mr-xs" />
+                      คิวสำรอง:
+                      <strong
+                        class="q-ml-xs"
+                        :class="course.waitingListCount > 0 ? 'text-orange-8' : 'text-grey-5'"
+                      >
+                        {{ course.waitingListCount }} / {{ course.reserveCapacity }} คน
+                      </strong>
+                    </span>
+                    <q-badge
+                      v-if="course.waitingListCount >= course.reserveCapacity"
+                      color="deep-orange-4"
+                      text-color="white"
+                      rounded
+                      class="q-px-sm"
+                    >
+                      คิวเต็ม
+                    </q-badge>
+                  </div>
+                  <div v-else class="q-mb-lg" />
+
                   <div class="column q-gutter-y-sm">
+                    <!-- Registration window message -->
+                    <div
+                      v-if="
+                        registrationWindowMessage &&
+                        authStore.isLoggedIn &&
+                        !isEnrolled &&
+                        !hasCancelled
+                      "
+                      class="row items-center q-gutter-x-xs text-caption q-px-sm q-py-xs"
+                      style="background: #fff8e1; border-radius: 8px; color: #8d6e00"
+                    >
+                      <q-icon name="schedule" size="14px" />
+                      <span>{{ registrationWindowMessage }}</span>
+                    </div>
+
                     <q-btn
                       unelevated
-                      :disable="isEnrolled || hasCancelled"
+                      :disable="isEnrolled || hasCancelled || !isRegistrationOpen"
                       :class="[
                         !authStore.isLoggedIn
                           ? 'btn-login-required'
                           : isEnrolled || hasCancelled
                             ? 'btn-enrolled'
-                            : course.totalSeats === course.registeredSeats
-                              ? 'btn-notify'
-                              : 'btn-main',
+                            : !isRegistrationOpen
+                              ? 'btn-enrolled'
+                              : course.totalSeats === course.registeredSeats
+                                ? 'btn-notify'
+                                : 'btn-main',
                       ]"
                       class="full-width text-weight-bold q-py-md text-subtitle1"
                       :label="buttonLabel"
@@ -493,9 +573,11 @@ const hasCancelled = computed(() => {
                           ? 'eva-alert-triangle-outline'
                           : isEnrolled
                             ? 'check_circle'
-                            : course.totalSeats === course.registeredSeats
-                              ? 'notifications_active'
-                              : undefined
+                            : !isRegistrationOpen
+                              ? 'schedule'
+                              : course.totalSeats === course.registeredSeats
+                                ? 'notifications_active'
+                                : undefined
                       "
                       rounded
                       no-caps
