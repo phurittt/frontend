@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { useReportStore } from 'src/stores/report-store';
+import * as XLSX from 'xlsx';
 
 const $q = useQuasar();
 const reportStore = useReportStore();
@@ -67,15 +68,69 @@ const financeTotals = computed(() => {
   return { totalIncome, totalExpense, balance: totalIncome - totalExpense };
 });
 
+const totalRegistered = computed(() =>
+  summaryRows.value.reduce((s, r) => s + (r.registered || 0), 0),
+);
+const totalAttended = computed(() => summaryRows.value.reduce((s, r) => s + (r.attended || 0), 0));
+
 // Format Number (สำหรับโชว์เงินบาท)
 const formatMoney = (val: number) => new Intl.NumberFormat('th-TH').format(val);
 
 // Actions
 const exportToExcel = () => {
+  type SheetRow = Record<string, string | number>;
+  let data: SheetRow[] = [];
+  let sheetName = 'รายงาน';
+  let fileName = `รายงาน_${reportStore.filters.year}`;
+
+  if (activeTab.value === 'summary') {
+    sheetName = 'ภาพรวมรายปี';
+    fileName = `ภาพรวมรายปี_${reportStore.filters.year}`;
+    data = summaryRows.value.map((r, i) => ({
+      ลำดับ: i + 1,
+      ชื่อโครงการ: r.projectName,
+      วันที่จัดโครงการ: r.date,
+      รูปแบบการจัด: r.format,
+      ผู้ลงทะเบียน: r.registered,
+      ผู้เข้าร่วมจริง: r.attended,
+    }));
+  } else if (activeTab.value === 'lecturer') {
+    sheetName = 'ประวัติวิทยากร';
+    fileName = `วิทยากร_${reportStore.filters.year}`;
+    data = lecturerRows.value.map((r, i) => ({
+      ลำดับ: i + 1,
+      ชื่อวิทยากร: r.lecturerName,
+      ประเภท: r.lecturerType,
+      หลักสูตรที่สอน: r.courseName,
+      ในโครงการ: r.projectName,
+      วันที่สอน: r.teachingDate,
+    }));
+  } else if (activeTab.value === 'finance') {
+    sheetName = 'สรุปการเงิน';
+    fileName = `การเงิน_${reportStore.filters.year}`;
+    data = financeRows.value.map((r, i) => ({
+      ลำดับ: i + 1,
+      ชื่อโครงการ: r.projectName,
+      รูปแบบ: r.format,
+      'ผู้เข้าร่วม (คน)': r.totalAttendees,
+      'รายรับ (บาท)': r.income,
+      'รายจ่าย (บาท)': r.expense,
+      'คงเหลือ (บาท)': r.profit,
+    }));
+  } else {
+    $q.notify({ type: 'warning', message: 'ไม่สามารถ Export แท็บนี้ได้' });
+    return;
+  }
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, `${fileName}.xlsx`);
+
   $q.notify({
     type: 'positive',
     icon: 'table_view',
-    message: `Export ข้อมูลรายงานปี ${reportStore.filters.year} สำเร็จ`,
+    message: `Export "${sheetName}" สำเร็จ`,
   });
 };
 const printReport = () => {
@@ -113,6 +168,51 @@ const printReport = () => {
           style="border-radius: 8px"
           @click="printReport"
         />
+      </div>
+    </div>
+
+    <div class="row q-col-gutter-md q-mb-md">
+      <div class="col-12 col-sm-6">
+        <q-card
+          flat
+          bordered
+          class="bg-blue-1 q-pa-md"
+          style="border-radius: 12px; border: 1px solid #90caf9"
+        >
+          <div class="row items-center no-wrap">
+            <q-avatar color="blue-2" text-color="blue-8" size="52px" class="q-mr-md">
+              <q-icon name="how_to_reg" size="28px" />
+            </q-avatar>
+            <div>
+              <div class="text-caption text-blue-8 text-weight-bold">ผู้ลงทะเบียนทั้งหมด</div>
+              <div class="text-h5 text-weight-bolder text-blue-9">
+                {{ totalRegistered.toLocaleString('th-TH') }}
+                <span class="text-caption text-blue-7"> คน</span>
+              </div>
+            </div>
+          </div>
+        </q-card>
+      </div>
+      <div class="col-12 col-sm-6">
+        <q-card
+          flat
+          bordered
+          class="bg-green-1 q-pa-md"
+          style="border-radius: 12px; border: 1px solid #a5d6a7"
+        >
+          <div class="row items-center no-wrap">
+            <q-avatar color="green-2" text-color="green-8" size="52px" class="q-mr-md">
+              <q-icon name="people" size="28px" />
+            </q-avatar>
+            <div>
+              <div class="text-caption text-green-8 text-weight-bold">ผู้เข้าร่วมทั้งหมด</div>
+              <div class="text-h5 text-weight-bolder text-green-9">
+                {{ totalAttended.toLocaleString('th-TH') }}
+                <span class="text-caption text-green-7"> คน</span>
+              </div>
+            </div>
+          </div>
+        </q-card>
       </div>
     </div>
 

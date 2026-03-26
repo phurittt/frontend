@@ -321,12 +321,11 @@ function formatMoney(n: number) {
             unelevated
             color="green-1"
             text-color="green-8"
-            icon="add"
-            label="เพิ่มรายรับ"
+            label="+ รายรับ"
             no-caps
-            size="sm"
-            class="text-weight-bold q-px-md"
-            style="border-radius: 8px"
+            dense
+            padding="3px 10px"
+            style="border-radius: 6px; font-size: 12px; font-weight: 600"
             @click="openAddDialog('income')"
           />
         </div>
@@ -417,12 +416,11 @@ function formatMoney(n: number) {
             unelevated
             color="red-1"
             text-color="red-8"
-            icon="add"
-            label="เพิ่มรายจ่าย"
+            label="+ รายจ่าย"
             no-caps
-            size="sm"
-            class="text-weight-bold q-px-md"
-            style="border-radius: 8px"
+            dense
+            padding="3px 10px"
+            style="border-radius: 6px; font-size: 12px; font-weight: 600"
             @click="openAddDialog('expense')"
           />
         </div>

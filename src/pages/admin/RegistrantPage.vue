@@ -219,9 +219,12 @@ const goToManage = (projectId: number | undefined) => {
               unelevated
               color="dark"
               text-color="white"
+              icon="group"
               label="ดูรายชื่อ"
               no-caps
-              class="btn-primary"
+              size="sm"
+              padding="5px 12px"
+              style="border-radius: 8px; font-weight: 600"
               @click="goToManage(row.id)"
             />
           </template>

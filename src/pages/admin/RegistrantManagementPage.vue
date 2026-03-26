@@ -5,12 +5,9 @@ import { useQuasar, type QTableColumn } from 'quasar';
 import { useRegistrantStore } from 'src/stores/registrant-store';
 import { useUserStore } from 'src/stores/user-store';
 import {
-  PaymentStatus,
   AttendanceStatus,
   ParticipantType,
-  PAYMENT_STATUS_LABEL,
   ATTENDANCE_STATUS_LABEL,
-  PAYMENT_STATUS_COLOR,
   ATTENDANCE_STATUS_COLOR,
   type CreateRegistrationDto,
   type UpdateRegistrationDto,
@@ -23,7 +20,6 @@ const registrantStore = useRegistrantStore();
 const userStore = useUserStore();
 
 const search = ref('');
-const activeTab = ref<PaymentStatus | 'all'>('all');
 const projectId = Number(route.params.projectId);
 
 onMounted(() => {
@@ -39,24 +35,9 @@ const courseName = computed(
   () => registrantStore.projectRegistrations[0]?.project?.course?.title ?? '',
 );
 
-// Tab counts
-const counts = computed(() => {
-  const all = registrantStore.projectRegistrations;
-  return {
-    all: all.length,
-    [PaymentStatus.UNPAID]: all.filter((r) => r.paymentStatus === PaymentStatus.UNPAID).length,
-    [PaymentStatus.PAID]: all.filter((r) => r.paymentStatus === PaymentStatus.PAID).length,
-    [PaymentStatus.FREE]: all.filter((r) => r.paymentStatus === PaymentStatus.FREE).length,
-  };
-});
-
-// Filtered rows by tab + search
+// Filtered rows by search
 const filteredRows = computed(() => {
   let rows = registrantStore.projectRegistrations;
-
-  if (activeTab.value !== 'all') {
-    rows = rows.filter((r) => r.paymentStatus === activeTab.value);
-  }
 
   if (search.value.trim()) {
     const kw = search.value.toLowerCase();
@@ -98,7 +79,6 @@ const columns: QTableColumn[] = [
     align: 'center',
     sortable: true,
   },
-  { name: 'paymentStatus', label: 'สถานะการชำระเงิน', field: 'paymentStatus', align: 'center' },
   {
     name: 'attendanceStatus',
     label: 'สถานะการเข้าร่วม',
@@ -139,14 +119,12 @@ const participantTypeOptions = Object.values(ParticipantType);
 interface AddForm {
   selectedUser: { label: string; value: number } | null;
   participantType: ParticipantType;
-  paymentStatus: PaymentStatus;
   foodRequirement: string;
 }
 
 const defaultAddForm = (): AddForm => ({
   selectedUser: null,
   participantType: ParticipantType.GENERAL,
-  paymentStatus: PaymentStatus.UNPAID,
   foodRequirement: '',
 });
 
@@ -167,7 +145,6 @@ const onSaveRegistrant = async () => {
     userId: addForm.value.selectedUser.value,
     projectId,
     participantType: addForm.value.participantType,
-    paymentStatus: addForm.value.paymentStatus,
     ...(addForm.value.foodRequirement && { foodRequirement: addForm.value.foodRequirement }),
   };
 
@@ -188,21 +165,14 @@ const showEditDialog = ref(false);
 const editingId = ref<number | null>(null);
 
 interface EditForm {
-  paymentStatus: PaymentStatus;
   attendanceStatus: AttendanceStatus;
   foodRequirement: string;
 }
 
 const editForm = ref<EditForm>({
-  paymentStatus: PaymentStatus.UNPAID,
   attendanceStatus: AttendanceStatus.PENDING,
   foodRequirement: '',
 });
-
-const paymentStatusOptions = Object.values(PaymentStatus).map((v) => ({
-  label: PAYMENT_STATUS_LABEL[v],
-  value: v,
-}));
 
 const attendanceStatusOptions = Object.values(AttendanceStatus).map((v) => ({
   label: ATTENDANCE_STATUS_LABEL[v],
@@ -212,7 +182,6 @@ const attendanceStatusOptions = Object.values(AttendanceStatus).map((v) => ({
 const openEditDialog = (row: any) => {
   editingId.value = row.id;
   editForm.value = {
-    paymentStatus: row.paymentStatus,
     attendanceStatus: row.attendanceStatus,
     foodRequirement: row.foodRequirement ?? '',
   };
@@ -222,7 +191,6 @@ const openEditDialog = (row: any) => {
 const onSaveEdit = async () => {
   if (!editingId.value) return;
   const dto: UpdateRegistrationDto = {
-    paymentStatus: editForm.value.paymentStatus,
     attendanceStatus: editForm.value.attendanceStatus,
     ...(editForm.value.foodRequirement && { foodRequirement: editForm.value.foodRequirement }),
   };
@@ -278,39 +246,8 @@ const onDelete = (id: number) => {
       </div>
     </div>
 
-    <!-- Payment Status Tabs -->
-    <q-tabs
-      v-model="activeTab"
-      dense
-      class="text-grey-7 bg-white q-pt-sm shadow-1"
-      active-color="primary"
-      indicator-color="primary"
-      align="left"
-      narrow-indicator
-      style="border-radius: 8px 8px 0 0"
-    >
-      <q-tab name="all" :label="`ทั้งหมด (${counts.all})`" />
-      <q-tab
-        :name="PaymentStatus.UNPAID"
-        :label="`${PAYMENT_STATUS_LABEL[PaymentStatus.UNPAID]} (${counts[PaymentStatus.UNPAID]})`"
-      />
-      <q-tab
-        :name="PaymentStatus.PAID"
-        :label="`${PAYMENT_STATUS_LABEL[PaymentStatus.PAID]} (${counts[PaymentStatus.PAID]})`"
-      />
-      <q-tab
-        :name="PaymentStatus.FREE"
-        :label="`${PAYMENT_STATUS_LABEL[PaymentStatus.FREE]} (${counts[PaymentStatus.FREE]})`"
-      />
-    </q-tabs>
-
     <!-- Table Card -->
-    <q-card
-      flat
-      bordered
-      class="bg-white q-pa-sm"
-      style="border-radius: 0 0 8px 8px; border-top: none"
-    >
+    <q-card flat bordered class="bg-white q-pa-sm" style="border-radius: 8px">
       <q-card-section>
         <!-- Toolbar -->
         <div class="row items-center q-mb-md q-gutter-x-sm justify-between">
@@ -350,20 +287,6 @@ const onDelete = (id: number) => {
           table-header-class="bg-grey-1 text-weight-bold text-dark"
           no-data-label="ยังไม่มีผู้ลงทะเบียน"
         >
-          <!-- paymentStatus chip -->
-          <template v-slot:body-cell-paymentStatus="props">
-            <q-td :props="props">
-              <q-chip
-                :color="PAYMENT_STATUS_COLOR[props.value as PaymentStatus]?.bg"
-                :text-color="PAYMENT_STATUS_COLOR[props.value as PaymentStatus]?.text"
-                size="sm"
-                class="text-weight-bold q-px-sm"
-              >
-                {{ PAYMENT_STATUS_LABEL[props.value as PaymentStatus] ?? props.value }}
-              </q-chip>
-            </q-td>
-          </template>
-
           <!-- attendanceStatus chip -->
           <template v-slot:body-cell-attendanceStatus="props">
             <q-td :props="props">
@@ -457,20 +380,6 @@ const onDelete = (id: number) => {
             </div>
           </div>
 
-          <div class="q-mb-md">
-            <div class="text-weight-bold q-mb-xs">สถานะการชำระเงิน</div>
-            <q-select
-              outlined
-              dense
-              v-model="addForm.paymentStatus"
-              :options="paymentStatusOptions"
-              option-label="label"
-              option-value="value"
-              emit-value
-              map-options
-            />
-          </div>
-
           <div class="q-mb-lg">
             <div class="text-weight-bold q-mb-xs">ความต้องการอาหาร (ถ้ามี)</div>
             <q-input
@@ -513,20 +422,6 @@ const onDelete = (id: number) => {
         </q-card-section>
 
         <q-card-section class="q-pt-md">
-          <div class="q-mb-md">
-            <div class="text-weight-bold q-mb-xs">สถานะการชำระเงิน</div>
-            <q-select
-              outlined
-              dense
-              v-model="editForm.paymentStatus"
-              :options="paymentStatusOptions"
-              option-label="label"
-              option-value="value"
-              emit-value
-              map-options
-            />
-          </div>
-
           <div class="q-mb-md">
             <div class="text-weight-bold q-mb-xs">สถานะการเข้าร่วม</div>
             <q-select
